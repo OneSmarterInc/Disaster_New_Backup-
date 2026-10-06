@@ -1,0 +1,14 @@
+{
+  "name": "sim10",
+  "private": true,
+  "description": "RapidSim 10: Infrastructure or Bubble?",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "gate": "node tools/gate.js",
+    "test": "node test/run.js",
+    "build": "node tools/gate.js"
+  }
+}

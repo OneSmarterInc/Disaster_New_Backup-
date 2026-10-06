@@ -1,0 +1,36 @@
+{
+  "doc": "eqix-10q-2003q2",
+  "url": "https://www.sec.gov/Archives/edgar/data/1101239/000119312503028382/d10q.htm",
+  "filed": "2003-08-04",
+  "unit": "usd_k",
+  "q_jun2003": {
+    "is.revenue": [28434, "p.4"],
+    "is.revenue_recurring": [25999, "p.28 table"],
+    "is.revenue_acquired": [5100, "p.28 MD&A: acquired companies $5.1m (rounded)"],
+    "is.revenue_settlement_fees": [1100, "p.28-29 MD&A: court-mandated payments from two bankrupt former customers"],
+    "is.cost_of_revenue": [31634, "p.4"],
+    "is.depreciation": [15302, "derived: p.5 six-month depreciation and accretion 31,556 less Q1 16,254 (includes new accretion expense)"],
+    "is.restructuring": [0, "p.4"],
+    "is.operating_loss": [-16242, "p.4"],
+    "is.interest_expense": [-5027, "p.4"],
+    "is.debt_gain": [0, "p.4"],
+    "is.net_loss": [-21203, "p.4"],
+    "bs.cash": [24257, "p.3"],
+    "bs.restricted_cash": [2187, "p.3: 0 + 2,187"],
+    "bs.ppe_in_service": [360922, "p.3"],
+    "bs.total_assets": [437398, "p.3"],
+    "bs.debt_current": [9964, "p.3: 2,983 + 6,981"],
+    "bs.debt_long": [142075, "p.3: 2,007 + 83,538 + 29,064 + 27,466"],
+    "cf.capex_quarter": [1114, "derived: p.5 six-month 1,460 less Q1 346"],
+    "cf.operating_q": [-2688, "derived: p.5 six-month -22,246 less Q1 -19,558"],
+    "hl.customers": [428, "p.28 MD&A, US customers incl. two acquired US sites; not same basis as 326 in Mar 2003"],
+    "nt.top_customer_share": [15, "p.22 note 13"]
+  },
+  "text": [
+    ["June 2003: $10m of new convertible secured notes closed with a venture investor; warrants exercised", "p.1 note 1; p.16-17 note 9"],
+    ["In compliance with all covenants at 30 June 2003, now including a monthly minimum cash balance", "p.6 note 1"],
+    ["Like-for-like recurring revenue up 46% year on year in the main market", "p.28 MD&A"],
+    ["$1.1m of settlement fees received from two bankrupt former customers under court orders", "p.28-29 MD&A (names stripped)"]
+  ],
+  "not_captured": ["nt.bond_market_value (Item 3, p.50)"]
+}

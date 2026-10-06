@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accept your invitation — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="narrow" id="app"></div>
+
+<div class="narrow"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const token = new URLSearchParams(location.search).get('t') || '';
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+
+function problem(title, text) {
+  app.innerHTML = `<div class="eyebrow">Flexee RapidSims</div><h1>${esc(title)}</h1><p class="lede">${esc(text)}</p>`;
+}
+
+(async () => {
+  if (!token) return problem('No invitation here', 'This link is missing its invitation code. Ask whoever invited you to send it again.');
+  let info;
+  try {
+    info = await api('/api/auth', { action: 'invite_check', token });
+  } catch (e) {
+    const k = e.body && e.body.error;
+    if (k === 'already_used') return problem('Already accepted', 'This invitation has been used. Sign in with your email and password instead.');
+    if (k === 'expired')      return problem('This invitation has expired', 'Ask whoever invited you to send a fresh one.');
+    return problem("We don't recognise this invitation", 'Check you copied the whole link, or ask for a new one.');
+  }
+
+  app.innerHTML = `
+    <div class="eyebrow">Flexee RapidSims · invitation</div>
+    <h1>Welcome, <em>${esc((info.name || '').split(' ')[0])}</em></h1>
+    <p class="lede">You've been set up as a facilitator. Choose a password and you're in.</p>
+    <div class="card" style="margin-top:26px">
+      <div class="field">
+        <label class="f">Your name</label>
+        <input id="nm" type="text" value="${esc(info.name || '')}">
+      </div>
+      <div class="field">
+        <label class="f">Email</label>
+        <input type="email" value="${esc(info.email)}" disabled style="background:var(--sunk);color:var(--ink3)">
+      </div>
+      <div class="field">
+        <label class="f">Choose a password</label>
+        <input id="pw" type="password" autocomplete="new-password" placeholder="at least 8 characters">
+      </div>
+      <button class="btn pri" id="go">Set password and continue</button>
+      <div class="err" id="err"></div>
+    </div>`;
+
+  const go = async () => {
+    const btn = document.getElementById('go');
+    btn.disabled = true; btn.textContent = 'Setting up…';
+    try {
+      const d = await api('/api/auth', {
+        action: 'invite_accept', token,
+        name: document.getElementById('nm').value,
+        password: document.getElementById('pw').value
+      });
+      location.href = d.user.role === 'admin' ? '/admin.html' : '/faculty.html';
+    } catch (e) {
+      document.getElementById('err').textContent = e.message;
+      btn.disabled = false; btn.textContent = 'Set password and continue';
+    }
+  };
+  document.getElementById('go').onclick = go;
+  document.getElementById('pw').onkeydown = e => { if (e.key === 'Enter') go(); };
+  document.getElementById('pw').focus();
+})();
+</script>
+</body>
+</html>

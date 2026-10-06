@@ -1,0 +1,127 @@
+const assert = require('node:assert/strict');
+const f = require('./sim03-account-fixture.js');
+const { sign, verify } = require('../lib/launch.js');
+let checks=0;
+const equal=(a,b,label)=>{assert.deepEqual(a,b,label);checks++;};
+(async () => {
+  const {code,token:facultyToken}=await f.createClass();
+  const sess=f.sessions.get(code);
+  equal(sess.courseId,'course-a','course context is retained from signed faculty launch');
+  equal(sess.platformAuth,true,'new platform session requires signed student identity');
+  let r=await f.call('session',{action:'faculty_state',code},{headers:{'x-launch-token':facultyToken}});
+  const invite=new URL(r.payload.session.joinUrl);
+  equal(invite.pathname,'/session.html','generated link enters account page');
+  equal(invite.searchParams.get('course'),'course-a');
+  equal(invite.searchParams.get('session'),code);
+  equal(invite.hash,'','no faculty token in shared URL');
+  equal(invite.searchParams.has('code'),false,'no access code in shared URL');
+  r=await f.call('join',{}, {method:'GET',query:{session:code}});
+  equal(r.statusCode,302,'legacy link can resolve account entry');
+  equal(r.url,invite.href);
+  r=await f.call('student',{action:'course_lookup',courseId:'course-a',simId:f.sim.id});
+  equal(r.payload.course.join_code,'COURSE');
+  r=await f.call('student',{action:'course_lookup',courseId:'course-a',simId:'other'});
+  equal(r.statusCode,404,'lookup cannot attach arbitrary simulation');
+  const q={sim:f.sim.id,course:'course-a',session:code,format:'json'};
+  r=await f.call('launch',{}, {method:'GET',query:q});
+  equal(r.statusCode,401,'anonymous user must sign in');
+  r=await f.call('launch',{}, {method:'GET',query:{...q,format:'html'}});
+  equal(new URL(r.url,'https://platform.test').searchParams.get('session'),code,'sign-in redirect retains session');
+  const cookie=await f.signin('alice@example.test');
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie},query:q});
+  equal(r.statusCode,200,'existing signed-in enrollee skips access code');
+  const url=new URL(r.payload.url),token=new URLSearchParams(url.hash.slice(1)).get('lt');
+  equal(url.searchParams.get('session'),code);
+  equal(verify(token).sub,'alice');equal(verify(token).course,'course-a');
+  r=await f.call('config',{}, {method:'GET',headers:{'x-launch-token':token}});
+  equal(r.statusCode,200,'config accepts student token without access code');
+  r=await f.call('session',{action:'join',code,name:'Spoof name',participantId:'platform:bob'}, {headers:{'x-launch-token':token}});
+  equal(r.payload.participantId,'platform:alice','browser remembered ID cannot override account');
+  equal(r.payload.me.name,'Alex Student','name comes from signed identity');
+  r=await f.call('session',{action:'join',code}, {headers:{'x-launch-token':token}});
+  equal(r.payload.participantId,'platform:alice','reload reuses same participant');
+  const bobCookie=await f.signin('bob@example.test');
+  const bobLaunch=await f.call('launch',{}, {method:'GET',headers:{cookie:bobCookie},query:q});
+  const bobToken=new URLSearchParams(new URL(bobLaunch.payload.url).hash.slice(1)).get('lt');
+  r=await f.call('session',{action:'join',code}, {headers:{'x-launch-token':bobToken}});
+  equal(r.payload.participantId,'platform:bob','same name does not merge different accounts');
+  equal(Object.keys(f.participants.get(code)).length,2);
+  for(const action of ['state','submit','set_runner']) {
+    r=await f.call('session',{action,code,participantId:'platform:alice'},{headers:{'x-launch-token':bobToken}});
+    equal(r.statusCode,403,action+' rejects another account ID');
+  }
+  for(const endpoint of ['outcome','finish']) {
+    r=await f.call(endpoint,{sessionCode:code,participantId:'platform:alice'},{headers:{'x-launch-token':bobToken}});
+    equal(r.statusCode,403,endpoint+' rejects another account ID');
+  }
+  for(const bad of [null,'broken',sign({...verify(token),sim:'other'}),sign({...verify(token),exp:1}),sign({...verify(token),course:'other'})]) {
+    r=await f.call('session',{action:'join',code,name:'Bypass'},{headers:bad?{'x-launch-token':bad}:{}});
+    equal(r.statusCode>=400,true,'missing/invalid/wrong-sim/expired/wrong-course token rejected');
+  }
+  // Course enrolment must be visible even while launch is correctly refused.
+  const rosterHeaders={'x-launch-token':facultyToken};
+  r=await f.call('session',{action:'faculty_enrolments',code},{headers:rosterHeaders});
+  equal(r.statusCode,200,'facilitator can view the course roster in the session console');
+  equal(r.payload.students.find(p=>p.participantId==='platform:pending').accessReleased,false,'unreleased student is visible');
+  equal(r.payload.students.filter(p=>p.name==='Alex Student').length,2,'same-name students remain separate roster entries');
+  equal(new URL(r.payload.manageUrl).searchParams.get('course'),'course-a','release link selects the exact course');
+  equal(Object.keys(f.participants.get(code)).length,2,'roster read does not manufacture session attendance');
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:{'x-launch-token':token}});
+  equal(r.statusCode,401,'student cannot read class roster');
+  for(const bad of ['', 'broken', sign({...verify(facultyToken),exp:1}), sign({...verify(facultyToken),sim:'other'}), sign({...verify(facultyToken),mode:'play'})]) {
+    r=await f.call('session-enrolments',{courseId:'course-a'},{headers:{'x-launch-token':bad}});
+    equal(r.statusCode,401,'invalid faculty authorization cannot read roster');
+  }
+  r=await f.call('session-enrolments',{courseId:'another-course'},{headers:rosterHeaders});
+  equal(r.statusCode,403,'faculty token cannot be replayed against a different course');
+  const teacher=f.users.get('teacher');teacher.disabled=true;
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.statusCode,403,'disabled faculty rejected even with an unexpired signed token');teacher.disabled=false;
+  const course=f.courses.get('course-a');course.faculty_id='another-teacher';
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.statusCode,403,'database ownership rechecked');course.faculty_id='teacher';
+  course.archived=true;
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.statusCode,403,'archived course is not exposed');course.archived=false;
+  f.sim.detached=true;
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.statusCode,403,'removed simulation is not exposed');f.sim.detached=false;
+  const pendingEnrolment=f.enrolments.find(e=>e.student_id==='pending');pendingEnrolment.dropped=true;
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.payload.students.some(p=>p.participantId==='platform:pending'),false,'dropped students omitted');pendingEnrolment.dropped=false;
+  f.users.get('pending').disabled=true;
+  r=await f.call('session-enrolments',{courseId:'course-a'},{headers:rosterHeaders});
+  equal(r.payload.students.some(p=>p.participantId==='platform:pending'),false,'disabled students omitted');f.users.get('pending').disabled=false;
+  const originalFetch=global.fetch;global.fetch=async()=>{throw new Error('test platform unavailable')};
+  r=await f.call('session',{action:'faculty_enrolments',code},{headers:rosterHeaders});
+  equal(r.statusCode,503,'platform outage is an explicit roster error, not an empty list');
+  r=await f.call('session',{action:'faculty_state',code},{headers:rosterHeaders});
+  equal(r.statusCode,200,'roster outage does not interrupt team state');global.fetch=originalFetch;
+  const pending=await f.signin('pending@example.test');
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie:pending},query:q});
+  equal(r.statusCode,403,'unreleased access remains blocked');
+  r=await f.call('student',{action:'signup_and_enrol',joinCode:'COURSE',name:'New student',email:'new@example.test',password:'password123'});
+  equal(r.statusCode,200,'new account creation uses existing enrolment flow');
+  const newcomer=r.payload.user.id,newCookie=f.cookie(r);
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie:newCookie},query:q});
+  equal(r.payload.title,'Waiting on your instructor','account creation does not release paid access');
+  r=await f.call('session',{action:'faculty_enrolments',code},{headers:rosterHeaders});
+  equal(r.payload.students.some(p=>p.participantId==='platform:'+newcomer&&!p.accessReleased),true,'new signup appears before release');
+  equal(!!f.participants.get(code)['platform:'+newcomer],false,'unreleased signup has not joined the simulation');
+  f.enrolments.find(e=>e.student_id===newcomer).paid=true;
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie:newCookie},query:q});
+  equal(r.statusCode,200,'released new account resumes original session');
+  equal(new URL(r.payload.url).searchParams.get('session'),code);
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie},query:{...q,session:'ABCDE#lt=bad'}});
+  equal(r.statusCode,400,'malformed invite cannot inject token or redirect');
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie},query:{sim:f.sim.id,course:'course-a',format:'json'}});
+  equal(new URL(r.payload.url).searchParams.has('session'),false,'ordinary standalone launch unchanged');
+  r=await f.call('launch',{}, {method:'GET',headers:{cookie},query:{sim:f.sim.id,format:'json'}});
+  equal(r.statusCode,200,'direct signed student link opens the assigned simulation');
+  equal(verify(new URLSearchParams(new URL(r.payload.url).hash.slice(1)).get('lt')).course,
+    'course-a','direct link ticket carries the enrolled course for room discovery');
+  r=await f.call('join',{}, {method:'GET',query:{session:'ZZZZZ'}});equal(r.statusCode,404);
+  sess.state='closed';
+  r=await f.call('join',{}, {method:'GET',query:{session:code}});equal(r.statusCode,410);
+  console.log(`Sim03 account-entry checks passed (${checks} assertions). Real auth, token and session handlers; in-memory test storage.`);
+})().catch(e=>{console.error(e);process.exitCode=1;});

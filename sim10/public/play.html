@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--BASE-->
+<script>
+// The browser path is authoritative: a platform rewrite may serve this page
+// with a server-injected base for the sim's own domain, while the visible URL
+// still lives under /sim10/.
+const mount = /^\/sim10(?:\/|$)/.test(location.pathname) ? '/sim10/' : '/';
+let base = document.querySelector('base');
+if (!base) { base = document.createElement('base'); document.head.appendChild(base); }
+base.href = mount;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infrastructure or Bubble?</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="rail" aria-live="polite">
+  <div class="rail-inner">
+    <span class="case" id="case-label"></span>
+    <span class="phase" id="phase-label">Connecting</span>
+    <span class="time" id="time" aria-label="Time left"></span>
+  </div>
+  <div class="track"><i id="track"></i></div>
+</header>
+
+<main class="wrap">
+  <section id="waiting" class="panel" hidden>
+    <h2>You're in.</h2>
+    <p>Your host will start the clock. The company's figures will appear here when they do.</p>
+    <p class="muted" id="waiting-team"></p>
+  </section>
+
+  <section id="result" hidden></section>
+  <section id="reveal" hidden></section>
+  <p><button class="btn" id="solo-next" type="button" hidden>Show next part</button></p>
+  <p id="solo-done" hidden>Your run is complete. <a href="./">Return to the start</a></p>
+
+  <details id="pack-wrap" open>
+    <summary class="muted" id="pack-summary" hidden>The figures you read</summary>
+    <div id="briefing"></div>
+    <div id="doc" class="doc"></div>
+  </details>
+  <p class="error" id="err" role="alert"></p>
+</main>
+
+<aside class="dock" id="dock" hidden aria-label="Your call">
+  <div class="dock-inner" id="dock-inner"></div>
+</aside>
+
+<script src="common.js"></script>
+<script src="play.js"></script>
+</body>
+</html>

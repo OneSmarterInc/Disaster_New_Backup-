@@ -1,0 +1,11 @@
+{
+  "name": "flexee-rapid-sim-04",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RapidSim 04 — Whose Number Is Right?",
+  "scripts": {
+    "test": "node test/run.js",
+    "build": "node build.js"
+  },
+  "engines": { "node": ">=20" }
+}

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where Does the Money Land? — Instructor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524;--panel:#161E2E;--line:#2B3548;--line2:#3A4659;
+  --bone:#E8E4DA;--soft:#C9C6BE;--dim:#8C95A8;--dimmer:#616B7E;
+  --amber:#F0A63C;--amberDeep:#8A6427;--rose:#CE7C8D;
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--night);color:var(--bone)}
+body{font-family:var(--serif);font-size:17px;line-height:1.55}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+header{display:flex;align-items:center;gap:18px;padding:14px 26px;border-bottom:1px solid var(--line)}
+header .t{margin-right:auto;font-size:18px}
+header .t small{display:block;font:12px var(--mono);color:var(--dimmer)}
+.ctl{display:flex;gap:8px;flex-wrap:wrap}
+main{width:min(1200px,calc(100% - 40px));margin:0 auto;padding:40px 0 80px}
+h2{font-size:32px;font-weight:400;line-height:1.15;margin-bottom:12px}
+h3{font:500 13px var(--mono);color:var(--amber);margin-bottom:12px}
+p.body{color:var(--soft);max-width:66ch;margin-bottom:12px}
+.btn{border:1px solid var(--line2);padding:10px 18px;font:500 14px var(--mono)}
+.btn:hover{border-color:var(--soft)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 12px;font-size:12.5px}
+.note{border-left:2px solid var(--line2);padding:10px 14px;color:var(--soft);margin:14px 0;max-width:70ch}
+.note.bad{border-left-color:var(--rose);color:#E3B9C2}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px}
+.card{border:1px solid var(--line);background:var(--panel);padding:20px 22px}
+.field{margin-top:14px}
+.field label{display:block;font:13px var(--mono);color:var(--dim);margin-bottom:6px}
+.field input{width:100%;background:var(--night);border:1px solid var(--line2);padding:10px 12px}
+.choice{display:grid;gap:8px;margin-top:6px}
+.field .choice label{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line2);padding:12px 14px;cursor:pointer;font:16px/1.45 var(--serif);color:var(--bone);margin:0}
+.field .choice label:has(input:checked){border-color:var(--amber);background:rgba(240,166,60,.06)}
+.field .choice input{width:auto;flex:none;margin-top:5px;accent-color:var(--amber)}
+.field .choice b{font-weight:500;display:block}
+.field .choice span{color:var(--dim);font-size:15px}
+.join{display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;margin:10px 0 26px}
+.join .code{font:600 64px var(--mono);letter-spacing:.08em;color:var(--amber)}
+.join .url{font:14px var(--mono);color:var(--soft);word-break:break-all}
+.roster{list-style:none;border-top:1px solid var(--line);max-height:420px;overflow:auto}
+.roster li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.roster input{width:170px;background:var(--night);border:1px solid var(--line2);padding:6px 9px;font-size:15px}
+
+/* Projector */
+.now{font:500 15px var(--mono);color:var(--dim)}
+.big{font:600 88px var(--mono);color:var(--amber);line-height:1;font-variant-numeric:tabular-nums;margin:6px 0 4px}
+.counts{font-size:28px;margin-top:10px}
+.counts span{color:var(--dim);font-size:20px}
+.release{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:24px 0 8px}
+.release .btn.pri{font-size:16px;padding:14px 24px}
+.sec{margin-top:40px}
+.money{display:flex;height:54px;border:1px solid var(--line)}
+.money div{display:flex;align-items:center;justify-content:center;font:600 13px var(--mono);color:#1A1206;overflow:hidden;white-space:nowrap;min-width:0}
+.keys{display:flex;flex-wrap:wrap;gap:8px 22px;font:13px var(--mono);color:var(--dim);margin-top:12px}
+.keys i{display:inline-block;width:12px;height:12px;margin-right:7px;vertical-align:-1px}
+.picks{list-style:none;border-top:1px solid var(--line);max-width:760px}
+.picks li{display:grid;grid-template-columns:1fr 60px;padding:9px 0;border-bottom:1px solid var(--line);font-size:18px;color:var(--soft)}
+.picks li b{font:600 20px var(--mono);text-align:right;color:var(--bone)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.pair .card p{color:var(--soft);font-size:19px;line-height:1.45;margin-bottom:10px}
+.pair .who{font:500 14px var(--mono);color:var(--bone);margin-bottom:6px}
+.pair .hold{font:13px/1.7 var(--mono);color:var(--dim);margin-top:8px}
+.pair .swap{margin-top:12px}
+.flags{list-style:none}
+.flags li{font-size:22px;line-height:1.35;border-left:3px solid var(--rose);padding:6px 0 6px 18px;margin-bottom:12px;max-width:44ch}
+.quote{font-size:30px;line-height:1.3;max-width:34ch;margin:8px 0 14px}
+.quote small{display:block;font:14px var(--mono);color:var(--dim);margin-top:8px}
+.values{list-style:none;border-top:1px solid var(--line);max-width:860px}
+.values li{display:grid;grid-template-columns:90px repeat(4,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font:500 18px var(--mono);font-variant-numeric:tabular-nums}
+.values li.h{font:12px var(--mono);color:var(--dim)}
+.values li .y{color:var(--amber)}
+.debrief{margin-top:46px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs .btn[aria-selected="true"]{border-color:var(--amber);color:var(--amber)}
+.prompt{font-size:36px;line-height:1.25;max-width:34ch}
+.terms{list-style:none;display:grid;gap:10px}
+.terms li{font-size:28px;line-height:1.25}
+.fnote{display:grid;gap:12px;max-width:70ch}
+.fnote p{font-size:19px;color:var(--soft)}
+.names{list-style:none;border-top:1px solid var(--line)}
+.names li{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:9px 0;border-bottom:1px solid var(--line);font-size:18px}
+.names li span{color:var(--dim)}
+body.present .aux{display:none!important}
+body.present main{width:calc(100% - 80px)}
+body.present .big{font-size:120px}
+@media(max-width:900px){.grid2,.pair{grid-template-columns:1fr}.values li{grid-template-columns:60px repeat(4,1fr);font-size:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="t">Where Does the Money Land?<small id="hs">Instructor</small></div>
+  <div class="ctl" id="ctl"></div>
+</header>
+<main id="app"></main>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const SIM='rapid-09-money-land';
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const usd=n=>'$'+Number(n).toLocaleString('en-US');
+const pct=x=>Math.round(x*100)+'%';
+const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(_,k)=>k in v?v[k]:'');
+const COLORS={RA:'#F0A63C',IC:'#D9B77A',LS:'#CE7C8D',MS:'#8FA7C9',PS:'#C9C6BE',cash:'#5E6B80'};
+const PLATFORM_LAUNCH_PATH='/api/launch';
+const TOKEN_KEY='m09-faculty-lt',SESSION_KEY='m09-faculty-session';
+const incoming=new URLSearchParams(location.hash.slice(1)).get('lt')||new URLSearchParams(location.search).get('lt')||null;
+let LT=incoming||sessionStorage.getItem(TOKEN_KEY)||null;
+if(incoming){sessionStorage.setItem(TOKEN_KEY,incoming);const p=new URLSearchParams(location.search);p.delete('lt');history.replaceState(null,'',location.pathname+(p.toString()?'?'+p:''))}
+function tokenInfo(t){try{return JSON.parse(atob(t.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{return null}}
+let course=new URLSearchParams(location.search).get('course')||tokenInfo(LT)?.course||'';
+let facultyCode='',code=localStorage.getItem(SESSION_KEY)||'',state=null,poll=null,error='',busy=false,tab='note';
+let draft={name:'',mode:''},teamDraft={},teamSize=4,pairIdx={c:0,s:0},stmtIdx=0,stmtShow='direction';
+
+async function renewFaculty(){
+  if(!BASE)throw new Error('Open this session from your RapidSims faculty dashboard, or enter your facilitator code.');
+  const q=new URLSearchParams({sim:SIM,mode:'session',format:'json'});if(course)q.set('course',course);
+  const r=await fetch(PLATFORM_LAUNCH_PATH+'?'+q,{credentials:'same-origin',cache:'no-store'});let d={};try{d=await r.json()}catch{}
+  if(r.status===401)throw new Error('Sign in to your faculty account from the dashboard, then try again.');
+  if(!r.ok)throw new Error(d.message||'Unable to renew faculty access. Open your faculty dashboard and try again.');
+  let t=null;try{const u=new URL(d.url,location.origin);t=new URLSearchParams(u.hash.slice(1)).get('lt')||u.searchParams.get('lt')}catch{}
+  const info=tokenInfo(t);
+  if(!info||info.sim!==SIM||!['faculty','faculty_preview'].includes(info.role)||info.mode!=='session')throw new Error('Sign in with a faculty account to run a class session.');
+  LT=t;sessionStorage.setItem(TOKEN_KEY,LT);
+}
+async function api(x){
+  const send=async()=>{const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;
+    const r=await fetch(BASE+'/api/session',{method:'POST',headers:h,body:JSON.stringify({...x,facultyCode})});let d={};try{d=await r.json()}catch{}return{r,d}};
+  let {r,d}=await send();
+  if(d.error==='faculty_authorization_required'&&!facultyCode&&BASE){await renewFaculty();({r,d}=await send())}
+  if(!r.ok){const e=new Error(d.message||friendly(d.error)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+function friendly(c){return({faculty_authorization_required:'Enter your facilitator code, or open this page from your RapidSims faculty dashboard.',
+  play_mode_required:'Choose individual or team play. There is no default.',not_your_session:'That session belongs to another instructor.',
+  no_such_session:'No session with that code.',teams_locked:'Teams are fixed once the session starts.',
+  allocation_still_open:'History can only arrive once allocation has closed.',history_complete:'All three stages are out.'})[c]||''}
+
+function header(){
+  const s=state?.session;
+  document.getElementById('hs').textContent=s?`Session ${s.code} · ${s.mode==='team'?'Team':'Individual'}`:'Instructor';
+  const ctl=document.getElementById('ctl');
+  if(!s){ctl.innerHTML='';return}
+  const P=state.projector,c=P.clock,btns=[];
+  if(s.state==='running'){
+    btns.push(s.paused?`<button class="btn sm aux" data-c="resume">Resume</button>`:`<button class="btn sm aux" data-c="pause">Pause</button>`);
+    if(['briefing','wall'].includes(c.phase)&&!s.paused)btns.push(`<button class="btn sm aux" data-c="advance">Skip to ${c.phase==='briefing'?'statements':'the fund'}</button>`);
+    if(c.phase==='allocate'&&!s.paused)btns.push(`<button class="btn sm aux" data-c="close_allocation">Close allocation now</button>`);
+    btns.push(`<button class="btn sm aux" data-c="close">Close session</button>`);
+  }
+  if(s.state!=='lobby')btns.push(`<button class="btn sm" id="pres">${document.body.classList.contains('present')?'Exit projector':'Projector'}</button>`);
+  btns.push(`<button class="btn sm aux" id="leave">Leave</button>`);
+  ctl.innerHTML=btns.join('');
+  ctl.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>control(b.dataset.c));
+  const pres=document.getElementById('pres');if(pres)pres.onclick=()=>{document.body.classList.toggle('present');render()};
+  document.getElementById('leave').onclick=()=>{clearInterval(poll);code='';state=null;localStorage.removeItem(SESSION_KEY);document.body.classList.remove('present');render()};
+}
+function render(){header();if(!state)return createView();if(state.session.state==='lobby')return lobbyView();projectorView()}
+
+function createView(){
+  const needCode=!LT;
+  app.innerHTML=`<h2>Set up this room</h2>
+  <p class="body">Everyone shares one clock through the briefing, the two statements and the fund. History waits for you: you release 2002, 2004 and 2010 when the room is ready.</p>
+  ${error?`<div class="note bad">${esc(error)}</div>`:''}
+  <div class="grid2"><section class="card"><h3>New session</h3>
+    <div class="field"><label for="nm">Session name (only you see this)</label><input id="nm" value="${esc(draft.name)}" placeholder="Where Does the Money Land?"></div>
+    <div class="field"><label>How will the room play?</label><div class="choice" role="radiogroup">
+      <label><input type="radio" name="mode" value="team" ${draft.mode==='team'?'checked':''}><div><b>Team</b><span>Recommended. Each team shares one screen, writes one pair of statements and places one fund. The argument about where the money lands is worth having out loud.</span></div></label>
+      <label><input type="radio" name="mode" value="individual" ${draft.mode==='individual'?'checked':''}><div><b>Individual</b><span>Each student writes and invests alone. Works well for smaller rooms.</span></div></label>
+    </div></div>
+    ${needCode?`<div class="field"><label for="fc">Facilitator code</label><input id="fc" type="password" autocomplete="off" value="${esc(facultyCode)}"></div>`:''}
+    <div style="margin-top:18px"><button class="btn pri" id="mk" ${busy?'disabled':''}>Create session</button></div>
+  </section>
+  <section class="card"><h3>Return to a session</h3>
+    <div class="field"><label for="rc">Session code</label><input id="rc" maxlength="5" value="${esc(code)}"></div>
+    ${needCode?`<div class="field"><label for="fc2">Facilitator code</label><input id="fc2" type="password" autocomplete="off" value="${esc(facultyCode)}"></div>`:''}
+    <div style="margin-top:18px"><button class="btn" id="rs" ${busy?'disabled':''}>Open session</button></div>
+  </section></div>`;
+  document.getElementById('mk').onclick=create;document.getElementById('rs').onclick=resume;
+}
+function readDraft(){
+  draft.name=document.getElementById('nm')?.value.trim()||'';
+  draft.mode=document.querySelector('input[name=mode]:checked')?.value||'';
+  facultyCode=(document.getElementById('fc')?.value||document.getElementById('fc2')?.value||facultyCode).trim();
+}
+async function create(){
+  readDraft();if(!draft.mode){error=friendly('play_mode_required');return render()}
+  busy=true;error='';
+  try{const d=await api({action:'create',name:draft.name||undefined,mode:draft.mode});code=d.session.code;localStorage.setItem(SESSION_KEY,code);await refresh();startPoll()}
+  catch(e){error=e.message}finally{busy=false;render()}
+}
+async function resume(){
+  readDraft();code=(document.getElementById('rc').value||'').trim().toUpperCase();busy=true;error='';
+  try{await refresh(true);localStorage.setItem(SESSION_KEY,code);startPoll()}catch(e){error=e.message;state=null}finally{busy=false;render()}
+}
+function startPoll(){clearInterval(poll);poll=setInterval(()=>refresh().catch(e=>{error=e.message}),2000)}
+let shown='';
+async function refresh(throwErr){
+  if(!code)return;
+  try{
+    const d=await api({action:'faculty_state',code});state=d;
+    const P=d.projector;
+    const key=JSON.stringify([d.session.state,d.session.paused,d.roster,P.clock.phase,P.statementsIn,P.allocationsIn,P.released,!!P.room]);
+    const active=document.activeElement;const typing=active&&active.tagName==='INPUT';
+    if(key!==shown&&!typing){shown=key;render()}else tickClock();
+  }catch(e){if(throwErr)throw e;error=e.message}
+}
+
+function lobbyView(){
+  const s=state.session,people=state.roster.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const joinUrl=s.joinUrl||location.origin+BASE+'/index.html?session='+s.code;
+  const team=s.mode==='team';
+  const rows=people.map(p=>`<li><span>${esc(p.name)}</span>${team?`<input data-id="${esc(p.id)}" value="${esc(teamDraft[p.id]??p.teamLabel)}" placeholder="Team name" aria-label="Team for ${esc(p.name)}">`:''}</li>`).join('');
+  app.innerHTML=`<h2>Students join with this code</h2>
+  <div class="join"><div class="code">${esc(s.code)}</div><div class="url">${esc(joinUrl)}</div></div>
+  ${error?`<div class="note bad">${esc(error)}</div>`:''}
+  <div class="grid2"><section class="card"><h3>${people.length} joined</h3>
+    ${people.length?`<ul class="roster">${rows}</ul>`:`<p class="body">Nobody has joined yet. This list updates on its own.</p>`}
+    ${team&&people.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center">
+      <button class="btn sm" id="split">Split into teams of</button><input id="ts" type="number" min="2" max="8" value="${teamSize}" style="width:64px;background:var(--night);border:1px solid var(--line2);padding:6px 8px">
+      <button class="btn sm" id="save">Save teams</button>${s.platformAuth&&s.courseId?`<button class="btn sm" id="imp">Add approved course students</button>`:''}</div>`:''}
+  </section>
+  <section class="card"><h3>When everyone is in</h3>
+    <p class="body">Starting runs five minutes of briefing, six for the two statements and eight for the fund: about twenty minutes. You can skip ahead once the room is ready.</p>
+    <p class="body">Then history is held. Run the disagreement first, with every position on the projector, and release 2002, 2004 and 2010 when you want them.</p>
+    ${team?`<p class="body">Teams are fixed when you start. Each team should gather round one screen.</p>`:''}
+    <button class="btn pri" id="go">Start the session</button>
+  </section></div>`;
+  document.getElementById('go').onclick=()=>control('start');
+  if(team&&people.length){
+    app.querySelectorAll('.roster input').forEach(i=>i.oninput=()=>{teamDraft[i.dataset.id]=i.value});
+    document.getElementById('split').onclick=()=>{teamSize=Math.max(2,Math.min(8,Number(document.getElementById('ts').value)||4));
+      const shuffled=people.map(p=>p.id).sort(()=>Math.random()-.5);const n=Math.max(1,Math.round(shuffled.length/teamSize));
+      shuffled.forEach((id,i)=>{teamDraft[id]='Team '+String.fromCharCode(65+(i%n))});render()};
+    document.getElementById('save').onclick=saveTeams;
+    const imp=document.getElementById('imp');if(imp)imp.onclick=async()=>{try{await api({action:'faculty_enrolments',code});error=''}catch(e){error=e.message}shown='';await refresh()};
+  }
+}
+async function saveTeams(){
+  const assign={};for(const [id,v] of Object.entries(teamDraft))assign[id]=v.trim()||'__unassigned__';
+  try{await api({action:'group',code,assign});teamDraft={};error=''}catch(e){error=e.message}
+  shown='';await refresh();
+}
+async function control(set,force){
+  if(set==='close'&&!confirm('Close this session? Students keep what they can see, and every stage is released if allocation has closed.'))return;
+  if(set==='start'&&Object.keys(teamDraft).length)await saveTeams();
+  try{await api({action:'control',code,set,force:!!force});error=''}
+  catch(e){
+    if(e.code==='allocations_outstanding'){
+      const P=state.projector,left=P.units-P.allocationsIn;
+      if(confirm(`${left} ${state.session.mode==='team'?'team':'student'}${left===1?' has':'s have'} not committed. Close allocation anyway? Their funds stay unplaced.`))return control(set,true);
+    }else error=e.message;
+  }
+  shown='';await refresh();
+}
+
+let clockAt=0,clockLeft=0;
+function tickClock(){
+  const el=document.getElementById('big');if(!el||!state)return;
+  const c=state.projector.clock;
+  if(state._synced!==state){state._synced=state;clockAt=performance.now();clockLeft=c.remaining}
+  const left=c.paused?clockLeft:Math.max(0,clockLeft-(performance.now()-clockAt)/1000);
+  el.textContent=`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`;
+}
+setInterval(tickClock,250);
+
+function phaseLine(c){
+  if(c.paused)return 'Paused';
+  return ({briefing:'Briefing · statements open in',wall:'The two statements · allocation opens in',allocate:'The fund · allocation closes in',
+    held:'Allocation closed · history is held',reveal:`History · ${c.stage} of 3 released`,closed:'Session closed'})[c.phase]||'';
+}
+function unitWord(n){return state.session.mode==='team'?(n===1?'team':'teams'):(n===1?'student':'students')}
+function holdLines(a,labels){return Object.entries(a||{}).filter(([,v])=>v>0).map(([k,v])=>`${esc(labels[k])}: ${usd(v)}`).join('<br>')}
+
+function projectorView(){
+  const P=state.projector,c=P.clock,s=state.session,R=P.room;
+  const timer=['briefing','wall','allocate'].includes(c.phase)?`<div class="big" id="big"></div>`:'';
+  const counts=['wall','allocate','held','reveal'].includes(c.phase)?`<div class="counts">${P.statementsIn} of ${P.units} <span>${unitWord(P.units)} have locked statements</span><br>${P.allocationsIn} of ${P.units} <span>have committed a fund</span></div>`:'';
+  const release=R&&P.nextYear?`<div class="release aux"><button class="btn pri" id="rel">Release ${P.nextYear}</button><span class="now">${P.released===0?'Run the disagreement first. History is held until you release it.':'Students see each stage the moment you release it.'}</span></div>`:'';
+  let body='';
+  if(R){
+    const tot=Object.values(R.totals).reduce((a,b)=>a+b,0)||1;
+    const money=`<section class="sec"><h3>Where the room put ${usd(tot)}</h3><div class="money" role="img" aria-label="Room allocation">${Object.entries(R.totals).filter(([,v])=>v>0).map(([k,v])=>`<div style="flex:${v};background:${COLORS[k]}">${pct(v/tot)}</div>`).join('')}</div>
+      <div class="keys">${Object.keys(R.totals).map(k=>`<span><i style="background:${COLORS[k]}"></i>${esc(R.labels[k])}: ${usd(R.totals[k])}</span>`).join('')}</div></section>`;
+    const picks=`<section class="sec"><h3>Who the room said would be paid</h3><ul class="picks">${Object.entries(R.picks).map(([k,v])=>`<li><span>${esc(R.pickLabels[k])}</span><b>${v}</b></li>`).join('')}</ul></section>`;
+    const byId=Object.fromEntries(R.statements.map(x=>[x.id,x]));
+    const card=(list,idx,label,which)=>{
+      if(!list.length)return `<section class="card"><h3>${label}</h3><p>Nobody in the room fits this yet.</p></section>`;
+      const u=list[idx%list.length],st=byId[u.id];
+      return `<section class="card"><h3>${label}</h3><div class="who">${esc(u.label)} · ${pct(u.max)} in one holding</div>
+        ${st?`<p>${esc(R.pickLabels[st.pick])}</p><p style="font-size:16px">${esc(st.reason)}</p><div class="hold">${holdLines(st.allocation,R.labels)}</div>`:'<p>No statements locked.</p>'}
+        ${list.length>1?`<button class="btn sm swap aux" data-swap="${which}">Show another</button>`:''}</section>`};
+    const pair=`<section class="sec"><h3>${esc(R.pairHeading)}</h3><div class="pair">${card(R.concentrated,pairIdx.c,'Most concentrated','c')}${card(R.spread,pairIdx.s,'Most spread','s')}</div></section>`;
+    const flags=R.contradictions.length?`<section class="sec"><h3>Money against its own destination</h3><ul class="flags">${R.contradictions.map(f=>`<li>${esc(fill(R.flagText,{team:f.label,pick:R.pickLabels[f.pick].toLowerCase(),share:pct(f.share)}))}</li>`).join('')}</ul></section>`:'';
+    const st=R.statements.length?R.statements[stmtIdx%R.statements.length]:null;
+    const stmts=st?`<section class="sec"><h3>Statements from the room · ${stmtIdx%R.statements.length+1} of ${R.statements.length}</h3>
+      <div class="tabs aux"><button class="btn sm" data-show="direction" aria-selected="${stmtShow==='direction'}">Direction</button><button class="btn sm" data-show="destination" aria-selected="${stmtShow==='destination'}">Destination</button><button class="btn sm" id="nextst">Next</button></div>
+      <p class="quote">${esc(stmtShow==='direction'?st.direction:st.reason)}<small>${esc(st.label)}${stmtShow==='destination'?' · '+esc(R.pickLabels[st.pick]):''}</small></p></section>`:'';
+    const values=R.stages.length?`<section class="sec"><h3>What the room's funds became · each fund started at $1.00M</h3><ul class="values"><li class="h"><span>Year</span><span>Lowest</span><span>Median</span><span>Highest</span><span>Whole room</span></li>
+      ${R.stages.map(v=>`<li><span class="y">${v.year}</span><span>${esc(v.low)}</span><span>${esc(v.median)}</span><span>${esc(v.high)}</span><span>${esc(v.room)}<small style="display:block;font-size:12px;color:var(--dim)">of ${esc(v.invested)}</small></span></li>`).join('')}</ul></section>`:'';
+    const names=R.names?`<section class="sec"><h3>Who they were</h3><ul class="names">${Object.entries(R.names).map(([k,n])=>`<li><span>${esc(R.labels[k])}</span><b style="font-weight:500">${esc(n)}</b></li>`).join('')}</ul></section>`:'';
+    body=values+names+money+picks+pair+flags+stmts+debriefBlock(P.debrief);
+  }
+  app.innerHTML=`${error?`<div class="note bad aux">${esc(error)}</div>`:''}<div class="now">${esc(phaseLine(c))}</div>${timer}${counts}${release}${body}`;
+  const rel=document.getElementById('rel');if(rel)rel.onclick=()=>control('release');
+  app.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{pairIdx[b.dataset.swap]++;render()});
+  app.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{stmtShow=b.dataset.show;render()});
+  const ns=document.getElementById('nextst');if(ns)ns.onclick=()=>{stmtIdx++;render()};
+  app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
+  tickClock();
+}
+function debriefBlock(D){
+  const tabs=[['note','Facilitator note'],['disagreement','Disagreement'],['naming','Naming'],['turn','The turn'],['cash','Cash holders']];
+  if(D.teamPrompt)tabs.splice(2,0,['team','Inside the teams']);
+  if(D.sawItComing)tabs.push(['saw','Who saw it coming']);
+  if(D.epilogue)tabs.push(['epilogue','2012']);
+  if(!tabs.some(([k])=>k===tab))tab='note';
+  const body=tab==='note'?`<div class="fnote aux">${D.facilitatorNote.map(p=>`<p>${esc(p)}</p>`).join('')}</div>`
+    :tab==='naming'?`<ul class="terms">${D.naming.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`
+    :`<p class="prompt">${esc({disagreement:D.disagreement,turn:D.turn,cash:D.cashPrompt,team:D.teamPrompt,saw:D.sawItComing,epilogue:D.epilogue}[tab])}</p>`;
+  return `<section class="debrief"><div class="tabs" role="tablist">${tabs.map(([k,l])=>`<button class="btn sm" role="tab" aria-selected="${tab===k}" data-t="${k}">${l}</button>`).join('')}</div>${body}</section>`;
+}
+
+(async()=>{if(code&&(LT||facultyCode)){try{await refresh(true);startPoll()}catch{state=null}}render()})();
+</script>
+</body>
+</html>

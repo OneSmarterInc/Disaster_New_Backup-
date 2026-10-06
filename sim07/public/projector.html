@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Would You Have Bought It? — projector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#0E1524;--panel:#151D2D;--line:#27324A;--ink:#E8E4DA;--dim:#98A0B3;--amber:#F0A63C;--paper:#EFE9DC;--paper-ink:#23201A;--buy:#9FD39B;--decline:#E7B38B;--serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:clamp(20px,1.8vw,30px)/1.45 var(--serif);display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:baseline;padding:2.2vh 4vw;border-bottom:1px solid var(--line);font:clamp(14px,1.1vw,20px) var(--mono);color:var(--dim)}
+main{flex:1;padding:4vh 4vw;display:flex;flex-direction:column;justify-content:center;gap:4vh}
+h1{font-weight:400;font-size:clamp(40px,5vw,84px);line-height:1.1;margin:0}
+.big{font:500 clamp(80px,14vw,220px)/1 var(--mono);color:var(--amber)}
+.dim{color:var(--dim)}
+.split{display:flex;height:9vh;min-height:48px;border:1px solid var(--line)}
+.split div{display:flex;align-items:center;padding:0 1.4vw;font:500 clamp(18px,1.6vw,28px) var(--mono);color:#11161F;white-space:nowrap;overflow:hidden}
+.split .b{background:var(--buy)}.split .d{background:var(--decline)}
+.legend{display:flex;gap:4vw;font:clamp(16px,1.3vw,24px) var(--mono)}
+table{border-collapse:collapse;font:clamp(16px,1.3vw,24px) var(--mono)}th,td{padding:.6vh 1.6vw;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--dim);font-weight:400}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:3vw;align-items:start}
+.memo{background:var(--paper);color:var(--paper-ink);padding:3vh 2vw;font-size:clamp(20px,1.9vw,34px)}
+.memo .h{font:clamp(14px,1.1vw,20px) var(--mono);margin-bottom:1.4vh;opacity:.75}
+.names{font-size:clamp(34px,4vw,70px);line-height:1.2;border-top:2px solid var(--amber);border-bottom:2px solid var(--amber);padding:2vh 0}
+.prompts{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw}.prompts div{border-top:2px solid var(--amber);padding-top:1.4vh}.prompts b{display:block;font-weight:500;margin-bottom:.8vh}
+.err{color:#FFB4A0}
+@media (max-width:800px){.cols,.prompts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><span id="h-left">Would You Have Bought It?</span><span id="h-right"></span></header>
+<main id="app"><p class="dim">Connecting…</p></main>
+<script>
+// Aggregates only. The payload this page receives carries no names and no participant ids.
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const code=(new URLSearchParams(location.search).get('code')||'').toUpperCase();
+const LT=sessionStorage.getItem('w07-faculty-lt');const facultyCode=sessionStorage.getItem('w07-fc')||'';
+let P=null,skew=0;
+async function load(){
+  const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;
+  const r=await fetch(BASE+'/api/session',{method:'POST',headers:h,body:JSON.stringify({action:'projector',code,facultyCode,launchToken:LT})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||d.error||'Unable to load');P=d;skew=d.now-Date.now();
+}
+const pct=(n,t)=>t?Math.round(n*100/t):0;
+function clock(){if(!P?.closesAt)return '';const left=Math.max(0,Math.round((P.closesAt-(Date.now()+skew))/1000));return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`}
+function joinText(){return BASE?`${location.host}${BASE} · session ${code}`:`Session ${code}`}
+function splitView(){
+  const s=P.split,t=s.bought+s.declined;
+  const rec=P.recognition,row=(k,l)=>`<tr><td>${l}</td><td>${rec[k].buy}</td><td>${rec[k].decline}</td></tr>`;
+  const teams=P.teams?.length?`<table><tr><th>Team</th><th>Buy</th><th>Decline</th><th>Outcome</th></tr>${P.teams.map(x=>`<tr><td>${esc(x.label)}</td><td>${x.buy}</td><td>${x.decline}</td><td>${x.outcome?(x.outcome==='buy'?'Bought':'Declined')+(x.tie?' (tie)':''):'—'}</td></tr>`).join('')}</table>`:'';
+  return `<div class="split" role="img" aria-label="${s.bought} bought, ${s.declined} declined">${s.bought?`<div class="b" style="flex:${s.bought}">${s.bought} bought</div>`:''}${s.declined?`<div class="d" style="flex:${s.declined}">${s.declined} declined</div>`:''}</div>
+  <div class="legend"><span>${pct(s.bought,t)}% bought</span><span>${pct(s.declined,t)}% declined</span>${s.lapsed?`<span>${s.lapsed} let the offer lapse</span>`:''}</div>
+  <div class="cols"><table><tr><th>Recognised the companies?</th><th>Buy</th><th>Decline</th></tr>${row('yes','Yes')}${row('no','No')}${row('unsure','Not sure')}${rec.none.buy+rec.none.decline?row('none','No answer'):''}</table>${teams}</div>`;
+}
+function pinnedView(){
+  if(!P.pinned||P.pinned.length<2)return '';
+  return `<div class="cols">${P.pinned.map(p=>`<div class="memo"><div class="h">${p.lapsed?'The offer lapsed':p.choice==='buy'?'Bought':'Declined'}</div>${esc(p.text||'(no reason given)')}</div>`).join('')}</div>`;
+}
+function render(){
+  if(!P){return}
+  document.getElementById('h-right').textContent=joinText();
+  let h='';
+  if(P.phase==='lobby')h=`<h1>Would You Have Bought It?</h1><p class="dim">Join with the link from your instructor.</p><div class="big">${P.joined}</div><p class="dim">joined</p>`;
+  else if(P.phase==='deciding')h=`<h1>Autumn 2000. Decide on what you can see.</h1><div class="big">${clock()}</div><p class="dim">${P.decided} of ${P.joined} have decided</p>`;
+  else{
+    if(P.stageTitle){const st=P.stageTitle;h+=`<p class="dim" style="font-family:var(--mono)">${esc(st.year)}</p><h1>${esc(st.title)}</h1>${st.names?`<p class="names">${esc(st.names)}</p>`:''}`}
+    else h+=`<h1>How the room decided</h1>`;
+    if(P.pinned?.length===2)h+=pinnedView();
+    else if(P.split&&!P.stageTitle)h+=splitView();
+    else if(P.split)h+=`<div class="legend"><span>${P.split.bought} bought</span><span>${P.split.declined} declined</span></div>`;
+  }
+  if(P.prompts)h+=`<div class="prompts">${P.prompts.map(p=>`<div><b>${esc(p.title)}</b>${esc(p.text)}</div>`).join('')}</div>`;
+  app.innerHTML=h;
+}
+async function cycle(){try{await load();render()}catch(e){app.innerHTML=`<p class="err">${esc(e.message)}. Open the projector from the presenter screen.</p>`}}
+cycle();setInterval(cycle,3000);setInterval(()=>{if(P?.phase==='deciding'){const b=app.querySelector('.big');if(b)b.textContent=clock()}},1000);
+</script>
+</body>
+</html>

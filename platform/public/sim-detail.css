@@ -1,0 +1,86 @@
+/* What a simulation's page looks like.
+   ------------------------------------------------------------------------
+   Loaded by the public catalogue and by the faculty console, because both
+   render it from sim-detail.js. These rules used to live inside the catalogue
+   page, so the console produced the right markup with none of the styling —
+   the content was all there and it looked like a dump of text. */
+
+.sim-head{padding:8px 0 30px;border-bottom:1px solid var(--line);margin-bottom:34px}
+.sim-head h1{font-size:42px;font-weight:300;letter-spacing:-.03em;line-height:1.1;margin:6px 0 12px}
+.sim-head .tag{font-size:19px;color:var(--amber);font-style:italic;max-width:52ch;font-family:var(--serif)}
+.sim-head .facts{margin-top:20px}
+.sim-head .duration-note{font-size:14px;line-height:1.5;color:var(--ink2);margin:14px 0 0;max-width:76ch}
+.card .details-link{margin-top:16px;font-size:14px;color:var(--amber)}
+.card[role="link"]:focus-visible{outline:2px solid var(--amber);outline-offset:4px}
+
+.facts{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.facts b{color:var(--ink2);font-weight:500}
+
+.two{display:grid;grid-template-columns:1fr 300px;gap:44px;align-items:start}
+
+.prose h3{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink3);font-weight:500;margin:32px 0 12px}
+.prose h3:first-child{margin-top:0}
+.prose p{font-size:16.5px;color:var(--ink2);margin-bottom:14px;max-width:66ch;line-height:1.6}
+
+.beats{border-left:1px solid var(--line2);padding-left:20px;margin:6px 0 4px}
+.beat{margin-bottom:16px}
+.beat:last-child{margin-bottom:0}
+.beat .t{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.beat p{margin:4px 0 0;font-size:15.5px}
+
+.room{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}
+.room .who{background:var(--card);padding:13px 16px}
+.room .who .n{font-size:15.5px;font-weight:500;font-family:var(--serif)}
+.room .who .r{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink3);margin-top:2px}
+.room .who .x{font-size:13.5px;color:var(--ink2);margin-top:7px;font-style:italic}
+
+.side{position:sticky;top:70px;display:block}
+.box{background:var(--card);border:1px solid var(--line);padding:20px 22px;margin-bottom:14px}
+.box h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink3);font-weight:500;margin-bottom:12px}
+.box .line{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:14px;
+  border-bottom:1px solid var(--line)}
+.box .line:last-of-type{border-bottom:none}
+.box .line span{color:var(--ink3)}
+.box .line b{font-weight:500;text-align:right}
+.box p{font-size:14px;color:var(--ink2);margin-bottom:12px;line-height:1.55}
+
+/* Keep the public RapidSims catalogue compact without changing the shared
+   simulation-detail layout used by the faculty console. The selectors are
+   intentionally scoped to the catalogue's Flexee header and #app container. */
+.flexee-site-header ~ .wrap#app{padding-bottom:48px}
+.flexee-site-header ~ .wrap#app .hero .eyebrow,
+.flexee-site-header ~ .wrap#app .hero h1{display:none}
+.flexee-site-header ~ .wrap#app .hero{
+  padding:20px 0 16px;
+  margin-bottom:16px;
+}
+.flexee-site-header ~ .wrap#app .hero p{
+  line-height:1.5;
+  margin-bottom:5px;
+}
+.flexee-site-header ~ .wrap#app .section-head{
+  margin:24px 0 12px;
+  padding-bottom:9px;
+}
+.flexee-site-header ~ .wrap#app .section-head:first-of-type{margin-top:0}
+
+@media (max-width:880px){
+  .two{grid-template-columns:1fr;gap:28px}
+  .side{position:static}
+  .sim-head h1{font-size:32px}
+  .sim-head .tag{font-size:17px}
+
+  .flexee-site-header ~ .wrap#app{padding-bottom:36px}
+  .flexee-site-header ~ .wrap#app .hero{
+    padding:16px 0 13px;
+    margin-bottom:12px;
+  }
+  .flexee-site-header ~ .wrap#app .section-head{
+    margin:18px 0 10px;
+    padding-bottom:8px;
+  }
+  .flexee-site-header ~ .wrap#app .section-head:first-of-type{margin-top:0}
+}

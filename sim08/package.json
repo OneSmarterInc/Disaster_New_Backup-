@@ -1,0 +1,13 @@
+{
+  "name": "flexee-rapid-sim-08",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Flexee RapidSim 08 \u2014 Eighteen Months Later",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node tools/run-checks.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

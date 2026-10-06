@@ -1,0 +1,77 @@
+name: Simulation audit checks
+on:
+  pull_request:
+    paths:
+      - 'platform/**'
+      - 'sim/**'
+      - 'sim-02/**'
+      - 'sim03/**'
+      - 'sim04/**'
+      - 'sim05/**'
+      - 'sim06/**'
+      - 'sim07/**'
+      - 'sim08/**'
+      - 'sim09/**'
+      - 'sim10/**'
+      - 'sim-plus-01/**'
+      - 'simplus02/**'
+      - 'tools/**'
+      - '.github/workflows/simulation-audit-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'platform/**'
+      - 'sim/**'
+      - 'sim-02/**'
+      - 'sim03/**'
+      - 'sim04/**'
+      - 'sim05/**'
+      - 'sim06/**'
+      - 'sim07/**'
+      - 'sim08/**'
+      - 'sim09/**'
+      - 'sim10/**'
+      - 'sim-plus-01/**'
+      - 'simplus02/**'
+      - 'tools/**'
+      - '.github/workflows/simulation-audit-checks.yml'
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Non-destructive registration and identity inventory
+        run: |
+          node platform/tools/register-check.js
+          node platform/tools/sim-identity-check.js
+          node sim-plus-01/test/identity.test.js
+      - name: Original Disaster and Relay regression checks
+        run: |
+          for dir in sim sim-02; do (cd "$dir" && for check in tools/*-check.js; do node "$check"; done); done
+          node platform/tools/protocol-check.js
+          node tools/full-flow-check.js
+          node tools/health-security-check.js
+      - name: Account entry and session client flows
+        run: |
+          node tools/test-entry-flow.js
+          node platform/tools/session-sims-check.js
+          node platform/tools/new-sims-entry-check.js
+      - name: Health diagnostics and catalogue presentation
+        run: |
+          node platform/tools/sync-catalogue-source.js --check
+          node platform/tools/catalogue-content-check.js
+          node platform/tools/health-contract-check.js
+          node platform/tools/catalogue-number-check.js
+          node platform/tools/deploy-check.js
+          node platform/tools/catalogue-check.js
+          node platform/tools/sim-detail-check.js
+          node platform/tools/address-check.test.js
+          node platform/tools/address-check.js
+          node platform/tools/contact-check.js
+          node platform/tools/prose-check.js

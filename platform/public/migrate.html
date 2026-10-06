@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Update the database — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="narrow" id="app"></div>
+
+<div class="narrow"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+
+app.innerHTML =
+  '<div class="eyebrow">Administration</div>' +
+  '<h1>Update the <em>database</em></h1>' +
+  '<p class="lede">Run this after a release that adds tables or columns. Every statement creates only what is missing, so running it again is harmless and nothing is ever dropped.</p>' +
+  '<div class="card" style="margin-top:24px">' +
+    '<button class="btn pri" id="go">Bring the database up to date</button>' +
+    '<div id="out"></div>' +
+  '</div>' +
+  '<div class="note">This page does not read anything, so it still works when a release has outrun the schema and the admin console cannot load.</div>' +
+  '<p style="margin-top:20px"><a href="/admin.html">Back to the admin console</a></p>';
+
+document.getElementById('go').onclick = async () => {
+  const b = document.getElementById('go'), out = document.getElementById('out');
+  b.disabled = true; b.textContent = 'Running…';
+  out.innerHTML = '';
+  try {
+    const d = await api('/api/admin', { action:'migrate' });
+    out.innerHTML = '<div class="ok">Up to date — ' + d.statements + ' statements checked. ' +
+      '<a href="/admin.html">Open the admin console</a></div>';
+  } catch (e) {
+    out.innerHTML = '<div class="err">' + esc(e.message) +
+      (e.body && e.body.error === 'not_signed_in' ? ' — <a href="/">sign in as an administrator first</a>.' : '') + '</div>';
+  }
+  b.disabled = false; b.textContent = 'Bring the database up to date';
+};
+</script>
+</body>
+</html>

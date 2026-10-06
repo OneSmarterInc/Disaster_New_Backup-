@@ -1,0 +1,46 @@
+{
+  "doc": "eqix-10q-2003q1",
+  "url": "https://www.sec.gov/Archives/edgar/data/1101239/000101287003002591/d10q.htm",
+  "filed": "2003-05-15",
+  "unit": "usd_k",
+  "q_mar2003": {
+    "is.revenue": [25435, "p.4"],
+    "is.revenue_like_for_like": [20300, "p.27 MD&A 'pre-combination Equinix revenues' $20.3m vs $20.2m a year earlier (usd_k rounded)"],
+    "is.revenue_recurring": [24103, "p.27 table"],
+    "is.revenue_acquired": [5140, "p.27 MD&A: i-STT/Pihana $5.1m (4,784 + 356)"],
+    "is.cost_of_revenue": [30619, "p.4"],
+    "is.depreciation": [16254, "p.5 cash flow"],
+    "is.restructuring": [0, "p.4 (none on face)"],
+    "is.operating_loss": [-20811, "p.4"],
+    "is.interest_expense": [-4812, "p.4"],
+    "is.debt_gain": [0, "p.4"],
+    "is.net_loss": [-25553, "p.4"],
+    "bs.cash": [20978, "p.3 (no short-term investments)"],
+    "bs.restricted_cash": [2418, "p.3: 0 + 2,418"],
+    "bs.ppe_in_service": [373936, "p.3 property and equipment, net"],
+    "bs.total_assets": [451486, "p.3"],
+    "bs.debt_current": [6114, "p.3: 4,133 + 1,981"],
+    "bs.debt_long": [146789, "p.3: 2,672 + 89,529 + 28,986 + 25,602"],
+    "cf.capex_quarter": [346, "p.5 purchases of P&E; no accrued construction payments"],
+    "cf.operating_q": [-19558, "p.5; includes $7.3m acquired restructuring cash payments (p.13) and merger cost payments"],
+    "hl.customers": [326, "p.27 MD&A, pre-combination customers only"],
+    "nt.top_customer_share": [17, "p.20 note 13"]
+  },
+  "bs_dec2002": {
+    "bs.cash": [41216, "p.3 Dec column"],
+    "bs.restricted_cash": [4407, "p.3 Dec column: 1,981 + 2,426"],
+    "bs.ppe_in_service": [390048, "p.3 Dec column"],
+    "bs.total_assets": [492003, "p.3 Dec column"],
+    "bs.debt_current": [7572, "p.3 Dec column: 5,591 + 1,981"],
+    "bs.debt_long": [147424, "p.3 Dec column: 3,633 + 89,529 + 28,908 + 25,354"]
+  },
+  "text": [
+    ["Covenants reset in December 2002; in compliance at 31 March 2003; a breach would require repaying $91.5m the company does not have", "p.6 note 1; p.26"],
+    ["Management believes cash on hand, operating cash flow from the second half of 2003 and combination cost savings cover the next twelve months", "p.25 MD&A"],
+    ["April 2003: new $10m convertible secured notes agreed with a venture investor, subject to shareholder vote", "p.23 note 16"],
+    ["Right-sizing of most large customers completed by December 2002; like-for-like recurring revenue up 17% year on year", "p.27 MD&A"],
+    ["No equipment resale in the quarter; company no longer pursuing it", "p.8; p.28"],
+    ["Bond interest cost roughly halved after $169.5m of bonds retired in 2002", "p.31 MD&A"]
+  ],
+  "not_captured": ["nt.bond_market_value (Item 3, p.46, beyond portion read)", "adjusted EBITDA reconciliation"]
+}

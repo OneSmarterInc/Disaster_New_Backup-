@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set up — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="narrow" id="app"></div>
+
+<div class="narrow"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+
+app.innerHTML = `
+  <div class="eyebrow">Flexee RapidSims</div>
+  <h1>First-time <em>setup</em></h1>
+  <p class="lede">This creates the database tables and your administrator account. It runs once — after an admin exists it will only bring the schema up to date and won't create another.</p>
+  <div class="card" style="margin-top:26px">
+    <div class="field">
+      <label class="f">Setup key</label>
+      <input id="k" type="password" placeholder="the SETUP_KEY you set on this deployment">
+    </div>
+    <div class="rule" style="margin:20px 0"></div>
+    <div class="field"><label class="f">Your name</label><input id="n" type="text" placeholder="Vikram Sethi"></div>
+    <div class="field"><label class="f">Your email</label><input id="e" type="email" placeholder="you@onesmarter.com"></div>
+    <div class="field"><label class="f">Choose a password</label><input id="p" type="password" placeholder="at least 8 characters"></div>
+    <button class="btn pri" id="go">Create the database and my account</button>
+    <div id="out"></div>
+  </div>
+  <div class="note">Once this is done, delete <span class="mono">SETUP_KEY</span> from the project's environment variables so this page can't be used again.</div>`;
+
+document.getElementById('go').onclick = async () => {
+  const btn = document.getElementById('go'), out = document.getElementById('out');
+  btn.disabled = true; btn.textContent = 'Setting up…';
+  out.innerHTML = '';
+  try {
+    const d = await api('/api/setup', {
+      setupKey: document.getElementById('k').value,
+      name: document.getElementById('n').value,
+      email: document.getElementById('e').value,
+      password: document.getElementById('p').value
+    });
+    if (d.admin) {
+      out.innerHTML = '<div class="ok">Done. Taking you to the admin console…</div>';
+      setTimeout(() => location.href = '/admin.html', 1200);
+    } else {
+      out.innerHTML = `<div class="ok">${esc(d.note || 'Schema updated.')}</div>`;
+      btn.disabled = false; btn.textContent = 'Run again';
+    }
+  } catch (e) {
+    out.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+    btn.disabled = false; btn.textContent = 'Create the database and my account';
+  }
+};
+document.getElementById('k').focus();
+</script>
+</body>
+</html>

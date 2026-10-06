@@ -1,0 +1,27 @@
+name: faculty-platform-checks
+
+on:
+  pull_request:
+    paths:
+      - 'platform/**'
+      - '.github/workflows/faculty-platform-checks.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'platform/**'
+      - '.github/workflows/faculty-platform-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  faculty-progress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify faculty student-wise progress/results
+        run: node platform/tools/check-faculty-student-results.js

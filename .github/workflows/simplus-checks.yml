@@ -1,0 +1,23 @@
+name: RapidSim Plus checks
+on:
+  push:
+    branches: [main, integrate-simplus-01]
+    paths:
+      - 'sim-plus-01/**'
+      - '.github/workflows/simplus-checks.yml'
+  pull_request:
+    paths:
+      - 'sim-plus-01/**'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sim-plus-01
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run playtest

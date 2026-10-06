@@ -1,0 +1,359 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "*": false,
+      "**": false
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/faculty",
+      "destination": "/faculty.html"
+    },
+    {
+      "source": "/student",
+      "destination": "/student.html"
+    },
+    {
+      "source": "/signin",
+      "destination": "/signin.html"
+    },
+    {
+      "source": "/account",
+      "destination": "/account.html"
+    },
+    {
+      "source": "/join",
+      "destination": "/join.html"
+    },
+    {
+      "source": "/sim01",
+      "destination": "https://flexee-rapid-sim-01-vercel.vercel.app/"
+    },
+    {
+      "source": "/sim01/",
+      "destination": "https://flexee-rapid-sim-01-vercel.vercel.app/"
+    },
+    {
+      "source": "/sim01/:path*",
+      "destination": "https://flexee-rapid-sim-01-vercel.vercel.app/:path*"
+    },
+    {
+      "source": "/sim02",
+      "destination": "https://flexee-rapid-sim-02.vercel.app/"
+    },
+    {
+      "source": "/sim02/",
+      "destination": "https://flexee-rapid-sim-02.vercel.app/"
+    },
+    {
+      "source": "/sim02/:path*",
+      "destination": "https://flexee-rapid-sim-02.vercel.app/:path*"
+    },
+    {
+      "source": "/rapidsims01",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/"
+    },
+    {
+      "source": "/rapidsims01/",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/"
+    },
+    {
+      "source": "/rapidsims01/:path*",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/:path*"
+    },
+    {
+      "source": "/simplus01",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/"
+    },
+    {
+      "source": "/simplus01/",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/"
+    },
+    {
+      "source": "/simplus01/:path*",
+      "destination": "https://flexee-rapid-sim-03-vercel.vercel.app/:path*"
+    },
+    {
+      "source": "/sim03",
+      "destination": "https://sim-03-midland.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim03/",
+      "destination": "https://sim-03-midland.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim03/:path*",
+      "destination": "https://sim-03-midland.vercel.app/:path*"
+    },
+    {
+      "source": "/sim04",
+      "destination": "https://sim04.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim04/",
+      "destination": "https://sim04.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim04/:path*",
+      "destination": "https://sim04.vercel.app/:path*"
+    },
+    {
+      "source": "/sim05",
+      "destination": "https://sim05.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim05/",
+      "destination": "https://sim05.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim05/:path*",
+      "destination": "https://sim05.vercel.app/:path*"
+    },
+    {
+      "source": "/sim06",
+      "destination": "https://sim06.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim06/",
+      "destination": "https://sim06.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim06/:path*",
+      "destination": "https://sim06.vercel.app/:path*"
+    },
+    {
+      "source": "/sim07",
+      "destination": "https://sim07.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim07/",
+      "destination": "https://sim07.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim07/demo",
+      "destination": "https://sim07.vercel.app/index.html"
+    },
+    {
+      "source": "/sim07/demo/",
+      "destination": "https://sim07.vercel.app/index.html"
+    },
+    {
+      "source": "/sim07/:path*",
+      "destination": "https://sim07.vercel.app/:path*"
+    },
+    {
+      "source": "/sim08",
+      "destination": "https://sim08.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim08/",
+      "destination": "https://sim08.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim08/:path*",
+      "destination": "https://sim08.vercel.app/:path*"
+    },
+    {
+      "source": "/sim09",
+      "destination": "https://sim09.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim09/",
+      "destination": "https://sim09.vercel.app/launch.html"
+    },
+    {
+      "source": "/sim09/:path*",
+      "destination": "https://sim09.vercel.app/:path*"
+    },
+    {
+      "source": "/sim10",
+      "destination": "https://sim10.vercel.app/"
+    },
+    {
+      "source": "/sim10/",
+      "destination": "https://sim10.vercel.app/"
+    },
+    {
+      "source": "/sim10/:path*",
+      "destination": "https://sim10.vercel.app/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sim01/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/sim02/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/rapidsims01/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/simplus01/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim03/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim04/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim05/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim06/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim07/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim08/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim09/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/sim10/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        }
+      ]
+    }
+  ]
+}

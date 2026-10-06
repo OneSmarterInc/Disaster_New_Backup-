@@ -1,0 +1,479 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#F4F4F2; --card:#FFFFFF; --sunk:#F8F8F6;
+  --ink:#15171B; --ink2:#4E535C; --ink3:#878C95; --ink4:#A8AEBC;
+  --line:#E4E4E0; --line2:#CFCFC9;
+  --amber:#A8620D; --amber-soft:#FBF3E7; --amber-line:#E8C88E;
+  --green:#2F6B4F; --green-soft:#EFF5F1;
+  --rose:#9E3B50; --rose-soft:#FBEFF1;
+  --serif:'Newsreader',Georgia,serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--serif);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--amber);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+
+/* layout */
+.bar{
+  border-bottom:1px solid var(--line);background:var(--card);
+  padding:0 26px;display:flex;align-items:center;gap:20px;height:60px;
+}
+.bar .brand{font-size:17px;font-weight:500;letter-spacing:-.01em;margin-right:auto}
+.bar .brand span{color:var(--amber);font-style:italic}
+.bar .who{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38ch}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 26px 80px}
+/* the consoles are tables, and a table wants room — the reading pages stay
+   narrow deliberately, because prose does not */
+body.console .wrap{max-width:1440px;padding-top:0}
+.narrow{max-width:520px;margin:0 auto;padding:70px 26px 80px}
+
+h1{font-size:36px;font-weight:300;letter-spacing:-.025em;line-height:1.12;margin:6px 0 14px}
+h1 em{font-style:italic;color:var(--amber)}
+h2{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+   color:var(--ink3);font-weight:500;margin:38px 0 13px}
+h3{font-size:19px;font-weight:500;letter-spacing:-.01em;margin-bottom:4px}
+p{color:var(--ink2);margin-bottom:14px}
+.lede{font-size:17px;color:var(--ink2);line-height:1.62}
+.dim{color:var(--ink3)}
+.tiny{font-size:13px;line-height:1.5}
+
+/* surfaces */
+.card{background:var(--card);border:1px solid var(--line);padding:22px 24px;margin-bottom:14px}
+.card.tight{padding:16px 18px}
+.stat{display:flex;gap:34px;flex-wrap:wrap;margin-bottom:6px}
+.stat .n{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink);line-height:1.1}
+.stat .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-top:4px}
+
+/* controls */
+.btn{
+  border:1px solid var(--line2);padding:9px 15px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink2);background:var(--card);
+  transition:.13s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--ink);color:var(--ink)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#fff}
+.btn.pri:hover{background:#9C6111;border-color:#9C6111;color:#fff}
+.btn.sm{padding:6px 11px;font-size:9.5px;line-height:1.4}
+.btn.danger{color:var(--rose);border-color:var(--rose)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+label.f{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+        text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+  width:100%;background:var(--card);border:1px solid var(--line2);padding:10px 12px;
+  font-size:15px;font-family:var(--serif);
+}
+input:focus,select:focus,textarea:focus{border-color:var(--amber);outline:none}
+.field{margin-bottom:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:180px}
+
+/* --- tables ----------------------------------------------------------------
+   One type size for data, one for supporting detail. Numeric columns are narrow
+   and monospaced so they line up; the action column is sized to its buttons and
+   pinned right, so it stops competing with the content for width. */
+table{width:100%;border-collapse:collapse;table-layout:auto}
+th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink3);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);
+  font-weight:500;white-space:nowrap;
+}
+td{
+  padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top;
+  font-size:14.5px;line-height:1.45;
+}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--sunk)}
+
+/* supporting lines inside a cell — one size, everywhere */
+td .tiny,td.tiny{font-size:12.5px;line-height:1.45}
+td b{font-weight:500}
+
+/* numbers: narrow, aligned, never wrapping */
+td.mono,th.mono{font-family:var(--mono);font-size:13px;white-space:nowrap}
+th.mono,td.mono{width:1%}
+
+/* the action column: buttons stay on one line. Safe to insist on now that
+   every table sits in a scroll container — if the row genuinely cannot fit, the
+   table scrolls inside its card rather than pushing the page sideways. */
+/* Scoped to the action column itself. Keying this off :last-child made any
+   table whose final column carried real content narrow, nowrapped and
+   right-aligned — which is exactly what happened to 'What came back'. */
+td[data-l=""],th.act,td.act{width:1%;white-space:nowrap;text-align:right}
+td[data-l=""]{white-space:nowrap}
+td[data-l=""] .btn{margin-left:5px;vertical-align:middle}
+td[data-l=""] .btn:first-child{margin-left:0}
+
+/* the first column carries the person or thing. A floor, not a demand — the
+   name and email beneath it wrap rather than widening the table. */
+td:first-child{min-width:0}
+.panel td:first-child{min-width:170px}
+.panel td .sub{word-break:break-word}
+
+/* dates and other short facts should not be squeezed to two characters */
+td.when,th.when{white-space:nowrap;width:1%}
+
+/* a table never widens its card; if it genuinely cannot fit, it scrolls
+   inside rather than pushing the page sideways */
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.tablewrap table{min-width:100%}
+.tablewrap::-webkit-scrollbar{height:7px}
+.tablewrap::-webkit-scrollbar-thumb{background:var(--line2)}
+.tablewrap::-webkit-scrollbar-track{background:transparent}
+
+/* inputs sitting inside a table row shouldn't inherit the row's font size */
+td input,td select,td textarea{font-size:14.5px}
+
+/* pills */
+.pill{font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;
+      padding:3px 8px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap;
+      display:inline-block;line-height:1.5}
+.pill.ok{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+.pill.warn{border-color:var(--amber-line);color:var(--amber);background:var(--amber-soft)}
+.pill.bad{border-color:var(--rose);color:var(--rose);background:var(--rose-soft)}
+
+.note{border-left:2px solid var(--amber-line);background:var(--amber-soft);
+      padding:12px 15px;font-size:14px;line-height:1.6;color:var(--ink2);margin:14px 0}
+.err{color:var(--rose);font-size:14px;margin-top:10px}
+.ok{color:var(--green);font-size:14px;margin-top:10px}
+.rule{height:1px;background:var(--line);margin:30px 0}
+
+.copybox{
+  display:flex;gap:8px;align-items:stretch;margin-top:10px;
+}
+.copybox input{font-family:var(--mono);font-size:12.5px}
+
+/* --- narrow screens --------------------------------------------------------
+   Tables become stacked cards rather than a horizontal scroll. Each cell shows
+   the column it came from, taken from data-l, so the meaning survives losing
+   the header row. A cell with an empty data-l is an action row and gets no
+   label. */
+@media (max-width:820px){
+  .wrap{padding:22px 14px 60px}
+  .narrow{padding:44px 14px 60px}
+  .bar{padding:0 14px;gap:10px;height:auto;min-height:56px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+  .bar .brand{font-size:15px;width:100%;margin-bottom:2px}
+  .bar .who{font-size:9.5px;max-width:100%;margin-right:auto}
+  h1{font-size:28px}
+  h2{margin:26px 0 10px}
+  .stat{gap:18px}
+  .stat .n{font-size:21px}
+  .card{padding:16px 15px}
+
+  table,thead,tbody,th,td,tr{display:block}
+  thead{display:none}
+  tbody tr{display:block;border:1px solid var(--line);margin-bottom:10px;padding:12px 13px;background:var(--card)}
+  tbody tr:hover td{background:transparent}
+  td{border:none;padding:5px 0;display:flex;gap:12px;align-items:flex-start}
+  td:before{
+    content:attr(data-l);
+    flex:0 0 92px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--ink3);padding-top:3px;
+  }
+  /* on a phone the row is a card, so the buttons may wrap — the desktop rule
+     keeping them on one line would otherwise push the card off the screen */
+  td[data-l=""]{display:block;padding-top:10px;margin-top:8px;border-top:1px solid var(--line);
+    white-space:normal;text-align:left}
+  td[data-l=""]:before{display:none}
+  td[data-l=""] .btn{margin:2px 4px 2px 0}
+  td:not([data-l]):before{display:none}
+
+  .row{gap:8px}
+  .grow{min-width:100%}
+  .copybox{flex-direction:column}
+  .copybox input{width:100%}
+  .btn{padding:9px 12px}
+}
+@media (max-width:520px){
+  h1{font-size:24px}
+  td:before{flex-basis:78px}
+  .stat{gap:14px}
+}
+
+
+/* ═══ console ═══════════════════════════════════════════════════════════════
+   The admin and faculty consoles are instruments, not pages: their job is to
+   let somebody scan rows and act on them. Denser than the rest of the platform,
+   serif reserved for naming things, mono for every label, number and status. */
+
+.top{background:var(--card);border-bottom:1px solid var(--line);padding:0 22px;height:52px;
+     display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10}
+.top .brand{font-size:15px;font-weight:500;letter-spacing:-.01em}
+.top .brand span{color:var(--amber);font-style:italic}
+.top .sep{width:1px;height:18px;background:var(--line)}
+.top .role{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.top .right{margin-left:auto;display:flex;gap:6px;align-items:center}
+
+/* counters: a hairline strip, not a card */
+.strip{display:flex;border-bottom:1px solid var(--line)}
+.strip .cell{padding:16px 26px 15px;border-right:1px solid var(--line)}
+.strip .cell:first-child{padding-left:0}
+.strip .cell:last-child{border-right:none}
+.strip .n{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.strip .l{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+.strip .cell.quiet .n{color:var(--ink3)}
+
+/* tabs are a place you are, so they underline rather than look like buttons */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto;
+      scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);
+     padding:13px 16px;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:0;border-left:0;border-right:0}
+.tab:hover{color:var(--ink2)}
+.tab.on{color:var(--ink);border-bottom-color:var(--amber)}
+.tab .count{color:var(--ink3);margin-left:6px}
+
+/* search, filters and the one primary action share a line */
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search{position:relative;flex:1;min-width:200px}
+.search input{width:100%;background:var(--card);border:1px solid var(--line2);padding:8px 12px 8px 32px;font-size:14px}
+.search:before{content:'';position:absolute;left:12px;top:50%;width:11px;height:11px;margin-top:-6px;
+  border:1.5px solid var(--ink3);border-radius:50%;pointer-events:none}
+.search:after{content:'';position:absolute;left:21px;top:50%;width:5px;height:1.5px;margin-top:3px;
+  background:var(--ink3);transform:rotate(45deg);pointer-events:none}
+
+.seg{display:flex;border:1px solid var(--line2);background:var(--card)}
+.seg button{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 12px;color:var(--ink3);border:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--ink);color:var(--card)}
+
+.panel{background:var(--card);border:1px solid var(--line)}
+.panel table{width:100%;border-collapse:collapse}
+.panel th{background:var(--sunk);font-size:9px;padding:10px 14px}
+.panel td{padding:11px 14px;vertical-align:middle;font-size:14.5px}
+/* numeric and action columns take exactly what they need, so whatever is left
+   goes to the column carrying the words */
+.panel th.num,.panel td.num{text-align:right;font-family:var(--mono);font-size:12.5px;white-space:nowrap;width:1%}
+.panel th.num,.panel td.num{padding-left:20px}
+.panel th.act,.panel td.act{text-align:right;white-space:nowrap;width:1%}
+.panel td.act .btn{margin-left:5px}
+.panel tbody tr:last-child td{border-bottom:none}
+
+.nm{font-size:15px;font-weight:500;letter-spacing:-.005em}
+.sub{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:2px}
+.meta{font-size:13.5px;color:var(--ink2);line-height:1.4}
+
+/* status as a dot: pills of differing widths make rows ragged */
+.st{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink2);white-space:nowrap}
+.st:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:7px;vertical-align:1px;background:var(--ink3)}
+.st.ok:before{background:var(--green)}
+.st.warn:before{background:var(--amber)}
+.st.bad:before{background:var(--rose)}
+.st.off:before{background:var(--line2)}
+
+.ratio{font-family:var(--mono);font-size:12.5px}
+.ratio .of{color:var(--ink3)}
+.ratio.part{color:var(--amber)}
+
+.foot{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;
+      border-top:1px solid var(--line);background:var(--sunk);gap:10px}
+.foot .info{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink3);text-transform:uppercase}
+
+.expand td{background:var(--sunk);padding:16px 14px}
+.field{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.field > div{flex:1;min-width:170px}
+.field input,.field textarea,.field select{width:100%;background:var(--card);border:1px solid var(--line2);padding:7px 10px;font-size:14px}
+.hint{font-size:12.5px;color:var(--ink3);line-height:1.5;margin:8px 0 12px;max-width:74ch}
+.empty{padding:26px 14px;color:var(--ink3);font-size:14px}
+.section{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);
+         margin:28px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.mini{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+
+/* a simulation is a described thing, so the catalogue is a list not a table */
+.sim{display:flex;gap:16px;align-items:flex-start;padding:15px 16px;border-bottom:1px solid var(--line)}
+.sim:last-child{border-bottom:none}
+.sim .no{font-family:var(--mono);font-size:12px;color:var(--ink3);padding-top:4px;min-width:22px}
+.sim .body{flex:1;min-width:0}
+.sim .t{font-size:16px;font-weight:500;letter-spacing:-.01em}
+.sim .tag{font-size:13.5px;color:var(--ink2);margin-top:2px}
+.sim .id{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:6px;word-break:break-all}
+.sim .side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;white-space:nowrap}
+
+.crumb{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin:18px 0 8px}
+.crumb a{color:var(--ink3);cursor:pointer}
+.crumb a:hover{color:var(--ink)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.head h1{font-size:28px;font-weight:400;letter-spacing:-.02em;margin:0}
+.cbox{border:1px solid var(--line);background:var(--card);margin-bottom:12px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.copyrow{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.copyrow input{flex:1;min-width:200px;font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--line2);padding:7px 10px}
+
+@media (max-width:860px){
+  .strip{flex-wrap:wrap}
+  .strip .cell{padding:12px 18px;border-bottom:1px solid var(--line)}
+  .strip .cell:first-child{padding-left:0}
+  .sim{flex-wrap:wrap}
+  .sim .side{align-items:flex-start;width:100%;flex-direction:row;justify-content:space-between}
+  .top{height:auto;min-height:52px;flex-wrap:wrap;padding:8px 14px}
+  .top .brand{width:100%}
+}
+
+
+/* ── help, revealed rather than resident ────────────────────────────────────
+   Explanations that matter once are behind a question mark rather than sitting
+   on screen every day. Anyone who needs them can reach them; anyone who does
+   not never reads past a heading. */
+.qmark{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:15px;height:15px;border:1px solid var(--line2);border-radius:50%;
+  font-family:var(--mono);font-size:9px;color:var(--ink3);
+  cursor:pointer;vertical-align:1px;margin-left:7px;background:var(--card);
+}
+.qmark:hover{border-color:var(--ink);color:var(--ink)}
+.qmark.on{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.explain{
+  border-left:2px solid var(--line2);background:var(--sunk);
+  padding:13px 16px;margin:10px 0 14px;font-size:13.5px;line-height:1.6;color:var(--ink2);
+}
+.explain h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink3);font-weight:500;margin:0 0 8px}
+.explain ol{margin:0;padding-left:18px}
+.explain li{margin-bottom:6px}
+.explain li:last-child{margin-bottom:0}
+.explain b{color:var(--ink);font-weight:500}
+.explain .mono{font-family:var(--mono);font-size:12px}
+
+
+/* what a simulation reported back: a label and a value per line, the label
+   fixed-width so the values line up down the page rather than ragging */
+.metrics{display:flex;flex-direction:column;gap:5px}
+.metrics > div{display:flex;gap:14px;align-items:baseline;font-size:13.5px;line-height:1.4}
+.metrics > div > span{flex:0 0 190px;color:var(--ink3);font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.06em;text-transform:uppercase;padding-top:1px}
+.metrics > div > b{font-weight:500;color:var(--ink)}
+@media (max-width:820px){
+  .metrics > div{flex-direction:column;gap:1px}
+  .metrics > div > span{flex:none}
+}
+
+
+/* ── footer ─────────────────────────────────────────────────────────────── */
+.foot-note{
+  border-top:1px solid var(--line);margin-top:56px;padding:22px 0 0;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);
+}
+.foot-note a{color:var(--ink3)}
+.foot-note a:hover{color:var(--ink);text-decoration:none}
+
+
+/* ── looking at a simulation ────────────────────────────────────────────────
+   The same page the public catalogue shows, opened over the console rather than
+   navigated to, so a facilitator keeps their place. */
+.eye{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:24px;border:1px solid var(--line2);background:var(--card);
+  vertical-align:middle;margin-left:5px;padding:0;
+}
+.eye:hover{border-color:var(--ink)}
+.eye svg{width:14px;height:14px;stroke:var(--ink3);fill:none;stroke-width:1.5}
+.eye:hover svg{stroke:var(--ink)}
+
+body.sheet-open{overflow:hidden}
+.sheet{
+  position:fixed;inset:0;background:rgba(21,23,27,.4);z-index:60;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;padding:24px;
+  overscroll-behavior:contain;
+}
+.sheet .inner{
+  background:var(--paper);max-width:1000px;width:100%;
+  max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);
+  border:1px solid var(--line);padding:0 30px 34px;position:relative;
+  overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;
+}
+.sheet .close{
+  position:sticky;top:0;display:flex;justify-content:flex-end;padding:14px 0 8px;
+  background:var(--paper);z-index:4;border-bottom:1px solid transparent;
+}
+.sheet .inner .side{top:62px}
+@media (max-width:860px){
+  .sheet{padding:0;align-items:stretch}
+  .sheet .inner{max-width:none;width:100%;height:100vh;height:100dvh;max-height:none;
+    padding:0 16px 30px;border:0;scrollbar-gutter:auto}
+  .sheet .inner .side{position:static}
+}
+
+
+/* faculty console polish + pagination — existing theme only */
+.faculty-course-summary{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  background:var(--card);border:1px solid var(--line);margin:0 0 28px;
+}
+.faculty-summary-cell{padding:14px 18px;border-right:1px solid var(--line)}
+.faculty-summary-cell:last-child{border-right:none}
+.faculty-summary-n{font-family:var(--mono);font-size:20px;font-weight:600;line-height:1;color:var(--ink)}
+.faculty-summary-l{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+
+.sim.faculty-sim-card{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:18px;align-items:start;padding:17px 18px;border-bottom:0}
+.faculty-sim-title-row{display:flex;align-items:center;gap:8px}
+.faculty-sim-card .t{font-size:18px}
+.faculty-sim-kpis{display:flex;gap:22px;flex-wrap:wrap;margin-top:11px}
+.faculty-sim-kpi{min-width:82px}
+.faculty-sim-kpi b{display:block;font-family:var(--mono);font-size:14px;font-weight:600;color:var(--ink)}
+.faculty-sim-kpi span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:2px}
+.faculty-run-progress{height:3px;background:var(--line);margin-top:13px;max-width:470px;overflow:hidden}
+.faculty-run-progress i{display:block;height:3px;background:var(--green)}
+.faculty-sim-card .faculty-sim-side{display:flex;align-items:flex-start;white-space:normal}
+.faculty-sim-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:560px}
+.faculty-result-btn{background:var(--sunk)}
+
+.faculty-share{margin-top:0;padding:12px 15px}
+.faculty-share-copy{font-size:14px;color:var(--ink2)}
+.faculty-join-code{display:inline-block;margin-left:7px;padding:2px 7px;border:1px solid var(--amber-line);background:#fff9ef;color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.08em}
+.faculty-roster-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) 220px auto auto;align-items:center}
+.faculty-note-input{width:100%;border:1px solid var(--line2);padding:8px 10px;font-size:14px;background:var(--card)}
+.faculty-run-activity{display:inline-grid;grid-template-columns:auto auto;border:1px solid var(--line);background:var(--sunk)}
+.faculty-run-activity>div{padding:6px 10px;min-width:68px;text-align:center}
+.faculty-run-activity>div+div{border-left:1px solid var(--line)}
+.faculty-run-activity b{display:block;font-family:var(--mono);font-size:13px;font-weight:600;line-height:1.2;color:var(--ink)}
+.faculty-run-activity span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+.faculty-internal-toolbar{margin:0 0 12px}
+.faculty-internal-toolbar .search{max-width:520px}
+.faculty-pager{display:flex;align-items:center;gap:8px;margin-left:auto}
+.faculty-pager .btn{padding:5px 9px}
+
+@media(max-width:1100px){
+  .sim.faculty-sim-card{grid-template-columns:38px minmax(0,1fr)}
+  .faculty-sim-card .faculty-sim-side{grid-column:2}
+  .faculty-sim-actions{justify-content:flex-start;max-width:none}
+  .faculty-roster-toolbar{grid-template-columns:minmax(240px,1fr) 210px}
+  .faculty-roster-toolbar>.btn{width:100%}
+}
+@media(max-width:820px){
+  .faculty-course-summary{grid-template-columns:1fr 1fr}
+  .faculty-summary-cell:nth-child(2){border-right:none}
+  .faculty-summary-cell:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .sim.faculty-sim-card{grid-template-columns:1fr}
+  .faculty-sim-card .faculty-sim-side{grid-column:auto}
+  .faculty-roster-toolbar{grid-template-columns:1fr}
+  .faculty-run-activity{margin-top:2px}
+  .faculty-pager{width:100%;justify-content:flex-end;margin-left:0;flex-wrap:wrap}
+}
+
+
+/* admin/student console polish — same Flexee theme */
+.admin-detail-toolbar{margin-bottom:12px}
+.admin-detail-course{margin-bottom:14px}
+.admin-detail-course .chead{background:var(--sunk);padding:14px 16px}
+.admin-detail-course .chead b{font-size:16px;font-weight:500}
+.admin-detail-course .foot{border-top:1px solid var(--line)}
+body.console .panel > .foot:last-child{border-bottom:0}
+@media(max-width:820px){
+  .admin-detail-course .chead{align-items:flex-start}
+}

@@ -1,0 +1,487 @@
+{
+  "_comment": "SERVER-SIDE ONLY. Real, unscaled figures for Case B. Never served to students before reveal stage 1. All amounts USD thousands unless unit says otherwise.",
+  "case": "B",
+  "company": "Equinix, Inc.",
+  "periods": {
+    "Q1": {
+      "label": "Quarter 1",
+      "real": "three months ended 31 March 2002",
+      "doc": "eqix-10q-2002q1"
+    },
+    "Q2": {
+      "label": "Quarter 2",
+      "real": "three months ended 30 June 2002",
+      "doc": "eqix-10q-2002q2"
+    }
+  },
+  "documents": {
+    "eqix-10q-2002q1": {
+      "form": "10-Q",
+      "period_end": "2002-03-31",
+      "filed": "2002-05-06",
+      "url": "https://www.sec.gov/Archives/edgar/data/1101239/000101287002002114/d10q.htm"
+    },
+    "eqix-10q-2002q2": {
+      "form": "10-Q",
+      "period_end": "2002-06-30",
+      "filed": "2002-08-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/1101239/000102140802010889/d10q.htm"
+    }
+  },
+  "lines": [
+    {
+      "tag": "hl.adj_ebitda",
+      "section": "summary",
+      "label": "Adjusted EBITDA (company measure)",
+      "unit": "usd_k",
+      "Q1": -1539,
+      "Q2": -6934,
+      "prior_year": {
+        "Q1": -16292,
+        "Q2": -11467
+      },
+      "note": "Company adds back depreciation, share-based pay and (Quarter 2) restructuring charges.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.17 MD&A reconciliation",
+        "Q2": "eqix-10q-2002q2 p.24 MD&A reconciliation"
+      }
+    },
+    {
+      "tag": "hl.revenue_ex_resale",
+      "section": "summary",
+      "label": "Revenue excluding equipment resale (company measure)",
+      "unit": "usd_m_as_reported",
+      "Q1": 18.6,
+      "Q2": 16.9,
+      "prior_year": {
+        "Q1": 12.6,
+        "Q2": 16.2
+      },
+      "note": "Q1 derived: $20.2m revenue less $1.6m equipment resale, both as reported. Q2 stated by the company (+5% year on year).",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.18 MD&A Revenues",
+        "Q2": "eqix-10q-2002q2 p.24 MD&A Revenues"
+      }
+    },
+    {
+      "tag": "hl.customers",
+      "section": "summary",
+      "label": "Number of customers",
+      "unit": "count",
+      "Q1": 232,
+      "Q2": 248,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.18",
+        "Q2": "eqix-10q-2002q2 p.24"
+      }
+    },
+    {
+      "tag": "is.revenue",
+      "section": "income",
+      "label": "Revenue",
+      "unit": "usd_k",
+      "Q1": 20158,
+      "Q2": 18040,
+      "prior_year": {
+        "Q1": 12613,
+        "Q2": 16157
+      },
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.revenue_recurring",
+      "section": "income",
+      "label": "of which: recurring (monthly contracts)",
+      "unit": "usd_m_as_reported",
+      "Q1": 16.6,
+      "Q2": 15.3,
+      "prior_year": {
+        "Q1": 11.7,
+        "Q2": 14.9
+      },
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.18",
+        "Q2": "eqix-10q-2002q2 p.24"
+      }
+    },
+    {
+      "tag": "is.revenue_resale_related",
+      "section": "income",
+      "label": "of which: equipment resold through two companies linked to directors",
+      "unit": "usd_m_as_reported",
+      "Q1": 1.6,
+      "Q2": 1.1,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.7, p.12 note 10",
+        "Q2": "eqix-10q-2002q2 p.9, p.15 note 10"
+      }
+    },
+    {
+      "tag": "is.cost_of_revenue",
+      "section": "income",
+      "label": "Cost of revenue (includes depreciation)",
+      "unit": "usd_k",
+      "Q1": 25426,
+      "Q2": 26956,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.depreciation",
+      "section": "income",
+      "label": "Depreciation",
+      "unit": "usd_k",
+      "Q1": 12059,
+      "Q2": 13360,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.17 reconciliation",
+        "Q2": "eqix-10q-2002q2 p.24 reconciliation"
+      }
+    },
+    {
+      "tag": "is.restructuring",
+      "section": "income",
+      "label": "Restructuring charge",
+      "unit": "usd_k",
+      "Q1": 0,
+      "Q2": 9950,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4 (none)",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.operating_loss",
+      "section": "income",
+      "label": "Operating income (loss)",
+      "unit": "usd_k",
+      "Q1": -16179,
+      "Q2": -31811,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.interest_expense",
+      "section": "income",
+      "label": "Interest expense",
+      "unit": "usd_k",
+      "Q1": -9670,
+      "Q2": -8561,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.debt_gain",
+      "section": "income",
+      "label": "Gain on retiring bonds for less than face value",
+      "unit": "usd_k",
+      "Q1": 11662,
+      "Q2": 15526,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "is.net_loss",
+      "section": "income",
+      "label": "Net income (loss)",
+      "unit": "usd_k",
+      "Q1": -13694,
+      "Q2": -24557,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.4",
+        "Q2": "eqix-10q-2002q2 p.4"
+      }
+    },
+    {
+      "tag": "bs.cash",
+      "section": "balance",
+      "label": "Cash and short-term investments",
+      "unit": "usd_k",
+      "Q1": 55120,
+      "Q2": 23264,
+      "opening": 87721,
+      "note": "Cash plus short-term investments: Q1 33,753 + 21,367; Q2 16,775 + 6,489; opening 58,831 + 28,890.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.3",
+        "Q2": "eqix-10q-2002q2 p.3",
+        "opening": "31 Dec 2001 column"
+      }
+    },
+    {
+      "tag": "bs.restricted_cash",
+      "section": "balance",
+      "label": "Cash pledged as security for leases (not available)",
+      "unit": "usd_k",
+      "Q1": 30280,
+      "Q2": 26564,
+      "note": "Current plus non-current restricted: Q1 2,287 + 27,993; Q2 47 + 26,517.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.3",
+        "Q2": "eqix-10q-2002q2 p.3"
+      }
+    },
+    {
+      "tag": "bs.ppe_in_service",
+      "section": "balance",
+      "label": "Facilities and equipment in service, net",
+      "unit": "usd_k",
+      "Q1": 417608,
+      "Q2": 399712,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.3",
+        "Q2": "eqix-10q-2002q2 p.3"
+      }
+    },
+    {
+      "tag": "bs.cip",
+      "section": "balance",
+      "label": "Construction in progress",
+      "unit": "usd_k",
+      "Q1": 0,
+      "Q2": 0,
+      "opening": 103691,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.3",
+        "Q2": "eqix-10q-2002q2 p.3"
+      }
+    },
+    {
+      "tag": "bs.total_assets",
+      "section": "balance",
+      "label": "Total assets",
+      "unit": "usd_k",
+      "Q1": 531687,
+      "Q2": 470356,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.3",
+        "Q2": "eqix-10q-2002q2 p.3"
+      }
+    },
+    {
+      "tag": "bs.debt_current",
+      "section": "balance",
+      "label": "Debt due within a year",
+      "unit": "usd_k",
+      "Q1": 8640,
+      "Q2": 112756,
+      "note": "Q2 includes the whole bank facility, reclassified as current after a covenant breach.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.10 note 7",
+        "Q2": "eqix-10q-2002q2 p.12 note 7"
+      }
+    },
+    {
+      "tag": "bs.debt_long",
+      "section": "balance",
+      "label": "Long-term debt",
+      "unit": "usd_k",
+      "Q1": 272996,
+      "Q2": 141495,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.10 note 7",
+        "Q2": "eqix-10q-2002q2 p.12 note 7"
+      }
+    },
+    {
+      "tag": "bs.lease_commitments",
+      "section": "balance",
+      "label": "Future rent owed under long leases (not on balance sheet)",
+      "unit": "usd_k",
+      "Q1": 468186,
+      "Q2": null,
+      "note": "Q2 figure not captured in the portion read; fill from eqix-10q-2002q2 liquidity table or show Q1 only.",
+      "open_item": true,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.21 table",
+        "Q2": "TODO"
+      }
+    },
+    {
+      "tag": "cf.capex_quarter",
+      "section": "cashflow",
+      "label": "Cash paid for construction and equipment (quarter)",
+      "unit": "usd_k",
+      "Q1": 26836,
+      "Q2": 5896,
+      "note": "Purchases of property and equipment plus payments of accrued construction costs. Q1: 2,836 + 24,000. Q2 = six-month 4,024 + 28,708 = 32,732 less Q1.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.5",
+        "Q2": "eqix-10q-2002q2 p.5 less Q1"
+      }
+    },
+    {
+      "tag": "cf.operating_ytd",
+      "section": "cashflow",
+      "label": "Cash from operations (year to date)",
+      "unit": "usd_k",
+      "Q1": -2045,
+      "Q2": -25849,
+      "ytd_months": {
+        "Q1": 3,
+        "Q2": 6
+      },
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.5",
+        "Q2": "eqix-10q-2002q2 p.5"
+      }
+    },
+    {
+      "tag": "cf.financing_ytd",
+      "section": "cashflow",
+      "label": "Cash from financing (year to date)",
+      "unit": "usd_k",
+      "Q1": -1381,
+      "Q2": -7007,
+      "ytd_months": {
+        "Q1": 3,
+        "Q2": 6
+      },
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.5",
+        "Q2": "eqix-10q-2002q2 p.5"
+      }
+    },
+    {
+      "tag": "nt.bonds_for_shares",
+      "section": "notes",
+      "label": "Bonds retired by issuing new shares instead of cash (face value, quarter)",
+      "unit": "usd_m_as_reported",
+      "Q1": 25.0,
+      "Q2": 27.8,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.10 note 7",
+        "Q2": "eqix-10q-2002q2 p.11 note 7"
+      }
+    },
+    {
+      "tag": "nt.bond_market_value",
+      "section": "notes",
+      "label": "Market value of the company's remaining bonds, per 100 of face value",
+      "unit": "per_100",
+      "Q1": 34,
+      "Q2": null,
+      "note": "Q1: fair value approx. $60.0m on $175.0m face. Q2 value not captured; fill from eqix-10q-2002q2 Item 3 or show Q1 only.",
+      "open_item": true,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.30 Item 3",
+        "Q2": "TODO"
+      }
+    },
+    {
+      "tag": "nt.top_customer_share",
+      "section": "notes",
+      "label": "Share of revenue from the largest customer",
+      "unit": "pct",
+      "Q1": 20,
+      "Q2": 19,
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.14 note 13",
+        "Q2": "eqix-10q-2002q2 p.17 note 13"
+      }
+    },
+    {
+      "tag": "nt.bad_debt",
+      "section": "notes",
+      "label": "Bad-debt expense from customers entering bankruptcy",
+      "unit": "usd_m_as_reported",
+      "Q1": null,
+      "Q2": 2.0,
+      "note": "Q1 disclosure is different in kind: customers already bankrupt or closed were 3.0% of Q1 revenue.",
+      "src": {
+        "Q1": "eqix-10q-2002q1 p.25",
+        "Q2": "eqix-10q-2002q2 p.25"
+      }
+    }
+  ],
+  "text_lines": [
+    {
+      "tag": "tx.going_concern",
+      "section": "notes",
+      "fact": "The accounts are prepared on the assumption the company continues as a going concern, and the notes explain the doubts at length: losses and negative operating cash in every period since it started.",
+      "src": "eqix-10q-2002q1 p.6 note 1; eqix-10q-2002q2 p.6-8 note 1"
+    },
+    {
+      "tag": "tx.covenant_breach",
+      "section": "notes",
+      "fact": "Quarter 2: the company breached its bank covenants, including a revenue target. The banks agreed a waiver on condition that at least $100m of bonds are converted into shares by a fixed date; otherwise the company is in breach again. The company says it may need to seek bankruptcy protection to force the conversion.",
+      "src": "eqix-10q-2002q2 p.7-8 note 1; p.21-22 note 16"
+    },
+    {
+      "tag": "tx.no_building",
+      "section": "notes",
+      "fact": "The largest facility was finished in Quarter 1. Nothing is under construction, and there are no plans to build or expand unless new funding is found.",
+      "src": "eqix-10q-2002q1 p.9 note 5; eqix-10q-2002q2 p.10 note 5"
+    },
+    {
+      "tag": "tx.right_sizing",
+      "section": "notes",
+      "fact": "Large customers have been cutting the capacity they are committed to pay for, often in exchange for longer terms. The company says it has renegotiated all seven of its largest customers and expects no further significant cuts.",
+      "src": "eqix-10q-2002q2 p.24 MD&A Revenues"
+    },
+    {
+      "tag": "tx.related_resale",
+      "section": "notes",
+      "fact": "Part of revenue is equipment bought from and resold through two companies whose executives sit on this company's board; it is booked at the full sale price. The company says it does not expect significant resales in future.",
+      "src": "eqix-10q-2002q1 p.7, p.12; eqix-10q-2002q2 p.9, p.15"
+    },
+    {
+      "tag": "tx.asset_lives",
+      "section": "notes",
+      "fact": "The main equipment inside the facilities is depreciated over seven to ten years, and building works over no longer than the lease, with leases running up to twenty-three years out.",
+      "src": "2001 10-K405 critical accounting policies; eqix-10q-2002q2 lease table"
+    },
+    {
+      "tag": "tx.customer_failures",
+      "section": "notes",
+      "fact": "Several customers, including large carriers, have filed for bankruptcy; aged balances from two of them were written off or fully reserved in Quarter 2.",
+      "src": "eqix-10q-2002q1 p.25; eqix-10q-2002q2 p.8, p.25"
+    }
+  ],
+  "management_statements_source": [
+    {
+      "tag": "mg.ebitda_outlook",
+      "src": "eqix-10q-2002q1 p.19; eqix-10q-2002q2 p.26",
+      "gist": "Expects the company's own operating-profit measure to move toward breakeven over the next few quarters, through growth in core revenue and tight control of spending."
+    },
+    {
+      "tag": "mg.deleverage",
+      "src": "eqix-10q-2002q2 p.6, p.30",
+      "gist": "Intends to issue a significant number of new shares to retire its remaining bonds, and says bondholders have indicated willingness."
+    },
+    {
+      "tag": "mg.demand_risk",
+      "src": "eqix-10q-2002q1 p.29 risk factors",
+      "gist": "Warns that if demand for the kind of service it sells does not keep growing, a viable market for its facilities may not emerge."
+    },
+    {
+      "tag": "mg.competition",
+      "src": "eqix-10q-2002q1 p.25-26 risk factors",
+      "gist": "Competes with larger, better-funded providers of similar space that could cut prices, and with others copying its model."
+    }
+  ],
+  "strip_hazards": [
+    "Customer names (the largest customer, and bankrupt customers including the Case A company and other carriers) \u2014 remove entirely",
+    "Contractor name, landlord names, city and country names, acreage of the ground lease \u2014 remove",
+    "'IBX', 'Internet', 'cabinet', 'colocation', 'neutral', 'peering', 'carrier' \u2014 replace with generic 'facility', 'space', 'capacity'",
+    "Share counts, option exercise prices, per-share losses, share price in warrant valuations \u2014 omit (reveal price collapse and scale)",
+    "Bond coupon (13%) and floating-rate figures \u2014 omit (date the period)",
+    "Stock-exchange listing risk \u2014 keep only as 'the company's shares risk losing their listing', no exchange name, no price threshold",
+    "Year references in maturity tables \u2014 convert to 'within 1 year', '2-3 years', 'after 5 years'",
+    "Terrorism and regional power-shortage risk factors \u2014 omit (date the period)"
+  ],
+  "design_notes": [
+    "Case B looks worse than Case A on almost every line (going concern, covenant breach, bonds priced near a third of face). That is the intended trap: students who called Case A a bubble on debt and losses will call this one the same way.",
+    "The lines that point the other way are small and quiet: construction has stopped, operating cash burn is modest, customer count still rising, cost cuts real, and bonds being swapped for equity instead of defaulting."
+  ]
+}

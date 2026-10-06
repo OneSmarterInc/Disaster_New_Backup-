@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--BASE-->
+<script>
+// The browser path is authoritative: a platform rewrite may serve this page
+// with a server-injected base for the sim's own domain, while the visible URL
+// still lives under /sim10/.
+const mount = /^\/sim10(?:\/|$)/.test(location.pathname) ? '/sim10/' : '/';
+let base = document.querySelector('base');
+if (!base) { base = document.createElement('base'); document.head.appendChild(base); }
+base.href = mount;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Console</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  body { font-size: 20px; }
+  .join { display: flex; gap: 24px; align-items: baseline; flex-wrap: wrap; }
+  .join .code { font-family: var(--mono); font-size: 3rem; letter-spacing: .15em; color: var(--amber); }
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 24px; }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 0 8px; }
+  .split p { margin: 0 0 4px; }
+  .split .n { font-family: var(--mono); font-size: 3.4rem; line-height: 1; color: var(--amber); }
+  .pairs { display: grid; gap: 12px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .said { background: var(--ground); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px; }
+  .said h3 { font-size: 1rem; margin-bottom: 6px; }
+  .projected .said { font-size: 1.15rem; border-color: var(--amber); }
+  .tabs { display: flex; gap: 8px; }
+  .tabs button[aria-pressed=true] { border-color: var(--amber); }
+  details.notes summary { cursor: pointer; }
+  @media (max-width: 720px) { .pair, .split { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="rail">
+  <div class="rail-inner">
+    <span class="case" id="case-label"></span>
+    <span class="phase" id="phase-label">Connecting</span>
+    <span class="time" id="time"></span>
+  </div>
+</header>
+<main class="wrap">
+  <section class="join panel">
+    <div><p class="muted" style="margin:0">Join at</p><p class="mono" id="join-url" style="margin:0"></p></div>
+    <div><p class="muted" style="margin:0">Code</p><p class="code" id="code" style="margin:0"></p></div>
+  </section>
+  <div class="tabs" id="tabs"></div>
+  <div class="controls" id="controls"></div>
+  <p class="error" id="err" role="alert"></p>
+  <div id="board"></div>
+  <details class="notes panel" id="notes"><summary>Facilitator notes (host only; open on your own screen)</summary><div id="notes-body"></div></details>
+</main>
+<script src="common.js"></script>
+<script src="console.js"></script>
+</body>
+</html>

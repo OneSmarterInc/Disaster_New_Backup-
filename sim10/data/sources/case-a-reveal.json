@@ -1,0 +1,404 @@
+{
+  "_comment": "SERVER-SIDE ONLY. Reveal stage 2 and 3 for Case A. Real, unscaled figures. USD millions.",
+  "case": "A",
+  "company": "Global Crossing Ltd.",
+  "periods": {
+    "Q3": {
+      "label": "Quarter 3",
+      "real": "three months ended 31 Dec 2000",
+      "doc": "gc-10k-2000"
+    },
+    "Q4": {
+      "label": "Quarter 4",
+      "real": "three months ended 31 Mar 2001",
+      "doc": "gc-10q-2001q1"
+    },
+    "Q5": {
+      "label": "Quarter 5",
+      "real": "three months ended 30 Jun 2001",
+      "doc": "gc-10q-2001q2"
+    },
+    "Q6": {
+      "label": "Quarter 6",
+      "real": "three months ended 30 Sep 2001",
+      "doc": "gc-10q-2001q3"
+    }
+  },
+  "documents": {
+    "gc-10k-2000": {
+      "form": "10-K",
+      "period_end": "2000-12-31",
+      "url": "https://www.sec.gov/Archives/edgar/data/1061322/000095013001001603/0001.txt"
+    },
+    "gc-10q-2001q1": {
+      "form": "10-Q",
+      "period_end": "2001-03-31",
+      "filed": "2001-05-15",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001061322/000095013001501716/d10q.txt"
+    },
+    "gc-10q-2001q2": {
+      "form": "10-Q",
+      "period_end": "2001-06-30",
+      "filed": "2001-08-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001061322/000095013001503918/d10q.txt"
+    },
+    "gc-10q-2001q3": {
+      "form": "10-Q",
+      "period_end": "2001-09-30",
+      "filed": "2001-11-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001061322/000095013001505325/d10q.txt"
+    },
+    "sec-34-51517": {
+      "form": "SEC administrative proceeding",
+      "date": "2005-04-11",
+      "url": "https://www.sec.gov/files/litigation/admin/34-51517.pdf"
+    },
+    "gc-10k-2002": {
+      "form": "10-K",
+      "filed": "2003",
+      "url": "https://www.sec.gov/Archives/edgar/data/1061322/000119312503090817/d10k.txt"
+    },
+    "gc-ar-2000": {
+      "form": "2000 Annual Report",
+      "url": "https://media.corporate-ir.net/media_files/nys/gx/reports/2000_AR.pdf"
+    },
+    "gc-8k-2003-emergence": {
+      "form": "8-K exhibit 99.1",
+      "date": "2003",
+      "url": "https://www.sec.gov/Archives/edgar/data/1061322/000119312503098911/dex991.htm"
+    }
+  },
+  "basis_notes": [
+    "Each quarter is shown as the company reported it at the time. Quarter 6 was reported after two units moved to discontinued operations, so its revenue is on a narrower basis than Quarters 4-5 (which still included cable installation revenue).",
+    "Quarter 3 comes from the annual report quarterly-data note; cash revenue and Adjusted EBITDA for it are secondary-sourced and flagged below.",
+    "All of 2000 and the first three quarters of 2001 were later restated (gc-10k-2002, Restatements).",
+    "From Quarter 3 the company reports 'Recurring Adjusted EBITDA', which excludes items it calls non-recurring; Quarters 1-2 in the play pack show 'Adjusted EBITDA'. The reveal labels the change so the line students cited still highlights."
+  ],
+  "lines": [
+    {
+      "tag": "hl.cash_revenue",
+      "label": "Cash revenue (company measure)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "company release 14 Feb 2001 (Telecompaper 16 Feb 2001); consistent with gc-ar-2000 FY totals (cash revenue $5.2bn, Recurring Adjusted EBITDA $1.5bn). 8-K exhibit not located on EDGAR search",
+        "Q4": "gc-10q-2001q1 p.10 note 9",
+        "Q5": "gc-10q-2001q2 p.11 note 11",
+        "Q6": "gc-10q-2001q3 p.13 note 12"
+      },
+      "Q3": 1540,
+      "Q4": 1613,
+      "Q5": 1620,
+      "Q6": 999,
+      "src_grade_Q3": "secondary, corroborated"
+    },
+    {
+      "tag": "hl.adj_ebitda",
+      "label": "Recurring Adjusted EBITDA (company measure)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "company release 14 Feb 2001 (Telecompaper 16 Feb 2001); consistent with gc-ar-2000 FY totals (cash revenue $5.2bn, Recurring Adjusted EBITDA $1.5bn). 8-K exhibit not located on EDGAR search",
+        "Q4": "gc-10q-2001q1 p.10-11 note 9 (Recurring Adjusted EBITDA)",
+        "Q5": "gc-10q-2001q2 p.12 note 11",
+        "Q6": "gc-10q-2001q3 p.14 note 12"
+      },
+      "Q3": 418,
+      "Q4": 441,
+      "Q5": 472,
+      "Q6": -17,
+      "src_grade_Q3": "secondary, corroborated",
+      "maps_to": [
+        "hl.adj_ebitda"
+      ]
+    },
+    {
+      "tag": "recon.deferred_cash",
+      "label": "Adjusted EBITDA includes: cash received but not yet recognised as revenue",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "NOT CAPTURED",
+        "Q4": "gc-10q-2001q1 p.11 note 9",
+        "Q5": "gc-10q-2001q2 p.12 note 11",
+        "Q6": "gc-10q-2001q3 p.13-14 note 12"
+      },
+      "Q3": null,
+      "Q4": 531,
+      "Q5": 551,
+      "Q6": 206
+    },
+    {
+      "tag": "is.revenue",
+      "label": "Revenue",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10k-2000 note 23 quarterly data, Q4 column",
+        "Q4": "gc-10q-2001q1 p.2",
+        "Q5": "gc-10q-2001q2 p.2",
+        "Q6": "gc-10q-2001q3 p.2"
+      },
+      "Q3": 997,
+      "Q4": 1082,
+      "Q5": 1069,
+      "Q6": 793
+    },
+    {
+      "tag": "is.revenue_upfront",
+      "label": "of which: capacity sales recognised up front",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "NOT CAPTURED",
+        "Q4": "gc-10q-2001q1 p.10 note 9 sales-type lease revenue",
+        "Q5": "gc-10q-2001q2 p.11 note 11 (none)",
+        "Q6": "gc-10q-2001q3 p.13 note 12"
+      },
+      "Q3": null,
+      "Q4": 18,
+      "Q5": 0,
+      "Q6": 0
+    },
+    {
+      "tag": "is.operating_loss",
+      "label": "Operating income (loss)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10k-2000 note 23",
+        "Q4": "gc-10q-2001q1 p.2",
+        "Q5": "gc-10q-2001q2 p.2",
+        "Q6": "gc-10q-2001q3 p.2"
+      },
+      "Q3": -580,
+      "Q4": -513,
+      "Q5": -539,
+      "Q6": -897
+    },
+    {
+      "tag": "is.net_loss_common",
+      "label": "Net income (loss) to common shareholders",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10k-2000 note 23; company release reports -513 (rounding)",
+        "Q4": "gc-10q-2001q1 p.2",
+        "Q5": "gc-10q-2001q2 p.2",
+        "Q6": "gc-10q-2001q3 p.2"
+      },
+      "Q3": -514,
+      "Q4": -675,
+      "Q5": -689,
+      "Q6": -3407
+    },
+    {
+      "tag": "bs.cash",
+      "label": "Cash and cash equivalents",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10q-2001q1 p.1, 31 Dec 2000 column (as reported in 10-K 2000)",
+        "Q4": "gc-10q-2001q1 p.1",
+        "Q5": "gc-10q-2001q2 p.1",
+        "Q6": "gc-10q-2001q3 p.1"
+      },
+      "Q3": 1477,
+      "Q4": 1245,
+      "Q5": 1923,
+      "Q6": 2260
+    },
+    {
+      "tag": "bs.debt_total",
+      "label": "Debt (due within a year plus long-term)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10q-2001q1 p.1 Dec column; sum of short-term 1000 + long-term 6271",
+        "Q4": "gc-10q-2001q1 p.1; sum of short-term 1000 + long-term 7385",
+        "Q5": "gc-10q-2001q2 p.1; sum of short-term 61 + long-term 6048",
+        "Q6": "gc-10q-2001q3 p.1; sum of short-term 0 + long-term 7647"
+      },
+      "derived": true,
+      "Q3": 7271,
+      "Q4": 8385,
+      "Q5": 6109,
+      "Q6": 7647,
+      "maps_to": [
+        "bs.debt_current",
+        "bs.debt_long"
+      ]
+    },
+    {
+      "tag": "bs.deferred_revenue",
+      "label": "Deferred revenue (cash received, not yet earned)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "gc-10q-2001q1 p.1 Dec column",
+        "Q4": "gc-10q-2001q1 p.1",
+        "Q5": "gc-10q-2001q2 p.1",
+        "Q6": "gc-10q-2001q3 p.1"
+      },
+      "Q3": 1700,
+      "Q4": 2243,
+      "Q5": 2694,
+      "Q6": 2758
+    },
+    {
+      "tag": "cf.capex_quarter",
+      "label": "Cash paid for capital expenditure (quarter)",
+      "unit": "usd_m",
+      "src": {
+        "Q3": "NOT CAPTURED",
+        "Q4": "gc-10q-2001q1 p.10 note 9 cash paid for capex consolidated",
+        "Q5": "gc-10q-2001q2 p.11 note 11",
+        "Q6": "NOT CAPTURED"
+      },
+      "Q3": null,
+      "Q4": 1269,
+      "Q5": 1033,
+      "Q6": null
+    }
+  ],
+  "text_lines": [
+    {
+      "quarter": "Q4",
+      "tag": "tx.swap_disclosure",
+      "fact": "$375m of cash revenue and Recurring Adjusted EBITDA came from significant carrier customers who signed contracts to buy $500m of capacity and to whom the company made substantial capital commitments in the same quarter; new capital commitments total about $625m",
+      "src": "gc-10q-2001q1 p.11 note 9; p.16 Liquidity"
+    },
+    {
+      "quarter": "Q4",
+      "tag": "tx.exodus_stake",
+      "fact": "Shares received for the hosting unit fell from $1,918m at closing to $1,163m at 31 Mar 2001",
+      "src": "gc-10q-2001q1 p.6 note 5 (reveal only; names the Case B rival)"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.swap_disclosure",
+      "fact": "$345m of cash revenue and Recurring Adjusted EBITDA came from carriers who signed to buy $381m of capacity; the company made $358m of cash commitments to those carriers",
+      "src": "gc-10q-2001q2 p.12 note 11; p.10 note 10"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.slowdown",
+      "fact": "Company expects slower growth from a lengthening sales cycle, customers' financial difficulties and an industry downturn; installation revenue expected to fall",
+      "src": "gc-10q-2001q2 p.13-14 MD&A"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.core_complete",
+      "fact": "Core network completed this quarter; capital spending guidance for the year cut to under $4,500m from $4,900-5,100m",
+      "src": "gc-10q-2001q2 p.21 Liquidity"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.layoffs",
+      "fact": "Board approved eliminating more than 2,000 positions and a $250-325m charge",
+      "src": "gc-10q-2001q2 p.12 note 12"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.bond_prices",
+      "fact": "8.70% notes fair value $762 per $1,000 face (was $923 at 31 Mar)",
+      "src": "gc-10q-2001q2 p.23 Item 3 (reveal: coupon allowed)"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.asset_sale_closed",
+      "fact": "Regional business sale closed for $3,369m (agreed $3,650m)",
+      "src": "gc-10q-2001q2 p.8 note 6"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.hosting_stake",
+      "fact": "Shares received for the hosting unit worth $223m vs $1,918m at closing",
+      "src": "gc-10q-2001q2 p.8 note 6"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.swap_disclosure",
+      "fact": "$152m of cash revenue came from carriers who signed to buy $177m of capacity; company cash commitments to those carriers $190m in the quarter ($1,173m over three quarters)",
+      "src": "gc-10q-2001q3 p.14 note 12; p.13 note 11"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.credit_line_drawn",
+      "fact": "$1,700m corporate credit facility fully drawn",
+      "src": "gc-10q-2001q3 p.20 Liquidity"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.covenants",
+      "fact": "Company expects to need modifications to financial covenants to stay in compliance",
+      "src": "gc-10q-2001q3 p.23 Liquidity"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.rating_cut",
+      "fact": "Credit ratings cut in October; receivables facility and a $61m borrowing called",
+      "src": "gc-10q-2001q3 p.11 note 8; p.22"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.goodwill_warning",
+      "fact": "Complete evaluation of long-lived assets in the next quarter may bring a material write-down of goodwill",
+      "src": "gc-10q-2001q3 p.21-22"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.carrier_flat",
+      "fact": "Carrier revenue flat; many providers deferred capacity purchases; carrier data customers delayed renewals",
+      "src": "gc-10q-2001q3 p.15 MD&A"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.bond_prices",
+      "fact": "8.70% notes fair value $413 per $1,000 face",
+      "src": "gc-10q-2001q3 p.24 Item 3"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.layoffs",
+      "fact": "More than 2,000 jobs cut, a further ~1,200 planned; headcount to fall below 8,000",
+      "src": "gc-10q-2001q3 p.10 note 7"
+    }
+  ],
+  "outcome": [
+    {
+      "tag": "out.bankruptcy",
+      "fact": "Filed for Chapter 11 on 28 January 2002, listing about $22.4bn of assets and $12.4bn of debt. Common and preferred shareholders were wiped out.",
+      "src": "Chapter 11 petition, 28 Jan 2002, as summarised in House Financial Services Committee memo (21 Mar 2002) https://financialservices.house.gov/media/pdf/032102wm.pdf",
+      "src_grade": "secondary",
+      "open_item": "Confirm against the company 8-K of 28 Jan 2002"
+    },
+    {
+      "tag": "out.sec_order",
+      "fact": "The SEC later found that the company described reciprocal capacity purchases and sales in its reports without saying how much of its cash revenue and Adjusted EBITDA depended on them; the company and executives consented to a cease-and-desist order.",
+      "src": "sec-34-51517",
+      "src_grade": "primary, figures confirmed",
+      "open_item": "Wording confirmed against order for the figures below; keep student-facing text to what the order states"
+    },
+    {
+      "tag": "out.sec_figures",
+      "fact": "The SEC order states that in the quarter to March 2001, reciprocal deals made up 23% of cash revenue and 85% of Recurring Adjusted EBITDA. In the quarter to June 2001, without them, the reported $472m would have been about minus $43m.",
+      "src": "sec-34-51517 findings",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.special_committee",
+      "fact": "A board special committee later reviewed 16 of 36 concurrent purchase-and-sale deals made between October 2000 and September 2001.",
+      "src": "gc-8k-2003-emergence exhibit 99.1 notes",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.restated",
+      "fact": "The company restated 2000 and the first three quarters of 2001.",
+      "src": "gc-10k-2002 Restatements section",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.network_lived",
+      "fact": "The network kept running through bankruptcy; a new owner put in fresh equity at emergence and the business was later bought by another network operator.",
+      "src": "handover list: ST Telemedia $250m at emergence Dec 2003; Level 3 acquisition 2011",
+      "src_grade": "unverified",
+      "open_item": "Pull emergence 8-K and acquisition 8-K for figures"
+    }
+  ],
+  "open_items": [
+    "Q3 (Dec 2000) cash revenue and Recurring Adjusted EBITDA: secondary but corroborated by the company's annual report totals; 8-K exhibit not found",
+    "Q3 capex, cash deferred revenue and up-front sales, and Q6 capex: shown as 'not reported on the same basis'",
+    "Bankruptcy figures secondary; emergence investor and later acquirer unverified (gc-8k-2003-emergence is the next source to read)"
+  ]
+}

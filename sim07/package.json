@@ -1,0 +1,13 @@
+{
+  "name": "flexee-rapid-sim-07",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Flexee RapidSim 07 \u2014 Would You Have Bought It?",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node tools/checks.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

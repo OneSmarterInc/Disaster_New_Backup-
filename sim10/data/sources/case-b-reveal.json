@@ -1,0 +1,420 @@
+{
+  "_comment": "SERVER-SIDE ONLY. Reveal stages 2 and 3 for Case B. Real, unscaled figures. USD thousands unless unit says otherwise. Q3-Q6 complete for the trimmed line set; see open_items.",
+  "case": "B",
+  "company": "Equinix, Inc.",
+  "periods": {
+    "Q3": {
+      "label": "Quarter 3",
+      "real": "three months ended 30 Sep 2002",
+      "doc": "eqix-10q-2002q3"
+    },
+    "Q4": {
+      "label": "Quarter 4",
+      "real": "three months ended 31 Dec 2002",
+      "doc": "eqix-10k-2002"
+    },
+    "Q5": {
+      "label": "Quarter 5",
+      "real": "three months ended 31 Mar 2003",
+      "doc": "eqix-10q-2003q1",
+      "filed": "2003-05-15"
+    },
+    "Q6": {
+      "label": "Quarter 6",
+      "real": "three months ended 30 Jun 2003",
+      "doc": "eqix-10q-2003q2"
+    }
+  },
+  "documents": {
+    "eqix-10q-2002q3": {
+      "form": "10-Q",
+      "period_end": "2002-09-30",
+      "filed": "2002-11-08",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000101287002004255/d10q.htm"
+    },
+    "eqix-10k-2002": {
+      "form": "10-K",
+      "period_end": "2002-12-31",
+      "filed": "2003-03-27",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000089843003002107/d10k.htm"
+    },
+    "eqix-10q-2003q1": {
+      "form": "10-Q",
+      "period_end": "2003-03-31",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000101287003002591/d10q.htm",
+      "filed": "2003-05-15"
+    },
+    "eqix-10q-2003q2": {
+      "form": "10-Q",
+      "period_end": "2003-06-30",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000119312503028382/d10q.htm",
+      "filed": "2003-08-04"
+    },
+    "eqix-prer14a-2002": {
+      "form": "PRER14A",
+      "url": "https://www.sec.gov/Archives/edgar/data/0001101239/000101287002004182/dprer14a.htm"
+    },
+    "eqix-10q-2002q1-bs": {
+      "form": "10-Q",
+      "period_end": "2002-03-31",
+      "note": "31 Dec 2001 balance-sheet column (accumulated deficit 330,015)",
+      "url": "https://www.sec.gov/Archives/edgar/data/1101239/000101287002002114/d10q.htm"
+    },
+    "eqix-8k-2024-02": {
+      "form": "8-K exhibit 99.1",
+      "date": "2024-02-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/1101239/000162828024004799/eqix-123123xpr8kupload.htm"
+    }
+  },
+  "lines": [
+    {
+      "tag": "is.revenue",
+      "unit": "usd_k",
+      "Q3": 20187,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.4",
+        "Q4": "derived: eqix-10k-2002 MD&A FY revenue $77.2m less nine-month 58,385 (eqix-10q-2002q3 p.4); \u00b150 rounding",
+        "Q5": "eqix-10q-2003q1 p.4",
+        "Q6": "eqix-10q-2003q2 p.4"
+      },
+      "Q4": 18815,
+      "derived": true,
+      "Q5": 25435,
+      "Q6": 28434
+    },
+    {
+      "tag": "is.depreciation",
+      "unit": "usd_k",
+      "Q3": 14080,
+      "src": {
+        "Q3": "eqix-10q-2002q3 derived: p.5 nine-month 39,499 less six-month 25,419 (Q1 12,059 + Q2 13,360 from play pack)",
+        "Q5": "eqix-10q-2003q1 p.5 cash flow",
+        "Q6": "eqix-10q-2003q2 derived: p.5 six-month depreciation and accretion 31,556 less Q1 16,254 (includes new accretion expense)"
+      },
+      "Q5": 16254,
+      "Q6": 15302
+    },
+    {
+      "tag": "is.restructuring",
+      "unit": "usd_k",
+      "Q3": 19010,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.4; p.23 note 14 (ground-lease letters of credit written off)",
+        "Q5": "eqix-10q-2003q1 p.4 (none on face)",
+        "Q6": "eqix-10q-2003q2 p.4"
+      },
+      "Q5": 0,
+      "Q6": 0
+    },
+    {
+      "tag": "is.operating_loss",
+      "unit": "usd_k",
+      "Q3": -36087,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.4",
+        "Q4": "derived: eqix-10k-2002 going-concern note FY loss from operations $101.7m less nine-month 84,077; \u00b150 rounding",
+        "Q5": "eqix-10q-2003q1 p.4",
+        "Q6": "eqix-10q-2003q2 p.4"
+      },
+      "Q4": -17623,
+      "Q5": -20811,
+      "Q6": -16242
+    },
+    {
+      "tag": "is.net_loss",
+      "unit": "usd_k",
+      "Q3": -44088,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.4",
+        "Q4": "derived: FY net loss 21,618 = accumulated deficit 351,633 (eqix-10q-2003q1 p.3) less 330,015 (eqix-10q-2002q1 p.3); less nine-month -82,339. Positive: driven by debt gain",
+        "Q5": "eqix-10q-2003q1 p.4",
+        "Q6": "eqix-10q-2003q2 p.4"
+      },
+      "Q4": 60721,
+      "Q5": -25553,
+      "Q6": -21203
+    },
+    {
+      "tag": "bs.cash",
+      "unit": "usd_k",
+      "Q3": 11622,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.3: 9,310 + 2,312",
+        "Q4": "eqix-10q-2003q1 p.3 Dec column (no short-term investments)",
+        "Q5": "eqix-10q-2003q1 p.3 (no short-term investments)",
+        "Q6": "eqix-10q-2003q2 p.3"
+      },
+      "Q4": 41216,
+      "Q5": 20978,
+      "Q6": 24257
+    },
+    {
+      "tag": "bs.restricted_cash",
+      "unit": "usd_k",
+      "Q3": 1564,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.3: 47 + 1,517",
+        "Q4": "eqix-10q-2003q1 p.3 Dec column: 1,981 + 2,426",
+        "Q5": "eqix-10q-2003q1 p.3: 0 + 2,418",
+        "Q6": "eqix-10q-2003q2 p.3: 0 + 2,187"
+      },
+      "Q4": 4407,
+      "Q5": 2418,
+      "Q6": 2187
+    },
+    {
+      "tag": "bs.ppe_in_service",
+      "unit": "usd_k",
+      "Q3": 386699,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.3",
+        "Q4": "eqix-10q-2003q1 p.3 Dec column",
+        "Q5": "eqix-10q-2003q1 p.3 property and equipment, net",
+        "Q6": "eqix-10q-2003q2 p.3"
+      },
+      "Q4": 390048,
+      "Q5": 373936,
+      "Q6": 360922
+    },
+    {
+      "tag": "bs.debt_current",
+      "unit": "usd_k",
+      "Q3": 105562,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.16 note 7 maturities table",
+        "Q4": "eqix-10q-2003q1 p.3 Dec column: 5,591 + 1,981",
+        "Q5": "eqix-10q-2003q1 p.3: 4,133 + 1,981",
+        "Q6": "eqix-10q-2003q2 p.3: 2,983 + 6,981"
+      },
+      "Q4": 7572,
+      "Q5": 6114,
+      "Q6": 9964
+    },
+    {
+      "tag": "bs.debt_long",
+      "unit": "usd_k",
+      "Q3": 142495,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.16 note 7",
+        "Q4": "eqix-10q-2003q1 p.3 Dec column: 3,633 + 89,529 + 28,908 + 25,354",
+        "Q5": "eqix-10q-2003q1 p.3: 2,672 + 89,529 + 28,986 + 25,602",
+        "Q6": "eqix-10q-2003q2 p.3: 2,007 + 83,538 + 29,064 + 27,466"
+      },
+      "Q4": 147424,
+      "Q5": 146789,
+      "Q6": 142075
+    },
+    {
+      "tag": "bs.lease_commitments",
+      "unit": "usd_k",
+      "Q3": 275389,
+      "src": {
+        "Q3": "eqix-prer14a-2002 table as of 30 Sep 2002 (10-Q MD&A table not in portion read)"
+      }
+    },
+    {
+      "tag": "cf.capex_quarter",
+      "unit": "usd_k",
+      "Q3": 1067,
+      "src": {
+        "Q3": "eqix-10q-2002q3 derived: p.5 nine-month 5,091 + 28,708 = 33,799 less six-month 32,732",
+        "Q5": "eqix-10q-2003q1 p.5 purchases of P&E; no accrued construction payments",
+        "Q6": "eqix-10q-2003q2 derived: p.5 six-month 1,460 less Q1 346"
+      },
+      "Q5": 346,
+      "Q6": 1114
+    },
+    {
+      "tag": "cf.operating_q",
+      "unit": "usd_k",
+      "Q3": -3892,
+      "src": {
+        "Q3": "eqix-10q-2002q3 derived: p.5 nine-month -29,741 less six-month -25,849",
+        "Q4": "derived: eqix-10k-2002 going-concern note FY operating cash -$27.5m less nine-month -29,741; \u00b150 rounding. POSITIVE",
+        "Q5": "eqix-10q-2003q1 p.5; includes $7.3m acquired restructuring cash payments (p.13) and merger cost payments",
+        "Q6": "eqix-10q-2003q2 derived: p.5 six-month -22,246 less Q1 -19,558"
+      },
+      "Q4": 2241,
+      "Q5": -19558,
+      "Q6": -2688,
+      "maps_to": [
+        "cf.operating_ytd"
+      ],
+      "label": "Cash from operations (quarter)"
+    },
+    {
+      "tag": "nt.bond_market_value",
+      "unit": "per_100",
+      "Q3": 16,
+      "src": {
+        "Q3": "eqix-10q-2002q3 Item 3 p.50: approx $23.6m on $147.2m face = 16.0"
+      }
+    },
+    {
+      "tag": "nt.top_customer_share",
+      "unit": "pct",
+      "Q3": 19,
+      "src": {
+        "Q3": "eqix-10q-2002q3 p.21 note 13; a second customer 15%",
+        "Q5": "eqix-10q-2003q1 p.20 note 13",
+        "Q6": "eqix-10q-2003q2 p.22 note 13"
+      },
+      "Q5": 17,
+      "Q6": 15
+    },
+    {
+      "tag": "is.debt_gain",
+      "unit": "usd_k",
+      "src": {
+        "Q4": "derived: eqix-10k-2002 MD&A FY gain $114.2m less nine-month 27,188 (rounded)",
+        "Q5": "eqix-10q-2003q1 p.4",
+        "Q6": "eqix-10q-2003q2 p.4",
+        "Q3": "eqix-10q-2002q3 p.4 (blank on face; nine-month 27,188 equals six-month)"
+      },
+      "Q4": 87012,
+      "Q5": 0,
+      "Q6": 0,
+      "Q3": 0
+    },
+    {
+      "tag": "bs.total_assets",
+      "unit": "usd_k",
+      "src": {
+        "Q5": "eqix-10q-2003q1 p.3",
+        "Q6": "eqix-10q-2003q2 p.3"
+      },
+      "Q5": 451486,
+      "Q6": 437398
+    },
+    {
+      "tag": "is.revenue_acquired",
+      "unit": "usd_k",
+      "src": {
+        "Q5": "eqix-10q-2003q1 p.27 MD&A",
+        "Q6": "eqix-10q-2003q2 p.28 MD&A (rounded)",
+        "Q3": "eqix-10q-2002q3 (combination not yet closed)",
+        "Q4": "eqix-10q-2003q1 p.13: acquired results included from 31 Dec 2002 only"
+      },
+      "Q5": 5140,
+      "label": "of which: from the two businesses combined at the end of Quarter 4",
+      "Q6": 5100,
+      "maps_to": [
+        "is.revenue"
+      ],
+      "Q3": 0,
+      "Q4": 0
+    }
+  ],
+  "text_lines": [
+    {
+      "quarter": "Q3",
+      "tag": "tx.rescue_deal",
+      "fact": "Agreed to combine with two Asian facility businesses, issuing ~93.7m and ~76.6m shares (27.5% and 22.5% of the fully diluted company), plus $30-40m of secured convertible notes at ~$0.34 a share; bondholders to swap for cash and shares",
+      "src": "eqix-10q-2002q3 p.6-8 note 1"
+    },
+    {
+      "quarter": "Q3",
+      "tag": "tx.bankruptcy_if_fails",
+      "fact": "If the combination fails the company will most likely seek bankruptcy protection",
+      "src": "eqix-10q-2002q3 p.10 note 1"
+    },
+    {
+      "quarter": "Q3",
+      "tag": "tx.waiver",
+      "fact": "Lenders waived the bond-conversion deadline and a missed December bond interest payment, pending the deal",
+      "src": "eqix-10q-2002q3 p.9 note 1"
+    },
+    {
+      "quarter": "Q3",
+      "tag": "tx.bondholders_tender",
+      "fact": "Holders of $103.7m of bonds have offered to tender",
+      "src": "eqix-10q-2002q3 p.9 note 1"
+    },
+    {
+      "quarter": "Q4",
+      "tag": "tx.rescue_closed",
+      "fact": "The combination and financing closed on the last day of the quarter: two similar businesses joined, a 30.0m convertible secured note was issued to the larger partner's parent, and 116.8m of bonds were retired for about 1.9m new shares and 15.2m cash. A 1-for-32 reverse share split was done to keep the stock listed.",
+      "src": "eqix-10q-2003q1 p.6 note 1; p.26 MD&A"
+    },
+    {
+      "quarter": "Q4",
+      "tag": "tx.covenants_reset",
+      "fact": "Bank covenants reset in December to match the combined company's plan.",
+      "src": "eqix-10q-2003q1 p.6 note 1"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.covenant_compliance",
+      "fact": "In compliance with all debt covenants. A breach would still require repaying about 91.5m the company does not have.",
+      "src": "eqix-10q-2003q1 p.6 note 1"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.twelve_months",
+      "fact": "Management says cash on hand, operating cash from the second half of the year and combination savings cover the next twelve months.",
+      "src": "eqix-10q-2003q1 p.25 MD&A"
+    },
+    {
+      "quarter": "Q5",
+      "tag": "tx.like_for_like",
+      "fact": "Excluding the combined businesses, revenue was flat year on year (20.3m vs 20.2m), but recurring revenue rose 17%; the drop was in one-off items (settlement fees and equipment resale a year earlier). Resizing of large customers' contracts was complete by December.",
+      "src": "eqix-10q-2003q1 p.27-28 MD&A"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.new_money",
+      "fact": "A venture investor put in 10.0m of new convertible secured notes; warrants exercised.",
+      "src": "eqix-10q-2003q2 p.6 note 1; p.16-17 note 9"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.recurring_growth",
+      "fact": "Recurring revenue in the main market up 46% year on year; customer count there 428 against 248 a year earlier (includes two acquired sites).",
+      "src": "eqix-10q-2003q2 p.28 MD&A"
+    },
+    {
+      "quarter": "Q6",
+      "tag": "tx.covenant_compliance",
+      "fact": "Still in compliance with all covenants, now including a monthly minimum cash balance.",
+      "src": "eqix-10q-2003q2 p.6 note 1"
+    }
+  ],
+  "open_items": [
+    "Q4 (Dec 2002) depreciation, capex and customer count need the 10-K 2002 statements (full fetch ~30k tokens); reveal can run without them",
+    "Bond market value per 100 for Q4-Q6 not captured (Item 3); Q3 value 16 is the last one shown",
+    "Q3 (Sep 2002) customer count not captured",
+    "Customer counts change basis in Q6 (includes acquired sites); show with the basis note or drop"
+  ],
+  "basis_notes": [
+    "Each quarter is shown as reported at the time. From Quarter 5 the company includes two businesses it combined with on the last day of Quarter 4; Quarter 5 and 6 revenue therefore includes about 5.1m a quarter from them.",
+    "Quarter 4 has no separate quarterly report. Its figures are the annual report totals less the first three quarters; the annual report rounds to 0.1m, so Quarter 4 figures carry that rounding.",
+    "Depreciation in Quarter 6 includes a small new accretion charge required by an accounting change that year.",
+    "The Quarter 3 report was later amended (10-Q/A); the statement figures used here match both versions."
+  ],
+  "outcome": [
+    {
+      "tag": "out.no_bankruptcy",
+      "fact": "The company never filed for bankruptcy. The rescue closed on 31 December 2002; the bonds were swapped for shares and cash at a steep discount, booking a 114.2m gain in 2002.",
+      "src": "eqix-10q-2003q1 note 1; eqix-10k-2002 MD&A Gain on Debt Extinguishment",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.rescuer",
+      "fact": "The parent of one combined business became the largest shareholder and lender.",
+      "src": "eqix-10q-2003q1 p.13 note 3",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.growth_run",
+      "fact": "By early 2024 the company reported more than 8bn of annual revenue and 21 years of consecutive quarterly revenue growth, a run that begins almost exactly where this reveal ends.",
+      "src": "eqix-8k-2024-02 exhibit 99.1",
+      "src_grade": "primary"
+    },
+    {
+      "tag": "out.case_a_link",
+      "fact": "The Case A company appears in this company's filings among customers that went bankrupt.",
+      "src": "eqix-10q-2002q1 (play-pack strip hazard); debrief only",
+      "src_grade": "primary"
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Would You Have Bought It? — presenter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#0E1524;--panel:#151D2D;--line:#27324A;--ink:#E8E4DA;--dim:#98A0B3;--amber:#F0A63C;--serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:17px/1.55 var(--serif)}
+button,input,select{font:inherit}:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+main{max-width:1060px;margin:0 auto;padding:28px clamp(14px,3vw,32px) 80px}
+h1{font-weight:400;font-size:32px;margin:0 0 6px}h2{font-weight:500;font-size:20px;margin:30px 0 10px}
+.dim{color:var(--dim)}.mono{font-family:var(--mono);font-size:14px}
+.btn{background:var(--amber);color:#1A1206;border:0;padding:10px 15px;font:500 13px var(--mono);cursor:pointer}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.panel{border:1px solid var(--line);background:var(--panel);padding:18px;margin-top:16px}
+label{display:block;margin:12px 0 5px;color:var(--dim)}
+input[type=text],input[type=number],input[type=password],select{background:var(--ground);border:1px solid var(--line);color:var(--ink);padding:9px 11px}
+fieldset{border:1px solid var(--line);padding:10px 14px;margin:14px 0 0}legend{color:var(--dim);padding:0 6px}
+fieldset label{display:inline-flex;gap:8px;align-items:center;margin:4px 18px 4px 0;color:var(--ink)}
+.status{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.status div{background:var(--panel);padding:12px 14px}.status b{display:block;font:500 22px var(--mono)}.status span{color:var(--dim);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px}th,td{text-align:left;vertical-align:top;padding:9px 8px;border-bottom:1px solid var(--line)}th{color:var(--dim);font-weight:400}
+td.txt{max-width:460px}.buy{color:#9FD39B}.decline{color:#E7B38B}
+.stages{display:flex;gap:8px;flex-wrap:wrap}
+.err{color:#FFB4A0;margin-top:10px;min-height:1em}
+.notice{border-left:2px solid var(--amber);padding:6px 12px;margin-top:14px}
+</style>
+</head>
+<body>
+<main id="app"><p class="dim">Loading…</p></main>
+<script>
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const SIM_ID='rapid-07-bought';
+const FACULTY_TOKEN_KEY='w07-faculty-lt';
+const PLATFORM_LAUNCH_PATH='/api/launch';
+const incoming=new URLSearchParams(location.hash.slice(1)).get('lt');
+if(incoming){sessionStorage.setItem(FACULTY_TOKEN_KEY,incoming);history.replaceState(null,'',location.pathname+location.search)}
+let LT=sessionStorage.getItem(FACULTY_TOKEN_KEY)||null;
+let facultyCode=sessionStorage.getItem('w07-fc')||'';
+let code=(new URLSearchParams(location.search).get('code')||sessionStorage.getItem('w07-code')||'').toUpperCase();
+let D=null,error='',poll=null,picked=[],renewing=null,draftMode='';
+function tokenInfo(t){try{return JSON.parse(atob(t.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{return null}}
+
+async function renewFaculty(){
+  if(renewing)return renewing;
+  renewing=(async()=>{
+    if(!BASE)throw new Error('Open this session from your RapidSims faculty dashboard, or enter your standalone facilitator code.');
+    const q=new URLSearchParams({sim:SIM_ID,mode:'session',format:'json'});const c=tokenInfo(LT||'')?.course;if(c)q.set('course',c);
+    const r=await fetch(PLATFORM_LAUNCH_PATH+'?'+q,{credentials:'same-origin',cache:'no-store'});let d={};try{d=await r.json()}catch{}
+    if(r.status===401)throw new Error('Sign in to your faculty account from the dashboard, then try again.');
+    if(!r.ok)throw new Error(d.message||'Unable to renew faculty access. Open your faculty dashboard and try again.');
+    let t=null;try{const u=new URL(d.url,location.origin);t=new URLSearchParams(u.hash.slice(1)).get('lt')||u.searchParams.get('lt')}catch{}
+    const info=tokenInfo(t);if(!info||info.sim!==SIM_ID||!['faculty','faculty_preview'].includes(info.role))throw new Error('Sign in with a faculty account to run a class session.');
+    LT=t;sessionStorage.setItem(FACULTY_TOKEN_KEY,LT);
+  })();
+  try{return await renewing}finally{renewing=null}
+}
+async function api(x){
+  const send=async()=>{const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;const r=await fetch(BASE+'/api/session',{method:'POST',headers:h,body:JSON.stringify({...x,code,facultyCode,launchToken:LT})});let d={};try{d=await r.json()}catch{}return {r,d}};
+  let {r,d}=await send();
+  if(d.error==='faculty_authorization_required'&&!facultyCode){await renewFaculty();({r,d}=await send())}
+  if(!r.ok){const e=new Error(d.message||d.error||`Error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+
+function joinLink(){return D?.session?.joinUrl||location.origin+BASE+'/launch.html?session='+encodeURIComponent(code)+'&direct=1'}
+function clockText(){if(!D?.closesAt||D.phase!=='deciding')return '—';const left=Math.max(0,Math.round((D.closesAt-D.now)/1000));return `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`}
+
+function viewAuth(){return `<h1>Would You Have Bought It?</h1><p class="dim">Open this page from your RapidSims faculty dashboard, or enter a standalone facilitator code.</p><div class="panel"><label for="fc">Facilitator code</label><input id="fc" type="password" autocomplete="off"><div class="row" style="margin-top:12px"><button class="btn" id="useCode">Continue</button></div></div><div class="err">${esc(error)}</div>`}
+function viewCreate(){return `<h1>Run a class session</h1><p class="dim">Students decide on the evidence of autumn 2000. You release the next ten years from this screen, one stage at a time.</p>
+<div class="panel"><label for="nm">Session name</label><input id="nm" type="text" maxlength="80" value="Would You Have Bought It?">
+<fieldset><legend>Mode (required)</legend><label><input type="radio" name="mode" value="individual" ${draftMode==='individual'?'checked':''}> Individual</label><label><input type="radio" name="mode" value="team" ${draftMode==='team'?'checked':''}> Team</label></fieldset>
+<p class="dim">Individual works best for this sim; each student owns a judgement. In team mode every member votes privately and writes their own reason; the majority decides and a tie counts as declining.</p>
+<label for="mins">Minutes to decide</label><input id="mins" type="number" min="3" max="30" value="10">
+<div class="row" style="margin-top:14px"><button class="btn" id="create" ${draftMode?'':'disabled'}>Create session</button></div></div>
+<div class="panel"><label for="resume">Resume an existing session</label><div class="row"><input id="resume" type="text" maxlength="5" style="text-transform:uppercase"><button class="btn ghost" id="doResume">Resume</button></div></div>
+<div class="err">${esc(error)}</div>`}
+
+function controls(){
+  const p=D.phase,st=D.stage;
+  let h='<div class="row" style="margin-top:14px">';
+  h+=`<button class="btn ghost" id="projector">Open projector view</button>`;
+  if(p==='lobby')h+=`<button class="btn" id="start">Start the clock</button>`;
+  if(p==='deciding')h+=`<button class="btn ghost" id="endEarly">End decisions now</button>`;
+  if(p==='decided')h+=`<span class="stages">${[1,2,3].map(n=>`<button class="btn${n===st+1?'':' ghost'}" data-stage="${n}" ${n===st+1?'':'disabled'}>${n<=st?'Released':'Release'} ${['2002','2005','2010'][n-1]}</button>`).join('')}</span>`;
+  if(p!=='lobby')h+=`<button class="btn ghost" id="prompts">${D.session.showPrompts?'Hide':'Show'} debrief prompts</button>`;
+  if(p!=='closed')h+=`<button class="btn ghost" id="close">Close session</button>`;
+  return h+'</div>';
+}
+function teamTools(){
+  if(D.session.mode!=='team')return '';
+  const lobby=D.phase==='lobby';
+  return `<h2>Teams</h2>${lobby?`<div class="row"><label for="size" style="margin:0">Team size</label><input id="size" type="number" min="2" max="8" value="4" style="width:80px"><button class="btn ghost" id="split">Split into teams</button></div>`:''}
+  ${D.teams?.length?`<table><tr><th>Team</th><th>Buy</th><th>Decline</th><th>Still deciding</th><th>Outcome</th></tr>${D.teams.map(t=>`<tr><td>${esc(t.label)}</td><td>${t.buy}</td><td>${t.decline}</td><td>${t.open}</td><td>${t.outcome?esc(t.outcome==='buy'?'Bought':'Declined')+(t.tie?' (tie)':''):'—'}</td></tr>`).join('')}</table>`:'<p class="dim">No teams yet.</p>'}`;
+}
+function responses(){
+  const list=D.responses||[];
+  if(!list.length)return '<p class="dim">No students have joined yet.</p>';
+  const closed=D.phase==='decided'||D.phase==='closed';
+  const team=D.session.mode==='team';
+  return `<table><tr>${closed?'<th>Pin</th>':''}<th>Response</th><th>Name</th>${team?'<th>Team</th>':''}<th>Choice</th><th>Recognised</th><th>Reason</th></tr>${list.map(r=>`<tr>${closed?`<td><input type="checkbox" data-pick="${esc(r.id)}" aria-label="Pin ${esc(r.label)}" ${picked.includes(r.id)?'checked':''} ${!r.choice?'disabled':''}></td>`:''}<td class="mono">${esc(r.label)}</td><td>${esc(r.name)}</td>${team?`<td>${D.phase==='lobby'?`<input type="number" min="1" max="60" style="width:64px" data-team="${esc(r.id)}" value="${esc((r.team||'').replace('Team ',''))}">`:esc(r.team)}</td>`:''}<td class="${r.choice||''}">${r.choice?esc(r.choice==='buy'?'Bought':'Declined')+(r.lapsed?' · lapsed':''):'<span class="dim">—</span>'}</td><td>${esc(r.recognised||'')}</td><td class="txt">${esc(r.text)}</td></tr>`).join('')}</table>`;
+}
+function viewSession(){
+  const pj=D.projector||{};const s=pj.split;
+  return `<h1>${esc(D.session.name)}</h1><p class="mono dim">Session ${esc(code)} · ${esc(D.session.mode)} mode</p>
+  <div class="panel"><div class="mono">Join link for students</div><p style="word-break:break-all">${esc(joinLink())}</p></div>
+  <div class="status"><div><b>${esc(D.phase)}</b><span>Phase</span></div><div><b>${clockText()}</b><span>Left to decide</span></div><div><b>${pj.decided??0} / ${pj.joined??0}</b><span>Decided / joined</span></div><div><b>${s?`${s.bought} / ${s.declined}`:'hidden'}</b><span>Bought / declined${s?` (${s.lapsed} lapsed)`:''}</span></div><div><b>${D.stage}</b><span>Stage released</span></div></div>
+  ${controls()}
+  ${D.phase==='decided'&&D.stage===0?'<p class="notice">Before releasing 2002: find a few who bought and ask what they saw, then ask someone who declined to respond.</p>':''}
+  ${teamTools()}
+  <h2>Responses</h2>${(D.phase==='decided'||D.phase==='closed')?`<div class="row"><button class="btn ghost" id="suggest">Suggest a pair</button><button class="btn" id="pin" ${picked.length===2?'':'disabled'}>Project the two selected</button><button class="btn ghost" id="unpin">Clear the projector pair</button></div><p class="dim">Pick one that bought and one that declined. Names never reach the projector.</p>`:''}
+  ${responses()}<div class="err">${esc(error)}</div>`;
+}
+function render(){
+  const f=document.activeElement;if(f&&['INPUT','SELECT'].includes(f.tagName)&&f.type!=='checkbox'&&f.type!=='radio'&&D)return;
+  if(!LT&&!facultyCode){app.innerHTML=viewAuth();wire();return}
+  app.innerHTML=D?viewSession():viewCreate();wire();
+}
+function act(fn){return async(ev)=>{const b=ev?.currentTarget;if(b)b.disabled=true;error='';try{await fn();await refresh()}catch(e){error=e.message}render()}}
+function wire(){
+  const on=(id,fn)=>{const el=document.getElementById(id);if(el)el.onclick=act(fn)};
+  const uc=document.getElementById('useCode');if(uc)uc.onclick=()=>{facultyCode=document.getElementById('fc').value.trim();sessionStorage.setItem('w07-fc',facultyCode);render()};
+  document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>{draftMode=r.value;document.getElementById('create').disabled=false});
+  on('create',async()=>{const d=await api({action:'create',mode:draftMode,name:document.getElementById('nm').value,settings:{decisionMinutes:Number(document.getElementById('mins').value)}});code=d.session.code;sessionStorage.setItem('w07-code',code);startPoll()});
+  on('doResume',async()=>{code=document.getElementById('resume').value.trim().toUpperCase();sessionStorage.setItem('w07-code',code);startPoll()});
+  on('projector',async()=>{window.open(BASE+'/projector.html?code='+encodeURIComponent(code),'w07-projector')});
+  on('start',async()=>{await api({action:'control',set:'start'})});
+  on('endEarly',async()=>{if(confirm('End decisions now? Students who have not decided will see the offer lapse.'))await api({action:'control',set:'end_decisions'})});
+  document.querySelectorAll('[data-stage]').forEach(b=>b.onclick=act(async()=>{await api({action:'control',set:'release',stage:Number(b.dataset.stage)})}));
+  on('prompts',async()=>{await api({action:'control',set:'prompts',on:!D.session.showPrompts})});
+  on('close',async()=>{if(confirm('Close this session? Students will no longer be able to open it.'))await api({action:'control',set:'close'})});
+  on('split',async()=>{await api({action:'teams',size:Number(document.getElementById('size').value)})});
+  document.querySelectorAll('[data-team]').forEach(i=>i.onchange=async()=>{error='';try{await api({action:'assign',participantId:i.dataset.team,team:Number(i.value)});i.blur();await refresh()}catch(e){error=e.message}render()});
+  document.querySelectorAll('[data-pick]').forEach(c=>c.onchange=()=>{const id=c.dataset.pick;picked=c.checked?[...picked.filter(x=>x!==id),id].slice(-2):picked.filter(x=>x!==id);render()});
+  on('suggest',async()=>{const d=await api({action:'suggest_pair'});if(d.pair)picked=d.pair;else error='A pair needs at least one written reason from each side.'});
+  on('pin',async()=>{await api({action:'pin',ids:picked})});
+  on('unpin',async()=>{picked=[];await api({action:'pin',ids:[]})});
+}
+async function refresh(){if(!code)return;D=await api({action:'faculty_state'})}
+function startPoll(){clearInterval(poll);const run=async()=>{try{await refresh();error=''}catch(e){error=e.message;if(e.code==='no_such_session'){D=null;code='';sessionStorage.removeItem('w07-code');clearInterval(poll)}}render()};run();poll=setInterval(run,3000)}
+if(code&&(LT||facultyCode))startPoll();else render();
+</script>
+</body>
+</html>

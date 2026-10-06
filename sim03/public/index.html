@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapid-03-midland' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RapidSim 03 — Midland Equipment</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524;--panel:#161E2E;--panel2:#1D2637;--raise:#232D40;
+  --line:#2B3548;--line2:#3A4659;--bone:#E8E4DA;--dim:#8C95A8;--dimmer:#616B7E;
+  --amber:#F0A63C;--amber2:#FFB94E;--green:#75A98C;--red:#CE7C8D;--blue:#6FA8D6;
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--night);color:var(--bone)}
+body{font-family:var(--serif);font-size:16px;line-height:1.55;background-image:radial-gradient(1200px 650px at 70% -10%,rgba(240,166,60,.06),transparent 60%)}
+button,input,textarea,select{font:inherit;color:inherit}select option{background:#0E1524;color:#E8E4DA}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.mono{font-family:var(--mono)}
+#app{min-height:100vh;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line);background:rgba(14,21,36,.94);backdrop-filter:blur(8px)}
+.brand{margin-right:auto}.brand h1{font-size:17px;font-weight:500}.brand .sub{font:10.5px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);margin-top:2px}
+.pills{display:flex;gap:5px;flex-wrap:wrap}.pill{font:10px var(--mono);letter-spacing:.09em;text-transform:uppercase;padding:5px 9px;border:1px solid var(--line);color:var(--dimmer)}.pill.on{color:var(--amber);border-color:#8A6427;background:rgba(240,166,60,.07)}.pill.done{color:var(--dim);border-color:var(--line2)}.pill.brief-link{cursor:pointer}.pill.brief-link:hover{color:var(--amber);border-color:#8A6427;background:rgba(240,166,60,.07)}
+.timer{font:600 21px var(--mono);color:var(--amber)}
+.page{width:min(980px,calc(100% - 36px));margin:0 auto;padding:54px 0 74px}
+.eyebrow{font:10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:9px}
+h2{font-size:38px;line-height:1.08;font-weight:400;letter-spacing:-.02em;margin-bottom:16px}
+.lede{font-size:19px;line-height:1.65;color:#D0CDC5;max-width:760px}
+.copy{font-size:17px;color:#C9C6BE;line-height:1.7;max-width:780px}.copy>p{margin-bottom:14px}.brief-profit{border:1px solid #8A6427;border-left:3px solid var(--amber);padding:15px 17px;background:rgba(240,166,60,.07);margin:18px 0}.brief-profit .eyebrow{margin-bottom:5px}.brief-profit p{font-size:21px;line-height:1.5;color:var(--bone);margin:0;font-weight:500}
+.rule{height:1px;background:var(--line);margin:29px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line2);padding:11px 16px;font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);transition:.12s}.btn:hover{border-color:var(--bone);color:var(--bone)}.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206;font-weight:600}.btn.pri:hover{background:var(--amber2);border-color:var(--amber2)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+.card{border:1px solid var(--line);background:var(--panel);padding:19px 20px}.card h3{font:10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dimmer);margin-bottom:9px}.card p{color:#C8C5BD}
+.cold{display:grid;gap:10px;margin:24px 0}.cold .line{border-left:2px solid var(--line2);padding:11px 16px;font-size:18px;color:#D1CEC6}.cold .line:last-child{border-left-color:var(--amber)}
+.room-tour{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:22px}.room-card{border:1px solid var(--line);background:var(--panel);padding:18px}.room-name{font-size:23px;font-weight:400;line-height:1.15}.room-role{font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dimmer);margin-top:5px}.room-line{display:inline-flex;margin-top:13px;border:1px solid #8A6427;background:rgba(240,166,60,.06);padding:4px 7px;font:600 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}.room-quote{font-size:16px;line-height:1.55;color:#C8C5BD;margin-top:12px}.room-close{border-left:2px solid var(--amber);padding:11px 14px;background:rgba(240,166,60,.05);color:#CBC8C0;margin-top:18px}.line-guide{display:grid;gap:0;border:1px solid var(--line);background:var(--panel);margin-top:18px}.line-guide-row{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:start}.line-guide-row:last-child{border-bottom:0}.line-guide-row b{font-size:17px;font-weight:500}.line-guide-row span{font-size:14px;color:var(--dim);line-height:1.45}
+.field{margin-top:22px}.field label{display:block;font:10.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}.field textarea,.field input,.field select{width:100%;background:var(--panel);border:1px solid var(--line2);padding:13px 14px;font-size:17px}.field textarea{min-height:110px;resize:vertical}.hint{font-size:13px;color:var(--dimmer);margin-top:7px}
+.alloc-wrap{display:grid;grid-template-columns:1fr 245px;gap:22px;margin-top:25px}
+.allocs{display:grid;gap:8px}.alloc{border:1px solid var(--line);background:var(--panel);display:grid;grid-template-columns:1fr auto;align-items:center;padding:14px 14px 14px 17px;gap:14px}.alloc-title-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.alloc h3{font-size:20px;font-weight:400}.alloc-cap{display:inline-flex;border:1px solid #8A6427;background:rgba(240,166,60,.08);padding:3px 6px;font:600 9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--amber)}.alloc .constraint{font:10px var(--mono);color:var(--dimmer);margin-top:5px;letter-spacing:.02em;line-height:1.5}.advocate-reminder{margin-top:9px;padding:8px 10px;border-left:2px solid var(--line2);background:rgba(255,255,255,.018);font-size:13px;line-height:1.45;color:#C8C5BD}.advocate-reminder b{display:block;font:600 9px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--bone);margin-bottom:3px}.alloc-rule{font:9px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--amber);margin-top:7px}.stepper{display:flex;align-items:center;gap:9px}.step{width:37px;height:37px;border:1px solid var(--line2);font:20px var(--mono);color:var(--dim)}.step:hover:not(:disabled){border-color:var(--amber);color:var(--amber)}.amount{min-width:62px;text-align:center;font:600 20px var(--mono);color:var(--bone)}.amount small{font-size:10px;color:var(--dimmer);font-weight:400}
+.budget{position:sticky;top:90px;border:1px solid #8A6427;background:rgba(240,166,60,.06);padding:20px}.budget .n{font:600 48px var(--mono);color:var(--amber);line-height:1}.budget .lab{font:10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--dimmer);margin-top:7px}.budget .total{margin-top:20px;padding-top:14px;border-top:1px solid #6D5228;font-size:14px;color:#C9C6BE}
+.running{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:20px 0}.run-cell{border:1px solid var(--line);background:var(--panel);padding:12px;text-align:center}.run-cell .v{font:600 22px var(--mono);color:var(--amber)}.run-cell .k{font:9px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dimmer);margin-top:4px}.year2-breakdown{border:1px solid var(--line);background:var(--panel);margin:20px 0;overflow:auto}.year2-breakdown-row{display:grid;grid-template-columns:minmax(100px,1.2fr) repeat(3,minmax(86px,.8fr));border-bottom:1px solid var(--line);min-width:470px}.year2-breakdown-row:last-child{border-bottom:0}.year2-breakdown-row>div{padding:9px 11px;border-right:1px solid var(--line);text-align:right}.year2-breakdown-row>div:last-child{border-right:0}.year2-breakdown-head{background:var(--panel2);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer)}.year2-breakdown-name{text-align:left!important;font-size:14px;color:var(--bone)}.year2-breakdown-num{font:600 14px var(--mono);color:var(--bone)}.year2-breakdown-total{color:var(--amber)}.reflection-note{padding:7px 9px;border-left:2px solid var(--line2);background:rgba(255,255,255,.018)}
+.outcome{border:1px solid var(--line2);background:var(--panel);padding:25px;margin-top:22px}.outcome .band{font:10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:7px}.outcome h3{font-size:27px;font-weight:400;margin-bottom:9px}.outcome p{font-size:18px;color:#D0CDC5;line-height:1.65}.events{display:grid;grid-template-columns:1fr 1fr;gap:12px}.events .outcome{margin-top:12px}
+.locked{border:1px dashed var(--line2);padding:14px 16px;color:var(--dim);margin-top:18px}
+.team{border:1px solid var(--blue);background:rgba(111,168,214,.06);padding:12px 14px;margin:0 0 20px;font-size:14px;color:#C8D8E8}.team b{color:#A8CBE7;font-weight:500}
+.buyers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:21px}.buyer{border:1px solid var(--line);background:var(--panel);padding:18px}.buyer h3{font-size:21px;font-weight:400}.buyer .value{font:10px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);margin-top:12px}.buyer p{font-size:14px;color:var(--dim);margin-top:7px}.buyer-room-link{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);font-size:13px;color:#C7C4BC;font-style:italic}.buyer-interest{display:inline-flex;margin:10px 0 3px;padding:4px 7px;border:1px solid var(--line2);font:600 9px var(--mono);letter-spacing:.12em;text-transform:uppercase}.buyer-interest.high{color:var(--green);border-color:#476b58}.buyer-interest.qualified{color:var(--amber);border-color:#8A6427}.buyer-interest.low{color:var(--red);border-color:#7d4553}.buyer-close{border-left:2px solid var(--amber);padding:12px 14px;margin-top:18px;background:rgba(240,166,60,.05);font-size:18px;color:#D0CDC5}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}.summary .card{min-height:150px}.mini{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:12px}.mini div{border:1px solid var(--line);padding:8px 5px;text-align:center}.mini b{display:block;font:600 17px var(--mono);color:var(--amber)}.mini span{font:8px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--dimmer)}
+.briefing{margin:20px 0;border:1px solid var(--line2);background:var(--panel)}.briefing>summary{cursor:pointer;padding:13px 16px;font:11px var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--amber);list-style:none}.briefing>summary::-webkit-details-marker{display:none}.briefing>summary:after{content:'+';float:right;color:var(--dim)}.briefing[open]>summary:after{content:'−'}.briefing-body{padding:0 16px 18px;border-top:1px solid var(--line)}.briefing-body>p{margin-top:14px;color:#C9C6BE}.exhibit{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}.exhibit h3{font:500 15px var(--serif);color:var(--bone);margin-bottom:8px}.exhibit p{color:#C3C0B8;margin:7px 0}.exhibit table{width:100%;border-collapse:collapse;margin-top:9px;font-size:13px}.exhibit th,.exhibit td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}.exhibit th{font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer)}.result-section{margin-top:26px}.result-section>.eyebrow{margin-bottom:10px}.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result-grid .outcome{margin-top:0}.result-grid .card{min-height:0}@media(max-width:760px){.result-grid{grid-template-columns:1fr}}
+.result-hero{border:1px solid #8A6427;background:rgba(240,166,60,.07);padding:22px 24px;margin:20px 0 28px}.result-hero h3{font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px}.result-hero p{font-size:21px;line-height:1.55;color:var(--bone)}.timeline{display:grid;gap:12px}.timeline-year{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:start}.timeline-label{font:600 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--amber);padding-top:18px}.timeline-body{display:grid;gap:10px}.timeline-body .outcome{margin-top:0}.timeline-pair{display:grid;gap:10px;border-left:2px solid var(--line2);padding-left:12px}.year3-stage{border:1px solid #8A6427;background:rgba(240,166,60,.035);padding:26px;margin-top:22px}.year3-opening{max-width:68ch;margin:20px 0 24px;padding:13px 15px;border-left:2px solid var(--line2);font-size:19px;font-style:italic;color:#D2CFC7}.year3-stage .outcome{margin-top:0;padding:29px}.year3-stage .outcome p{font-size:19px;line-height:1.72}@media(max-width:760px){.timeline-year{grid-template-columns:1fr}.timeline-label{padding-top:0}.year3-stage{padding:17px}}
+.closing-lesson{border:1px solid var(--line);background:var(--panel);padding:24px;margin-top:12px;break-inside:avoid;page-break-inside:avoid}.closing-lesson-inner{max-width:68ch;margin:0 auto}.closing-lesson p{font-size:1.05rem;line-height:1.7;color:#C9C6BE;margin:0 0 16px}.closing-run{margin:20px 0;padding:17px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.closing-run h3{font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin:0 0 10px}.closing-run p:last-child{margin-bottom:0}.closing-carry{border-left:2px solid var(--amber);padding:12px 14px;margin-top:20px;background:rgba(240,166,60,.05);font-size:18px;font-style:italic;color:var(--bone)}.joinbox{max-width:560px}.joinbox .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.joinbox input{text-transform:none}
+.notice{border-left:2px solid var(--amber);padding:11px 14px;background:rgba(240,166,60,.05);color:#CBC8C0;margin:18px 0}.error{border-left-color:var(--red);color:#E3B9C2}
+.briefing-prep{margin:20px 0 0;border:1px solid var(--line2);background:rgba(22,30,46,.78);display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 16px}.briefing-prep-copy{font-size:14px;color:#C8C5BD;line-height:1.55}.briefing-prep-copy b{color:var(--bone);font-weight:500}.briefing-prep-copy .small{display:block;font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer);margin-bottom:4px}
+.briefing-modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:28px;background:rgba(5,9,17,.78);backdrop-filter:blur(5px)}.briefing-modal.open{display:flex}.briefing-dialog{width:min(900px,100%);max-height:88vh;background:var(--panel);border:1px solid var(--line2);box-shadow:0 26px 90px rgba(0,0,0,.55);display:flex;flex-direction:column}.briefing-dialog-head{display:flex;align-items:flex-start;gap:18px;padding:20px 22px;border-bottom:1px solid var(--line);background:var(--panel2)}.briefing-dialog-head .grow{flex:1}.briefing-dialog-kicker{font:10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--amber)}.briefing-dialog-title{font-size:30px;font-weight:400;letter-spacing:-.015em;margin:3px 0 4px}.briefing-dialog-meta{font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer)}.briefing-dialog-close{width:36px;height:36px;border:1px solid var(--line2);background:transparent;color:var(--dim);font:20px var(--mono);line-height:1}.briefing-dialog-close:hover{border-color:var(--bone);color:var(--bone)}.briefing-dialog-body{padding:22px;overflow:auto;scrollbar-color:var(--line2) var(--panel)}.briefing-dialog-intro{border-left:2px solid var(--amber);padding:12px 14px;background:rgba(240,166,60,.05);color:#D0CDC5;margin-bottom:22px}.briefing-dialog-section{padding-top:20px;margin-top:20px;border-top:1px solid var(--line)}.briefing-dialog-section:first-of-type{border-top:0;margin-top:0;padding-top:0}.briefing-dialog-section h3{font-size:24px;font-weight:400;margin:0 0 10px}.briefing-dialog-section p{color:#C8C5BD;margin:8px 0}.briefing-dialog-table{overflow:auto;border:1px solid var(--line);margin-top:10px}.briefing-dialog-table table{width:100%;border-collapse:collapse;font-size:14px}.briefing-dialog-table th,.briefing-dialog-table td{padding:10px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.briefing-dialog-table tr:last-child td{border-bottom:0}.briefing-dialog-table th{font:9px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--dimmer);background:var(--panel2)}.briefing-person{padding:12px 0;border-bottom:1px solid var(--line)}.briefing-person:last-child{border-bottom:0}.briefing-person b{color:var(--bone);font-weight:500}.briefing-dialog-foot{padding:14px 22px;border-top:1px solid var(--line);background:var(--panel2);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.briefing-dialog-foot .hint{font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer);margin:0}
+.hidden{display:none!important}
+@media(max-width:760px){.page{width:min(100% - 26px,980px);padding-top:34px}h2{font-size:31px}.alloc-wrap{grid-template-columns:1fr}.budget{position:static}.events,.buyers,.summary,.room-tour{grid-template-columns:1fr}.line-guide-row{grid-template-columns:1fr;gap:3px}.running{grid-template-columns:repeat(2,1fr)}header{padding:11px 14px}.pills{order:3;width:100%}.joinbox .row{grid-template-columns:1fr}.briefing-prep{align-items:flex-start;flex-direction:column}.briefing-modal{padding:10px}.briefing-dialog{max-height:94vh}.briefing-dialog-body{padding:16px}.briefing-dialog-title{font-size:25px}}
+@media print{header,.actions,.team,.run-complete{display:none!important}.page{width:100%!important;padding:0!important}body{background:#fff!important;background-image:none!important;color:#000!important}.page,.page *{color:#000!important}.card,.outcome,.run-cell,.mini div,.buyer,.result-hero,.closing-lesson,.closing-run,.closing-carry,.year3-stage{background:#fff!important;border-color:#888!important;color:#000!important}.closing-carry{border-left:3px solid #aaa!important}.eyebrow,.hint,.run-cell .k,.mini span{color:#222!important}.card,.outcome,.buyer,.closing-lesson,.year3-stage{break-inside:avoid;page-break-inside:avoid}.summary{break-inside:avoid}.timeline-pair{border-left-color:#aaa!important}}
+
+.brief-screen .copy{line-height:1.55}.brief-screen .copy>p{margin-bottom:10px}.brief-screen .brief-profit{margin:12px 0;padding:11px 14px}.brief-screen .briefing-prep{margin-top:14px;padding:11px 13px}.brief-screen .actions{margin-top:16px}
+.line-guide-main{min-width:0}.line-guide-desc{display:block;font-size:14px;color:var(--dim);line-height:1.45}.line-guide-voice{margin-top:7px;padding:7px 9px;border-left:2px solid var(--line2);background:rgba(255,255,255,.018);font-size:13px;color:#C8C5BD;line-height:1.45}.line-guide-voice b{display:block;font:600 9px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--bone);margin-bottom:3px}.line-guide-voice.capacity{color:var(--dim);font-style:italic}
+.budget{align-self:start;height:max-content}.advocate-reminder.capacity-silence{color:var(--dim);font-style:italic}.advocate-reminder.capacity-silence b{color:var(--dim)}
+.year2-history{margin:16px 0;border:1px solid var(--line);background:var(--panel)}.year2-history>summary{cursor:pointer;padding:10px 12px;font:10px var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--amber);list-style:none}.year2-history>summary::-webkit-details-marker{display:none}.year2-history>summary:after{content:'+';float:right;color:var(--dim)}.year2-history[open]>summary:after{content:'−'}.year2-history .year2-breakdown{margin:0;border:0;border-top:1px solid var(--line)}
+.outcome-signals{display:grid;gap:7px;margin-top:10px}.outcome-signal{border-left:2px solid var(--line2);padding:8px 10px;background:rgba(255,255,255,.018);font-size:13px;line-height:1.5;color:var(--dim)}.year3-lock{display:inline-flex;margin:4px 0 8px;border:1px solid var(--line2);padding:5px 8px;font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}.reflection-followup{margin:-1px 0 8px;font-size:15px;color:#C9C6BE;line-height:1.5}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+
+function entryParam(key){return new URLSearchParams(location.hash.slice(1)).get(key)||new URLSearchParams(location.search).get(key)}
+let ACCESS_CODE=entryParam('code')||sessionStorage.getItem('m03-access')||null;
+if(ACCESS_CODE)sessionStorage.setItem('m03-access',ACCESS_CODE);
+let LAUNCH_TOKEN=entryParam('lt')||null;
+let LAUNCH=null;
+if(LAUNCH_TOKEN){try{LAUNCH=JSON.parse(atob(LAUNCH_TOKEN.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{}}
+if(LAUNCH_TOKEN&&LAUNCH&&(LAUNCH.role==='faculty'||LAUNCH.role==='faculty_preview'))sessionStorage.setItem('m03-faculty-lt',LAUNCH_TOKEN);
+const initialParams=new URLSearchParams(location.search);
+const INITIAL_SESSION=(initialParams.get('session')||'').toUpperCase();
+if(LAUNCH_TOKEN||ACCESS_CODE){
+  const keep=new URLSearchParams(location.search);keep.delete('lt');keep.delete('code');
+  history.replaceState(null,'',location.pathname+(keep.toString()?'?'+keep.toString():''));
+}
+
+let C=null;
+const S={
+  step:0, strategicView:'', year1:null, year2:null,
+  year1Outcome:null, year2Outcome:null, allOutcomes:null,
+  reflection1:'',reflection2:'',finished:false,year2Event:0,viewCommitted:false,
+  sessionCode:INITIAL_SESSION,participantId:localStorage.getItem('m03-pid')||'',
+  session:null,me:null,mates:[],canSubmit:true,teamRun:null,
+  poll:null,error:'',closingLesson:null,
+  runnerId:null,runnerRevision:0,canAssignRunner:false,runnerChoice:'',
+  hasSessionState:false,stateRequest:0,stateApplied:0,reflectionDirty:false,advancing:false
+};
+const STEPS=['Brief','Room','Position','View','Year 1','Outcome','Year 2','Events','Year 3','Buyers','Close'];
+
+function friendlyError(code,status){
+  const m={
+    strategic_view_locked:'Your opening view was committed before Year 1 and can no longer be changed.',
+    year1_locked:'Year 1 has already been committed and cannot be changed after its outcome is revealed.',
+    year2_locked:'Year 2 has already been committed and cannot be changed after its events are revealed.',
+    session_not_running:'Your instructor has not started the session yet.',
+    session_paused:'Your instructor has paused the session.',
+    captain_only:'Only the selected simulation runner can commit this choice.',
+    runner_only:'Only the selected simulation runner can submit or advance the shared run.',
+    runner_changed:'Runner control changed. Review the current selection before continuing.',
+    runner_must_be_teammate:'Choose a member of your own team.',
+    team_lead_only:'Only your team lead can assign the simulation runner.',
+    run_already_completed:'The shared team run is complete.',
+    team_run_not_complete:'Wait for your team runner to reach the close before submitting your reflection.',
+    not_joined:'Rejoin the session before continuing.'
+  };
+  if(/^budget_must_equal_\d+$/.test(code))return `The allocation must equal exactly $${code.split('_').pop()}M.`;
+  if(/^run_minimum_\d+$/.test(code))return `Run cannot be below $${code.split('_').pop()}M.`;
+  if(/^(uptime|capacity|connect|features)_maximum_\d+$/.test(code))return `That line cannot exceed $${code.split('_').pop()}M per year.`;
+  return m[code]||'';
+}
+
+async function request(path,payload,method='POST'){
+  const headers={'Content-Type':'application/json'};
+  if(LAUNCH_TOKEN)headers['x-launch-token']=LAUNCH_TOKEN;
+  else if(ACCESS_CODE)headers['x-access-code']=ACCESS_CODE;
+  const opt={method,headers};
+  if(method!=='GET')opt.body=JSON.stringify({...payload,calibrationId:C?.calibrationId});
+  const r=await fetch(BASE+path,opt);
+  let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||friendlyError(d.error,r.status)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+async function sessionApi(payload){
+  const headers={'Content-Type':'application/json'};
+  if(LAUNCH_TOKEN)headers['x-launch-token']=LAUNCH_TOKEN;
+  const r=await fetch(BASE+'/api/session',{method:'POST',headers,body:JSON.stringify(payload)});
+  let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||friendlyError(d.error,r.status)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+
+function shell(content){
+  const visibleSteps=STEPS.map((x,i)=>({x,i})).filter(o=>C?.buyers?.authored!==false||o.i!==9);
+  const pills=visibleSteps.map((o,j)=>o.i===0
+    ? `<button type="button" class="pill brief-link ${o.i===S.step?'on':o.i<S.step?'done':''}" data-open-briefing title="Open briefing packet">${j+1}. ${o.x}</button>`
+    : `<span class="pill ${o.i===S.step?'on':o.i<S.step?'done':''}">${j+1}. ${o.x}</span>`).join('');
+  app.innerHTML=`<header><div class="brand"><h1>Midland Equipment</h1><div class="sub">Flexee RapidSim 03 · architecture</div></div><div class="pills">${pills}</div><div class="timer">30 MIN</div></header><main class="page">${teamBanner()}${content}</main>${briefingPacketModal()}`;
+  wireBriefingPacketModal();
+  wireRunnerPicker();
+}
+function teamBanner(){
+  if(!S.session)return '';
+  const mode=S.session.mode==='team'?'Team':'Individual';
+  if(S.session.mode!=='team')return `<div class="team"><b>${mode} session ${esc(S.session.code)}</b><br>You can commit this run.</div>`;
+  if(!S.me?.groupId)return `<div class="team"><b>Waiting for team assignment · session ${esc(S.session.code)}</b><br>Your instructor will place you on a team. Once assigned, your team can decide which one student will run the simulation. Stay on this page; it updates automatically.</div>`;
+  const teamName=esc(S.me?.teamLabel||'Your team');
+  const roster=S.mates.length?S.mates.map(x=>esc(x.name)+(x.isCaptain?' (team lead)':'')+(x.isRunner?' (runner)':'')).join(' · '):'Waiting for teammates';
+  const commit=S.teamRun?.year1?`Year 1 committed${S.teamRun.updatedAt?' · '+new Date(S.teamRun.updatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):''}`:'Year 1 not committed yet';
+  const control=S.canSubmit?'You are the selected runner. Only you can submit and advance this shared simulation.':`${teamRunner()?.name||'The selected runner'} is operating the simulation. Your screen follows the shared decisions and results.`;
+  return `<div class="team"><b>${teamName} · session ${esc(S.session.code)}</b><br>${roster}<br>${esc(commit)} · ${esc(control)}${runnerPicker()}</div>`;
+}
+function notice(msg,bad=false){return `<div class="notice ${bad?'error':''}">${esc(msg)}</div>`}
+async function goToStep(n){
+  if(S.advancing||blocked()||(S.session?.mode==='team'&&!S.canSubmit))return;
+  S.advancing=true;
+  try{
+    if(S.session?.mode==='team')await saveRun({screen:n});
+    S.step=n;render();
+  }catch(e){alert(e.message)}finally{S.advancing=false}
+}
+function next(){let n=Math.min(10,S.step+1);if(n===9&&C?.buyers?.authored===false)n=10;return goToStep(n)}
+function back(){let n=Math.max(0,S.step-1);if(n===9&&C?.buyers?.authored===false)n=8;return goToStep(n)}
+function safeToRerender(){if(document.getElementById('briefingPacketModal')?.classList.contains('open'))return false;const el=document.activeElement;return !el||!['INPUT','TEXTAREA','SELECT'].includes(el.tagName)}
+
+async function init(){
+  try{C=await request('/api/config',null,'GET')}
+  catch(e){
+    if(INITIAL_SESSION&&['access_code_required','access_code_not_configured','launch_token_invalid'].includes(e.code)){
+      location.replace(BASE+'/api/join?session='+encodeURIComponent(INITIAL_SESSION));return;
+    }
+    if(e.code==='access_code_required'&&!LAUNCH_TOKEN){
+      sessionStorage.removeItem('m03-access');
+      app.innerHTML=`<main class="page">${notice('An access code is required to open Midland Equipment.',true)}<div class="actions"><button class="btn pri" id="accessBtn">Enter access code</button></div></main>`;
+      document.getElementById('accessBtn').onclick=()=>location.assign(BASE+'/launch.html');
+      return;
+    }
+    app.innerHTML=`<main class="page">${notice(e.message,true)}<div class="actions"><button class="btn pri" onclick="location.reload()">Try again</button></div></main>`;
+    return;
+  }
+  if(INITIAL_SESSION&&LAUNCH?.sub){
+    // Always bind to the signed account; a shared browser may remember another
+    // student's participant ID. The server reuses this account's existing place.
+    try{
+      const d=await sessionApi({action:'join',code:INITIAL_SESSION});
+      S.participantId=d.participantId;S.session=d.session;S.me=d.me;
+      localStorage.setItem('m03-pid',S.participantId);
+    }catch(e){S.error=e.message;renderJoin();return}
+  }
+  if(INITIAL_SESSION&&!S.participantId){renderJoin();return}
+  if(INITIAL_SESSION&&S.participantId){
+    try{await pollSession(true)}
+    catch{S.participantId='';localStorage.removeItem('m03-pid');renderJoin();return}
+  }
+  render();
+  if(S.sessionCode&&S.participantId)startPolling();
+}
+
+function renderJoin(){
+  shell(`<section class="joinbox"><div class="eyebrow">Facilitated session</div><h2>Join Midland Equipment</h2><p class="lede">Enter your name and the session code shown by your instructor. Your instructor will place you on a team if this is a team session.</p>
+  ${S.error?notice(S.error,true):''}
+  <div class="field"><label>Name</label><input id="joinName" autocomplete="name" value="${esc(LAUNCH?.name||'')}" ${LAUNCH?.sub?'readonly':''} placeholder="Your name"></div>
+  <div class="field"><label>Session code</label><input id="joinCode" class="mono" maxlength="5" value="${esc(S.sessionCode)}" placeholder="ABCDE"></div>
+  <div class="actions"><button class="btn pri" id="joinBtn">Join session</button></div></section>`);
+  document.getElementById('joinBtn').onclick=joinSession;
+}
+async function joinSession(){
+  const name=document.getElementById('joinName').value.trim();
+  const code=document.getElementById('joinCode').value.trim().toUpperCase();
+  try{
+    const d=await sessionApi({action:'join',code,name,participantId:S.participantId||undefined});
+    S.sessionCode=code;S.participantId=d.participantId;S.session=d.session;S.me=d.me;
+    localStorage.setItem('m03-pid',S.participantId);S.error='';
+    const params=new URLSearchParams(location.search);params.set('session',code);history.replaceState(null,'',location.pathname+'?'+params.toString());
+    await pollSession(true);startPolling();render();
+  }catch(e){S.error=e.message;renderJoin()}
+}
+function startPolling(){
+  clearInterval(S.poll);S.poll=setInterval(()=>pollSession(false).catch(()=>{}),2000);
+}
+async function pollSession(redraw){
+  if(!S.sessionCode||!S.participantId)return;
+  const seq=++S.stateRequest;
+  const d=await sessionApi({action:'state',code:S.sessionCode,participantId:S.participantId});
+  if(seq<S.stateApplied)return;
+  S.stateApplied=seq;
+  const rulesChanged=JSON.stringify(S.session?.allocationRules)!==JSON.stringify(d.session?.allocationRules);
+  const groupChanged=S.me?.groupId!==d.me?.groupId;
+  const controlChanged=groupChanged||S.canSubmit!==!!d.canSubmit||S.runnerId!==d.runnerId||S.runnerRevision!==(d.runnerRevision||0);
+  const gateChanged=S.session?.state!==d.session?.state||S.session?.paused!==d.session?.paused;
+  const restore=!S.hasSessionState||groupChanged||(controlChanged&&d.canSubmit);
+  const changed=JSON.stringify([S.session,S.me,S.mates,S.teamRun])!==JSON.stringify([d.session,d.me,d.mates,d.run]);
+  S.session=d.session;S.me=d.me;S.mates=d.mates||[];S.canSubmit=!!d.canSubmit;S.teamRun=d.run||null;
+  if(C&&S.session?.allocationRules){
+    Object.assign(C,S.session.allocationRules);
+    if(C.room?.intro)C.room.intro=C.room.intro.replace(/(?:nine|\d+) million dollars/,`${C.annualBudget} million dollars`);
+    for(const key of ['intro','whatHappens'])if(C.briefing?.[key])C.briefing[key]=C.briefing[key].map(text=>text.replace(/two annual \$\d+ million allocations/g,`two annual $${C.annualBudget} million allocations`));
+  }
+  S.runnerId=d.runnerId||null;S.runnerRevision=d.runnerRevision||0;S.canAssignRunner=!!d.canAssignRunner;S.hasSessionState=true;
+  if(controlChanged)S.runnerChoice='';
+  if(groupChanged){S.reflectionDirty=false;S.reflection1='';S.reflection2=''}
+  const r=S.teamRun;
+  if(rulesChanged){
+    if(!r?.year1&&!S.year1Outcome)S.year1=null;
+    if(!r?.year2&&!S.year2Outcome)S.year2=null;
+  }
+  if(restore&&S.session?.mode==='team'){
+    S.step=r?.screen??(r?.phase>=3?10:r?.year2?7:r?.year1?5:r?.strategicView?4:0);
+    S.year2Event=r?.year2Event||0;
+    S.strategicView=r?.strategicView||'';S.viewCommitted=!!r?.strategicView;
+    S.year1=r?.year1||null;S.year2=r?.year2||null;
+    S.year1Outcome=null;S.year2Outcome=null;S.allOutcomes=null;
+  }
+  if(r){
+    if(r.strategicView){S.strategicView=r.strategicView;S.viewCommitted=true}
+    if(r.year1)S.year1={...r.year1};
+    if(r.year2)S.year2={...r.year2};
+    if(!S.reflectionDirty){S.reflection1=r.reflection1||'';S.reflection2=r.reflection2||''}
+    if(r.outcomes){S.allOutcomes=r.outcomes;S.year1Outcome=r.outcomes.year1||null;S.year2Outcome=r.outcomes.year2||null}
+  }
+  if(S.session?.mode==='team')S.finished=!!r?.done;
+  // Revocation must redraw even while the former runner has a focused input.
+  if(redraw||controlChanged||gateChanged||(changed&&safeToRerender()))render();
+}
+function sessionGate(){
+  if(!S.session)return '';
+  if(S.session.state==='lobby')return notice('The instructor has not started this session yet.');
+  if(S.session.paused)return notice('The instructor has paused the session.');
+  if(S.session.state==='closed')return notice('This session is closed.',true);
+  return '';
+}
+function blocked(){return !!(S.session&&(S.session.state!=='running'||S.session.paused||(S.session.mode==='team'&&!S.me?.groupId)))}
+
+async function saveRun(patch){
+  if(!S.session)return {ok:true};
+  const shared=['strategicView','year1','year2','screen','year2Event'].some(k=>patch[k]!==undefined);
+  if(!S.canSubmit&&shared)throw new Error('Only the selected simulation runner can submit or advance the shared run.');
+  try{
+    const d=await sessionApi({action:'submit',code:S.sessionCode,participantId:S.participantId,runnerRevision:S.runnerRevision,...patch});
+    S.stateApplied=++S.stateRequest; // Ignore state reads started before this write.
+    return d;
+  }catch(e){
+    if(['runner_only','runner_changed','run_changed'].includes(e.code))await pollSession(true).catch(()=>{});
+    throw e;
+  }
+}
+function nav({backOk=true,nextLabel='Continue',onNext,disabled=false}={}){
+  disabled=disabled||blocked()||(S.session?.mode==='team'&&!S.canSubmit);
+  return `<div class="actions">${backOk?'<button class="btn" id="backBtn">Back</button>':''}<button class="btn pri" id="nextBtn" ${disabled?'disabled':''}>${esc(nextLabel)}</button></div>`;
+}
+function wireNav(onNext,backOk=true){
+  if(backOk&&document.getElementById('backBtn'))document.getElementById('backBtn').onclick=back;
+  document.getElementById('nextBtn').onclick=onNext||next;
+}
+
+function teamLead(){return (S.mates||[]).find(x=>x.isCaptain)||null}
+function teamProgressText(){
+  const r=S.teamRun||{};
+  if((r.phase||0)>=3)return 'The shared run is complete. The same team result is ready here.';
+  if(r.year2)return 'Year 2 is committed. Your runner is moving through the final consequences.';
+  if(r.year1)return 'Year 1 is committed. Your runner is continuing the shared run.';
+  if(r.strategicView)return 'The opening view is committed. Your runner is working on Year 1.';
+  return 'The shared run has not committed its opening view yet.';
+}
+function teamRunner(){return S.mates.find(x=>x.id===S.runnerId)||null}
+function runnerPicker(){
+  if(!S.canAssignRunner)return '';
+  const value=S.runnerChoice||S.runnerId;
+  return `<div class="field"><label for="runnerSelect">Who will run the simulation for your team?</label>
+    <select id="runnerSelect">${S.mates.map(m=>`<option value="${esc(m.id)}" ${m.id===value?'selected':''}>${esc(m.name)}${m.isCaptain?' (team lead)':''}</option>`).join('')}</select>
+    <div class="hint">Agree as a team; the team lead assigns the runner. Changing the runner keeps all submitted decisions and progress. Unsubmitted drafts stay on the previous device.</div>
+    <div class="actions"><button type="button" class="btn" id="assignRunnerBtn" ${value===S.runnerId?'disabled':''}>Assign runner</button></div></div>`;
+}
+function wireRunnerPicker(){
+  const select=document.getElementById('runnerSelect'),button=document.getElementById('assignRunnerBtn');
+  if(!select||!button)return;
+  const expectedRunnerId=S.runnerId,runnerRevision=S.runnerRevision;
+  select.onchange=()=>{S.runnerChoice=select.value;button.disabled=select.value===S.runnerId};
+  button.onclick=async()=>{
+    button.disabled=true;
+    try{
+      await sessionApi({action:'set_runner',code:S.sessionCode,participantId:S.participantId,runnerId:select.value,expectedRunnerId,runnerRevision});
+      S.stateApplied=++S.stateRequest;S.runnerChoice='';
+      await pollSession(true);
+    }catch(e){alert(e.message);await pollSession(true).catch(()=>{button.disabled=false})}
+  };
+}
+
+function renderUnassignedLobby(){
+  const teamText=S.session?.state==='running'
+    ? 'The class has started, but your team has not been assigned yet. Ask your instructor to place you into a group.'
+    : 'Your instructor will create groups from the students who have joined. Stay on this page; it updates automatically.';
+  shell(`<div class="eyebrow">Waiting for group assignment</div><h2>You are in the session. The instructor creates the teams.</h2>
+    <p class="lede">${esc(teamText)}</p>
+    ${sessionGate()}
+    <div class="card" style="margin-top:22px"><h3>What happens next</h3><p>1. Faculty releases access from the course page.</p><p>2. Students open the class link and appear as joined.</p><p>3. Faculty creates teams and chooses the team lead / runner.</p><p>4. Only that runner advances the simulation. Other team members watch and discuss.</p></div>
+    ${notice('Do not start a separate run. Your group will appear here after the instructor assigns teams.')}`);
+}
+function renderTeamLobby(){
+  const runner=teamRunner(),lead=teamLead(),teamName=S.me?.teamLabel||'Your team';
+  const runnerName=runner?.name||lead?.name||'your team lead';
+  shell(`<div class="eyebrow">Team lobby</div><h2>${esc(teamName)} has one shared run.</h2>
+    <p class="lede">The team lead / runner will run the simulation on one screen. Everyone else should discuss decisions with that person, not start a separate run.</p>
+    <div class="card" style="margin-top:22px"><h3>Selected runner</h3><p>${runner?`<b>${esc(runner.name)}</b> will run the simulation for this team.`:'Waiting for the instructor to choose a team lead / runner.'}</p><p class="hint">Only the selected runner gets the Start/Continue controls after faculty starts the room.</p></div>
+    ${!S.canSubmit?notice(`Your team lead / runner is ${runnerName}. Contact ${runnerName} and play together on that person's screen.`):''}
+    ${sessionGate()}`);
+}
+function sharedResultsHTML(){
+  const r=S.teamRun||{},o=r.outcomes||{};
+  const cards=[o.year1, (r.screen>=7?o.year2?.heat:null), (r.year2Event>=1||r.screen>=8?o.year2?.competitor:null), (r.screen>=8?o.year3:null)].filter(Boolean);
+  return `${r.strategicView?`<div class="card"><h3>Team opening view</h3><p>${esc(r.strategicView)}</p></div>`:''}
+    ${r.year1?readOnlyAllocationHTML(r.year1,'Shared Year 1 allocation',1):''}
+    ${r.year2?readOnlyAllocationHTML(r.year2,'Shared Year 2 allocation',2):''}
+    ${cards.map(x=>`<div class="outcome"><h3>${esc(x.title)}</h3><p>${esc(x.narrative)}</p></div>`).join('')}`;
+}
+function renderTeamMemberWaiting(){
+  const runner=teamRunner(),teamName=S.me?.teamLabel||'Your team',runnerName=runner?.name||'your team lead';
+  shell(`<div class="eyebrow">Team mode · read-only</div><h2>${esc(runnerName)} will run the simulation for ${esc(teamName)}.</h2>
+    <p class="lede">Contact ${esc(runnerName)} and make decisions together on that person's screen. This page is read-only so the team does not accidentally create separate results.</p>
+    ${sessionGate()}${notice(teamProgressText())}
+    <div class="card"><h3>Your role</h3><p>Discuss, challenge, and help decide. The same team result will appear here after the runner completes the shared run.</p></div>
+    ${sharedResultsHTML()}`);
+}
+function renderTeamMemberReflection(){
+  shell(`<div class="eyebrow">Your reflection</div><h2>The shared team run is complete.</h2>
+    <p class="lede">You worked through the decisions with your team on one runner's screen. Now answer these two questions in your own words.</p>
+    <div class="field"><label>${esc(C.reflectionPrompts[0])}</label>${C.reflectionFollowups?.[0]?`<div class="reflection-followup">${esc(C.reflectionFollowups[0])}</div>`:''}<textarea id="r1" maxlength="1500">${esc(S.reflection1)}</textarea><div class="hint reflection-note">Your instructor can see this response and may read it aloud in the debrief. It is not scored.</div></div>
+    <div class="field"><label>${esc(C.reflectionPrompts[1])}</label><textarea id="r2" maxlength="1500">${esc(S.reflection2)}</textarea><div class="hint reflection-note">Your instructor can see this response and may read it aloud in the debrief. It is not scored.</div></div>
+    <div class="actions"><button class="btn pri" id="memberFinishBtn">Submit my reflection</button></div>`);
+  document.getElementById('memberFinishBtn').onclick=finish;
+}
+function render(){
+  if(!C)return;
+  if(S.session?.mode==='team'){
+    if(!S.me?.groupId)return renderUnassignedLobby();
+    if(S.finished)return renderClose();
+    if(S.session.state==='lobby')return renderTeamLobby();
+    if(!S.canSubmit){
+      return renderTeamMemberWaiting();
+    }
+  }
+  switch(S.step){
+    case 0:return renderBrief();
+    case 1:return renderRoom();
+    case 2:return renderPosition();
+    case 3:return renderView();
+    case 4:return renderAllocation(1);
+    case 5:return renderYear1Outcome();
+    case 6:return renderAllocation(2);
+    case 7:return renderYear2Events();
+    case 8:return renderYear3();
+    case 9:return renderBuyers();
+    default:return renderClose();
+  }
+}
+
+function briefingPacketModal(){
+  const b=C?.briefing;if(!b)return '';
+  const intro=(b.intro||[]).map((x,i)=>`${i===0?'<b>':''}${esc(x)}${i===0?'</b>':''}`).join('<br>');
+  const exhibits=(b.exhibits||[]).map(ex=>{
+    const body=(ex.body||[]).map(x=>`<p>${esc(x)}</p>`).join('');
+    const table=ex.rows?.length?`<div class="briefing-dialog-table"><table><thead>${ex.columns?.length?`<tr>${ex.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>`:''}</thead><tbody>${ex.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'';
+    return `<section class="briefing-dialog-section"><h3>${esc(ex.title)}</h3>${body}${table}${ex.note?`<p><b>${esc(ex.note)}</b></p>`:''}</section>`;
+  }).join('');
+  const people=(b.people||[]).map(p=>`<div class="briefing-person"><b>${esc(p.name||p.role)} · ${esc(p.role)}</b><br>“${esc(p.quote)}”</div>`).join('');
+  return `<div class="briefing-modal" id="briefingPacketModal" aria-hidden="true"><section class="briefing-dialog" role="dialog" aria-modal="true" aria-labelledby="briefingPacketTitle">
+    <div class="briefing-dialog-head"><div class="grow"><div class="briefing-dialog-kicker">Pre-session briefing · about 6 minutes</div><div class="briefing-dialog-title" id="briefingPacketTitle">Midland Equipment — Briefing</div><div class="briefing-dialog-meta">Reference copy · read before starting the simulation</div></div><button class="briefing-dialog-close" id="closeBriefingPacket" aria-label="Close briefing">×</button></div>
+    <div class="briefing-dialog-body"><div class="briefing-dialog-intro">${intro}</div>
+      <section class="briefing-dialog-section"><h3>The company</h3>${(b.company||[]).map(x=>`<p>${esc(x)}</p>`).join('')}</section>
+      ${exhibits}
+      ${people?`<section class="briefing-dialog-section"><h3>Four people you work with</h3>${people}${b.peopleNote?`<p>${esc(b.peopleNote)}</p>`:''}</section>`:''}
+      ${(b.whatHappens||[]).length?`<section class="briefing-dialog-section"><h3>What happens in the simulation</h3>${b.whatHappens.map(x=>`<p>${esc(x)}</p>`).join('')}</section>`:''}
+    </div>
+    <div class="briefing-dialog-foot"><span class="hint">You can reopen this packet later from the allocation screens.</span><button class="btn pri" id="doneBriefingPacket">Done reading</button></div>
+  </section></div>`;
+}
+function wireBriefingPacketModal(){
+  const modal=document.getElementById('briefingPacketModal');
+  const openBtns=[...document.querySelectorAll('[data-open-briefing]')];
+  if(!modal||!openBtns.length)return;
+  const closeBtn=document.getElementById('closeBriefingPacket');
+  const doneBtn=document.getElementById('doneBriefingPacket');
+  let lastFocus=null;
+  const escHandler=e=>{if(e.key==='Escape')close()};
+  const open=()=>{lastFocus=document.activeElement;modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';document.addEventListener('keydown',escHandler);closeBtn?.focus()};
+  const close=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';document.removeEventListener('keydown',escHandler);lastFocus?.focus()};
+  openBtns.forEach(btn=>btn.onclick=open);if(closeBtn)closeBtn.onclick=close;if(doneBtn)doneBtn.onclick=close;
+  modal.onclick=e=>{if(e.target===modal)close()};
+}
+
+function renderBrief(){
+  shell(`<section class="brief-screen"><div class="eyebrow">MIDLAND EQUIPMENT</div><h2>Forty-one years old, profitable, and nobody thinks it is in trouble.</h2>
+  <div class="copy">${C.coldOpen.map((x,i)=>i===2?`<div class="brief-profit"><div class="eyebrow">The business model</div><p>${esc(x)}</p></div>`:`<p>${esc(x)}</p>`).join('')}</div>
+  <p class="lede">There is no score, rank, grade or hidden correct allocation. You will find out what happened, not how you "did."</p>
+  <div class="briefing-prep"><div class="briefing-prep-copy"><span class="small">Before you continue</span><b>This sim assumes you have read the briefing packet before starting.</b> If you have not read it yet, open the in-app packet here before continuing.</div><button class="btn" data-open-briefing>Read briefing packet</button></div>
+  ${sessionGate()}${!S.session?(LAUNCH&&(LAUNCH.role==='faculty'||LAUNCH.role==='faculty_preview')?'<div class="actions"><button class="btn" id="runSessionEntry">Run a facilitated session</button></div>':'<div class="actions"><button class="btn" id="joinSessionEntry">Join a facilitated session</button></div>'):''}${nav({backOk:false,disabled:blocked()})}</section>`);
+  const runEntry=document.getElementById('runSessionEntry');if(runEntry)runEntry.onclick=()=>{
+    const platform=(C?.platformUrl||location.origin).replace(/\/$/,'');
+    const q=new URLSearchParams({sim:C?.meta?.id||'rapid-03-midland',mode:'session'});
+    if(LAUNCH?.course)q.set('course',LAUNCH.course);
+    location.assign(platform+'/api/launch?'+q.toString());
+  };
+  const joinEntry=document.getElementById('joinSessionEntry');if(joinEntry)joinEntry.onclick=()=>{S.error='';renderJoin()};
+  wireNav(next,false);
+}
+const CAPACITY_SILENCE='No one in the room speaks for this line.';
+function positionVoice(l){const a=l?.advocate;return a?`<div class="line-guide-voice"><b>${esc(a.name)} · speaks for ${esc(l.label)}</b>${esc(a.shortWant||a.want||'')}</div>`:`<div class="line-guide-voice capacity"><b>Capacity</b>${esc(CAPACITY_SILENCE)}</div>`}
+function lineGuide(){return `<div class="line-guide">${C.lines.map(l=>`<div class="line-guide-row" data-line="${esc(l.id)}"><b>${esc(l.label)}</b><div class="line-guide-main"><span class="line-guide-desc">${esc(l.description||'')}</span>${positionVoice(l)}</div></div>`).join('')}</div>`}
+function renderPosition(){
+  shell(`<div class="eyebrow">Your position</div><h2>You run technology at Midland.</h2><p class="lede" id="position-rules">${esc(C.position)}</p>
+  <div class="rule"></div><div class="eyebrow">The five lines</div>${lineGuide()}
+  ${nav()}`);wireNav(next);
+}
+function renderRoom(){
+  const room=C.room||{},cast=Array.isArray(room.cast)?room.cast:[];
+  shell(`<div class="eyebrow">THE ROOM</div><h2>Four people, one budget.</h2>
+  <p class="lede">Nobody here is going to tell you what to do. Each of them is responsible for a different part of the company and each of them is right about their own part.</p>
+  <div class="room-tour">${cast.map(c=>`<div class="room-card"><div class="room-name">${esc(c.name)}</div><div class="room-role">${esc(c.role)}</div><div class="room-line">${esc(c.line)}</div><div class="room-quote">“${esc(c.quote||c.stake||'')}”</div></div>`).join('')}</div>
+  <div class="room-close">One of the five lines has nobody speaking for it. You may want to notice which.</div>
+  ${nav({nextLabel:'Take the seat'})}`);wireNav(next);
+}
+function usefulOpeningView(v){const words=String(v||'').trim().split(/\s+/).filter(Boolean);return String(v||'').trim().length>=20&&words.length>=4}
+function allocationCap(line){return line.id==='run'?`MIN $${C.runMinimum}M`:`MAX $${C.lineMaximum}M / YEAR`}
+function lineAdvocate(line,year=1){const a=line?.advocate;if(!a)return `<div class="advocate-reminder capacity-silence"><b>No advocate · ${esc(line.label)}</b><span>${esc(CAPACITY_SILENCE)}</span></div>`;const text=year===2?(a.shortWant||a.want):a.want;return `<div class="advocate-reminder"><b>${esc(a.name)} · speaks for ${esc(line.label)}</b><span>${esc(text)}</span></div>`}
+function year2BreakdownHTML(y1,y2,year2Label='Year 2 draft'){
+  if(!y1||!y2)return '';
+  const rows=C.lines.map(l=>{const a=Number(y1[l.id]||0),b=Number(y2[l.id]||0);return `<div class="year2-breakdown-row"><div class="year2-breakdown-name">${esc(l.label)}</div><div class="year2-breakdown-num">$${a}M</div><div class="year2-breakdown-num">$${b}M</div><div class="year2-breakdown-num year2-breakdown-total">$${a+b}M</div></div>`}).join('');
+  return `<details class="year2-history"><summary>Year 1 + Year 2 split · open to compare</summary><div class="year2-breakdown"><div class="year2-breakdown-row year2-breakdown-head"><div>Line</div><div>Year 1 committed</div><div>${esc(year2Label)}</div><div>Cumulative</div></div>${rows}</div></details>`;
+}
+function allocationConfirmation(year,a){const text=C.lines.map(l=>`${l.label}: $${a[l.id]}M`).join('\n');return window.confirm(`Commit Year ${year}?\n\n${text}\n\nYou cannot change this allocation after the outcome is revealed.`)}
+function renderView(){
+  const committed=!!(S.viewCommitted||S.teamRun?.strategicView||S.year1Outcome);
+  shell(`<div class="eyebrow">Commit a view</div><h2>What should this company become?</h2><p class="lede">You have heard four reasonable, incompatible answers about what Midland needs. Write one sentence that picks a side — or states a fifth position — before you see the first allocation outcome.</p>
+  <div class="field"><label>Your sentence</label><textarea id="viewText" maxlength="500" placeholder="${esc(C.viewPrompt)}" ${committed?'readonly':''}>${esc(S.strategicView)}</textarea><div class="hint">${committed?'This opening view is already committed.':esc(C.viewDisclosure)}</div></div>
+  ${nav({nextLabel:committed?'Continue':(S.canSubmit?'Commit view':'Waiting for runner'),disabled:blocked()||(!S.canSubmit&&!S.teamRun?.strategicView)})}`);
+  wireNav(async()=>{
+    if(committed)return next();
+    const v=document.getElementById('viewText').value.trim();
+    if(!usefulOpeningView(v)){alert('Write a complete opening view of at least four words and 20 characters. It will come back to you at the close.');return document.getElementById('viewText').focus()}
+    S.strategicView=v;
+    try{if(S.canSubmit)await saveRun({strategicView:v});S.viewCommitted=true;next()}catch(e){alert(e.message)}
+  });
+}
+function defaultAlloc(){return {run:C.runMinimum,uptime:0,capacity:0,connect:0,features:0}}
+function briefingPanel(){
+  const b=C?.briefing;if(!b)return '';
+  const exhibits=(b.exhibits||[]).map(ex=>{
+    const body=(ex.body||[]).map(x=>`<p>${esc(x)}</p>`).join('');
+    const table=ex.rows?.length?`<table><thead>${ex.columns?.length?`<tr>${ex.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>`:''}</thead><tbody>${ex.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'';
+    return `<section class="exhibit"><h3>${esc(ex.title)}</h3>${body}${table}${ex.note?`<p><em>${esc(ex.note)}</em></p>`:''}</section>`;
+  }).join('');
+  return `<details class="briefing"><summary>Briefing & exhibits</summary><div class="briefing-body"><p class="hint">${esc(b.note||'Reference copy of the pre-class briefing.')}</p>${(b.company||[]).map(x=>`<p>${esc(x)}</p>`).join('')}${exhibits}</div></details>`;
+}
+function renderAllocation(year){
+  const key=year===1?'year1':'year2';
+  const teamReadOnly=!S.canSubmit&&S.session?.mode==='team';
+  const heading=year===1?`The first $${C.annualBudget} million is yours.`:`A year later, the same $${C.annualBudget} million is back on the table.`;
+  const intro=year===1
+    ? 'The ERP is fourteen years old, the service operation is profitable, and every line has a constituency. This is the first portfolio you set before anyone knows which problem arrives first.'
+    : (S.year1Outcome?.year2Intro||'A year has passed. The first consequence is now part of Midland’s history, and the same five lines are competing for the same budget again.');
+  if(teamReadOnly)return renderTeamMemberWaiting();
+  if(!S[key])S[key]=defaultAlloc();
+  const a=S[key],used=Object.values(a).reduce((x,y)=>x+y,0),left=C.annualBudget-used;
+  const running=year===2&&S.year1?runningTotals(S.year1,a):null;
+  shell(`<div class="eyebrow">Year ${year} allocation</div><h2>${heading}</h2><p class="lede">${esc(intro)}</p>
+  ${briefingPanel()}
+  ${year===2&&S.year1?year2BreakdownHTML(S.year1,a,'Year 2 draft'):''}
+  <div class="alloc-wrap"><div class="allocs">${C.lines.map(l=>allocRow(l,a,year)).join('')}</div>
+  <aside class="budget"><div class="n">${left}</div><div class="lab">$M remaining</div><div class="total">Allocated: <b>$${used}M</b> of $${C.annualBudget}M<br>Submit unlocks only at exactly $${C.annualBudget}M.</div></aside></div>
+  ${nav({backOk:year===1,nextLabel:left===0?`Commit Year ${year}`:`Allocate all $${C.annualBudget}M`,disabled:blocked()||left!==0})}`);
+  document.querySelectorAll('.step').forEach(b=>b.onclick=()=>changeAlloc(key,b.dataset.line,Number(b.dataset.delta)));
+  wireNav(async()=>{
+    const v=validateClient(S[key]);if(v)return alert(v);
+    if(!allocationConfirmation(year,S[key]))return;
+    try{
+      await saveRun({[key]:S[key]});
+      if(year===1){const d=await request('/api/outcome',{stage:'year1',year1:S.year1,sessionCode:S.sessionCode,participantId:S.participantId});S.year1Outcome=d.outcome}
+      else {const d=await request('/api/outcome',{stage:'year2',year1:S.year1,year2:S.year2,sessionCode:S.sessionCode,participantId:S.participantId});S.year2Outcome=d.outcome}
+      next();
+    }catch(e){alert(e.message)}
+  });
+}
+function readOnlyAllocationHTML(a,label,year=1){return `<div class="eyebrow" style="margin-top:24px">${esc(label)}</div><div class="allocs">${C.lines.map(l=>`<div class="alloc"><div><div class="alloc-title-row"><h3>${esc(l.label)}</h3><span class="alloc-cap">${esc(allocationCap(l))}</span></div>${lineAdvocate(l,year)}</div><div class="amount">${a[l.id]}<small> M</small></div></div>`).join('')}</div>`}
+function allocRow(l,a,key){
+  const n=a[l.id],min=l.id==='run'?C.runMinimum:0,max=l.id==='run'?C.annualBudget:C.lineMaximum,used=Object.values(a).reduce((x,y)=>x+y,0);
+  const readOnly=!S.canSubmit&&S.session?.mode==='team';
+  const minusDisabled=readOnly||n<=min,plusDisabled=readOnly||n>=max||used>=C.annualBudget;
+  const minusTitle=readOnly?'Read-only team allocation':n<=min?(l.id==='run'?`Run has a $${C.runMinimum}M minimum`:'Already at $0M'):'Remove $1M';
+  const plusTitle=readOnly?'Read-only team allocation':n>=max&&l.id!=='run'?`$${C.lineMaximum}M annual ceiling reached`:used>=C.annualBudget?`All $${C.annualBudget}M is already allocated`:'Add $1M';
+  return `<div class="alloc"><div><div class="alloc-title-row"><h3>${esc(l.label)}</h3><span class="alloc-cap">${esc(allocationCap(l))}</span></div>${lineAdvocate(l,key)}</div><div class="stepper">
+    <button class="step" title="${esc(minusTitle)}" data-line="${l.id}" data-delta="-1" ${minusDisabled?'disabled':''}>−</button>
+    <div class="amount">${n}<small> M</small></div>
+    <button class="step" title="${esc(plusTitle)}" data-line="${l.id}" data-delta="1" ${plusDisabled?'disabled':''}>+</button></div></div>`;
+}
+function changeAlloc(key,line,delta){
+  if(blocked()||(S.session?.mode==='team'&&!S.canSubmit))return;
+  const a=S[key],min=line==='run'?C.runMinimum:0,max=line==='run'?C.annualBudget:C.lineMaximum,nextv=a[line]+delta;
+  if(nextv<min||nextv>max)return;
+  const used=Object.values(a).reduce((x,y)=>x+y,0);
+  if(delta>0&&used>=C.annualBudget)return;
+  a[line]=nextv;render();
+}
+function validateClient(a){
+  const total=Object.values(a).reduce((x,y)=>x+y,0);
+  if(total!==C.annualBudget)return `The allocation must equal exactly $${C.annualBudget}M.`;
+  if(a.run<C.runMinimum)return `Run cannot be below $${C.runMinimum}M.`;
+  if(['uptime','capacity','connect','features'].some(k=>a[k]>C.lineMaximum))return `Uptime, Capacity, Connect and Features cannot exceed $${C.lineMaximum}M in a year.`;
+  return '';
+}
+function runningTotals(a,b){const o={};C.lines.forEach(l=>o[l.id]=(a[l.id]||0)+(b[l.id]||0));return o}
+function runningHTML(o,label){return `<div class="eyebrow" style="margin-top:24px">${esc(label)}</div><div class="running">${C.lines.map(l=>`<div class="run-cell"><div class="v">${o[l.id]}</div><div class="k">${esc(l.label)}</div></div>`).join('')}</div>`}
+function allocationNotesHTML(o){const notes=Array.isArray(o?.allocationNotes)?o.allocationNotes.filter(Boolean):[];return notes.length?`<div class="outcome-signals">${notes.map(x=>`<div class="outcome-signal">${esc(x)}</div>`).join('')}</div>`:''}
+
+function renderYear1Outcome(){
+  const o=S.year1Outcome;
+  shell(`<div class="eyebrow">Year 1 outcome</div><h2>A renewal is six weeks away. The district wants proof.</h2>
+  ${o?`<div class="outcome"><h3>${esc(o.title)}</h3><p>${esc(o.narrative)}</p>${allocationNotesHTML(o)}</div>`:notice('Outcome not loaded. Return to Year 1 and recommit.',true)}
+  ${runningHTML(S.year1,'Year 1 portfolio')}
+  ${nav({backOk:false})}`);wireNav(next,false);
+}
+function renderYear2Events(){
+  const o=S.year2Outcome;
+  const cum=S.year1&&S.year2?runningTotals(S.year1,S.year2):null;
+  const first=o?`<div class="outcome"><h3>${esc(o.heat.title)}</h3><p>${esc(o.heat.narrative)}</p>${allocationNotesHTML(o.heat)}</div>`:'';
+  const second=o?`<div class="outcome"><h3>${esc(o.competitor.title)}</h3><p>${esc(o.competitor.narrative)}</p></div>`:'';
+  shell(`<div class="eyebrow">Year 2 outcomes</div><h2>Year 2 stops being quiet.</h2><p class="lede">First the weather turns. Then the market does.</p>
+  ${o?`<div class="events" style="grid-template-columns:1fr">${first}${S.year2Event>=1?second:''}</div>`:notice('Outcome not loaded. Return to Year 2 and recommit.',true)}
+  ${cum?runningHTML(cum,'Cumulative portfolio'):''}
+  ${S.year2Event<1
+    ? nav({backOk:false,nextLabel:'Continue to the second event'})
+    : nav({backOk:false,nextLabel:'Go to Year 3'})}`);
+  if(S.year2Event<1){wireNav(async()=>{try{if(S.session?.mode==='team')await saveRun({year2Event:1});S.year2Event=1;render()}catch(e){alert(e.message)}},false);return}
+  wireNav(async()=>{
+    try{const d=await request('/api/outcome',{stage:'all',year1:S.year1,year2:S.year2,sessionCode:S.sessionCode,participantId:S.participantId});S.allOutcomes=d.outcome;next()}catch(e){alert(e.message)}
+  },false);
+}
+function renderYear3(){
+  const o=S.allOutcomes?.year3;
+  const cum=o?.cumulative||(S.year1&&S.year2?runningTotals(S.year1,S.year2):null);
+  shell(`<div class="eyebrow">Year 3</div><h2>The CEO asks whether Midland can predict a failure before the truck rolls.</h2>
+  <p class="lede">The request is now on the table.</p><div class="year3-lock">No Year 3 allocation · the two committed portfolios now stand</div>
+  ${cum?runningHTML(cum,'Cumulative portfolio'):''}
+  <section class="year3-stage">
+    <div class="eyebrow">Your opening view</div><div class="year3-opening">“${esc(S.strategicView||'—')}”</div>
+    ${o?`<div class="outcome"><h3>${esc(o.title)}</h3><p>${esc(o.narrative)}</p></div>`:notice('Year 3 outcome is unavailable.',true)}
+  </section>
+  ${nav({backOk:false,nextLabel:C.buyers?.authored===false?'Continue to close':'See the three buyers'})}`);wireNav(next,false);
+}
+function renderBuyers(){
+  const b=S.allOutcomes?.buyers;
+  if(!b){S.step=10;return renderClose()}
+  const ordered=[b.carrolton,b.ridge_hollow,b.corven].filter(Boolean);
+  shell(`<div class="eyebrow">Three buyers</div><h2>Same company. Three different answers.</h2>
+  <p class="lede">There is no valuation total, ranking or winner. Each buyer sees a different thing in the company you built.</p>
+  <div class="buyers">${ordered.map(x=>`<div class="buyer"><div class="eyebrow">${esc(x.description)}</div><h3>${esc(x.name)}</h3><div class="buyer-interest ${esc(x.interest)}">${esc(x.interest)}</div><p>${esc(x.reason)}</p>${x.roomLink?`<div class="buyer-room-link">${esc(x.roomLink)}</div>`:''}</div>`).join('')}</div>
+  <div class="buyer-close">${esc(b.closing||C.buyers?.closing||'')}</div>
+  ${nav({backOk:false,nextLabel:'Continue to close'})}`);wireNav(next,false);
+}
+function closingLessonHTML(){const d=S.closingLesson;if(!d)return '';const ps=Array.isArray(d.paragraphs)?d.paragraphs:[];const run=Array.isArray(d.yourRun)?d.yourRun:[];return `<div class="result-section" id="closingLesson"><div class="eyebrow">${esc(d.title||'What this run was teaching you')}</div><div class="closing-lesson"><div class="closing-lesson-inner">${ps.map(p=>`<p>${esc(p)}</p>`).join('')}${run.length?`<div class="closing-run"><h3>In your run</h3>${run.map(p=>`<p>${esc(p)}</p>`).join('')}</div>`:''}<div class="closing-carry">${esc(d.carryOut||'')}</div></div></div></div>`}
+function renderClose(){
+  if(S.finished){
+    const teamMode=S.session?.mode==='team';
+    const y1o=S.allOutcomes?.year1||S.year1Outcome||null;
+    const y2o=S.allOutcomes?.year2||S.year2Outcome||null;
+    const y3o=S.allOutcomes?.year3||null;
+    const cum=y3o?.cumulative||(S.year1&&S.year2?runningTotals(S.year1,S.year2):null);
+    const overall=overallOutcomeText();
+    shell(`<div class="eyebrow">Your outcome</div><h2>What your architecture made possible.</h2>
+    <p class="lede">This is not a score or grade. It is the chain of consequences produced by the portfolio you committed.</p>
+    ${overall?`<div class="result-hero"><h3>Overall result</h3><p>${esc(overall)}</p></div>`:''}
+    <div class="result-section"><div class="eyebrow">Three-year consequence timeline</div>
+      <div class="timeline">
+        <div class="timeline-year"><div class="timeline-label">Year 1</div><div class="timeline-body">${y1o?`<div class="outcome"><h3>${esc(y1o.title)}</h3><p>${esc(y1o.narrative)}</p></div>`:'<div class="card"><p>Outcome unavailable.</p></div>'}</div></div>
+        <div class="timeline-year"><div class="timeline-label">Year 2</div><div class="timeline-body"><div class="timeline-pair">
+          ${y2o?.heat?`<div class="outcome"><h3>${esc(y2o.heat.title)}</h3><p>${esc(y2o.heat.narrative)}</p></div>`:''}
+          ${y2o?.competitor?`<div class="outcome"><h3>${esc(y2o.competitor.title)}</h3><p>${esc(y2o.competitor.narrative)}</p></div>`:''}
+        </div></div></div>
+        <div class="timeline-year"><div class="timeline-label">Year 3</div><div class="timeline-body">${y3o?`<div class="outcome"><h3>${esc(y3o.title)}</h3><p>${esc(y3o.narrative)}</p></div>`:'<div class="card"><p>Outcome unavailable.</p></div>'}</div></div>
+      </div>
+    </div>
+    <div class="result-section"><div class="eyebrow">The portfolio that produced this</div>
+      <div class="result-grid">
+        <div class="card"><h3>Year 1 allocation</h3>${S.year1?miniAlloc(S.year1):'<p>—</p>'}</div>
+        <div class="card"><h3>Year 2 allocation</h3>${S.year2?miniAlloc(S.year2):'<p>—</p>'}</div>
+        <div class="card" style="grid-column:1/-1"><h3>Cumulative portfolio</h3>${cum?miniAlloc(cum):'<p>—</p>'}</div>
+      </div>
+    </div>
+    ${S.allOutcomes?.buyers?`<div class="result-section"><div class="eyebrow">The three buyers</div><div class="buyers">${[S.allOutcomes.buyers.carrolton,S.allOutcomes.buyers.ridge_hollow,S.allOutcomes.buyers.corven].filter(Boolean).map(x=>`<div class="buyer"><h3>${esc(x.name)}</h3><div class="buyer-interest ${esc(x.interest)}">${esc(x.interest)}</div><p>${esc(x.reason)}</p>${x.roomLink?`<div class="buyer-room-link">${esc(x.roomLink)}</div>`:''}</div>`).join('')}</div><div class="buyer-close">${esc(S.allOutcomes.buyers.closing||'')}</div></div>`:''}
+    <div class="result-section"><div class="eyebrow">Your original view</div>
+      <div class="card"><p>${esc(S.strategicView||'—')}</p></div>
+    </div>
+    ${teamMode?`<div class="result-section"><div class="eyebrow">Team submission</div><div class="card"><p>The selected runner submitted this shared result for the whole team. Every team member sees the same outcome.</p></div></div>`:`<div class="result-section"><div class="eyebrow">Your reflections</div>
+      <div class="card"><h3>${esc(C.reflectionPrompts[0])}</h3><p style="white-space:pre-wrap">${esc(S.reflection1||'—')}</p></div>
+      <div class="card" style="margin-top:12px"><h3>${esc(C.reflectionPrompts[1])}</h3><p style="white-space:pre-wrap">${esc(S.reflection2||'—')}</p></div>
+    </div>
+    ${closingLessonHTML()}`}
+    <div class="notice run-complete">Run complete. The full outcome, portfolio and reflections are ready to screenshot or print to PDF.</div>
+    <div class="actions"><button class="btn pri" id="printBtn">Print / save PDF</button><a class="btn" id="studentHomeBtn" href="${esc((C.platformUrl||location.origin).replace(/\/$/,'')+'/student.html')}">Back to student home</a></div>`);
+    document.getElementById('printBtn').onclick=()=>window.print();
+    return;
+  }
+  shell(`<div class="eyebrow">Close</div><h2>The decisions are over. Explain what you would defend or change.</h2>
+  <div class="summary"><div class="card"><h3>Your opening view</h3><p>${esc(S.strategicView||'—')}</p></div>
+  <div class="card"><h3>Your Year 1 allocation</h3>${S.year1?miniAlloc(S.year1):'<p>—</p>'}</div></div>
+  <div class="field"><label>${esc(C.reflectionPrompts[0])}</label>${C.reflectionFollowups?.[0]?`<div class="reflection-followup">${esc(C.reflectionFollowups[0])}</div>`:''}<textarea id="r1" maxlength="1500">${esc(S.reflection1)}</textarea><div class="hint reflection-note">Your instructor can see this response and may read it aloud in the debrief. It is not scored.</div></div>
+  <div class="field"><label>${esc(C.reflectionPrompts[1])}</label><textarea id="r2" maxlength="1500">${esc(S.reflection2)}</textarea><div class="hint reflection-note">Your instructor can see this response and may read it aloud in the debrief. It is not scored.</div></div>
+  <div class="actions"><button class="btn pri" id="finishBtn">Complete run</button></div>`);
+  document.getElementById('finishBtn').onclick=finish;
+}
+function miniAlloc(a){return `<div class="mini">${C.lines.map(l=>`<div><b>${a[l.id]}</b><span>${esc(l.label)}</span></div>`).join('')}</div>`}
+function overallOutcomeText(){
+  const y1=(S.allOutcomes?.year1||S.year1Outcome)?.band;
+  const heat=(S.allOutcomes?.year2||S.year2Outcome)?.heat?.band;
+  const competitor=(S.allOutcomes?.year2||S.year2Outcome)?.competitor?.band;
+  const y3=S.allOutcomes?.year3?.band;
+  const a={
+    strong:'Customer reporting became a real capability early.',
+    middle:'Customer reporting became possible, but slowly and with manual work.',
+    weak:'The first customer request exposed a reporting gap.'
+  }[y1]||'';
+  const b={
+    strong:'Operational resilience held when the heat wave tested the company.',
+    middle:'The heat wave strained operations but did not fully break them.',
+    weak:'The heat wave exposed a serious resilience weakness.'
+  }[heat]||'';
+  const c={
+    strong:'Midland could answer the competitor from a position of strength.',
+    middle:'Midland could only mount a limited pilot response to the competitor.',
+    weak:'Midland could not respond quickly to the competitor’s new service model.'
+  }[competitor]||'';
+  const d={
+    strong:'By Year 3, the architecture supported predictive service as something Midland could actually sell.',
+    pilot:'By Year 3, predictive service was promising, but still only a pilot.',
+    data_no_room:'You have three years of fault history and nowhere to put it.',
+    weak:'By Year 3, the architecture still lacked the usable data foundation for predictive service.'
+  }[y3]||'';
+  return [a,b,c,d].filter(Boolean).join(' ');
+}
+async function finish(){
+  S.reflection1=document.getElementById('r1').value.trim();S.reflection2=document.getElementById('r2').value.trim();
+  try{
+    if(S.session)await saveRun({reflection1:S.reflection1,reflection2:S.reflection2,done:true});
+    const done=await request('/api/finish',{runnerRevision:S.runnerRevision,year1:S.year1,year2:S.year2,strategicView:S.strategicView,reflection1:S.reflection1,reflection2:S.reflection2,sessionCode:S.sessionCode,participantId:S.participantId});
+    S.closingLesson=done.closingLesson||null;S.finished=true;S.reflectionDirty=false;render();
+    requestAnimationFrame(()=>document.getElementById('closingLesson')?.scrollIntoView({behavior:'smooth',block:'start'}));
+  }catch(e){alert(e.message)}
+}
+
+document.addEventListener('input',e=>{
+  if(e.target.id==='r1'){S.reflection1=e.target.value;S.reflectionDirty=true}
+  if(e.target.id==='r2'){S.reflection2=e.target.value;S.reflectionDirty=true}
+  if(e.target.id==='viewText'&&!S.viewCommitted)S.strategicView=e.target.value;
+});
+
+init();
+</script>
+</body>
+</html>

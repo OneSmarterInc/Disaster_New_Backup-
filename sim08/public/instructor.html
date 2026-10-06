@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eighteen Months Later — Instructor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524;--panel:#161E2E;--line:#2B3548;--line2:#3A4659;
+  --bone:#E8E4DA;--soft:#C9C6BE;--dim:#8C95A8;--dimmer:#616B7E;
+  --amber:#F0A63C;--amberDeep:#8A6427;--rose:#CE7C8D;
+  --approve:#C9C6BE;--decline:#CE7C8D;--timeout:#F0A63C;
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--night);color:var(--bone)}
+body{font-family:var(--serif);font-size:17px;line-height:1.55}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+header{display:flex;align-items:center;gap:18px;padding:14px 26px;border-bottom:1px solid var(--line)}
+header .t{margin-right:auto;font-size:18px}
+header .t small{display:block;font:12px var(--mono);color:var(--dimmer)}
+.ctl{display:flex;gap:8px;flex-wrap:wrap}
+main{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:40px 0 80px}
+h2{font-size:32px;font-weight:400;line-height:1.15;margin-bottom:12px}
+p.body{color:var(--soft);max-width:66ch;margin-bottom:12px}
+.btn{border:1px solid var(--line2);padding:10px 18px;font:500 14px var(--mono)}
+.btn:hover{border-color:var(--soft)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:6px 12px;font-size:12.5px}
+.note{border-left:2px solid var(--line2);padding:10px 14px;color:var(--soft);margin:14px 0;max-width:70ch}
+.note.bad{border-left-color:var(--rose);color:#E3B9C2}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:24px}
+.card{border:1px solid var(--line);background:var(--panel);padding:20px 22px}
+.card h3{font:500 13px var(--mono);color:var(--amber);margin-bottom:12px}
+.field{margin-top:14px}
+.field label{display:block;font:13px var(--mono);color:var(--dim);margin-bottom:6px}
+.field input{width:100%;background:var(--night);border:1px solid var(--line2);padding:10px 12px}
+.choice{display:grid;gap:8px;margin-top:6px}
+.field .choice label{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line2);padding:12px 14px;cursor:pointer;font:16px/1.45 var(--serif);color:var(--bone);margin:0}
+.field .choice label:has(input:checked){border-color:var(--amber);background:rgba(240,166,60,.06)}
+.field .choice input{width:auto;flex:none;margin-top:5px;accent-color:var(--amber)}
+.field .choice b{font-weight:500;display:block}
+.field .choice span{color:var(--dim);font-size:15px}
+
+.join{display:flex;align-items:baseline;gap:28px;flex-wrap:wrap;margin:10px 0 26px}
+.join .code{font:600 64px var(--mono);letter-spacing:.08em;color:var(--amber)}
+.join .url{font:14px var(--mono);color:var(--soft);word-break:break-all}
+.roster{list-style:none;border-top:1px solid var(--line);max-height:420px;overflow:auto}
+.roster li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.roster input{width:170px;background:var(--night);border:1px solid var(--line2);padding:6px 9px;font-size:15px}
+.roster .late{font:12px var(--mono);color:var(--dimmer)}
+
+/* Projector */
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.now{font:500 15px var(--mono);color:var(--dim)}
+.big{font:600 88px var(--mono);color:var(--amber);line-height:1;font-variant-numeric:tabular-nums;margin:6px 0 4px}
+.decided{font-size:30px;margin-top:10px}
+.bars{margin-top:30px;display:grid;gap:14px}
+.bar-row{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:center}
+.bar-row .lab{font-size:17px;color:var(--soft)}
+.bar-row .lab small{display:block;font:12px var(--mono);color:var(--dimmer)}
+.bar{display:flex;height:34px;border:1px solid var(--line)}
+.bar div{display:flex;align-items:center;justify-content:center;font:600 14px var(--mono);color:#1A1206;min-width:0;overflow:hidden}
+.bar .a{background:var(--approve)}.bar .t{background:var(--timeout)}.bar .d{background:var(--decline)}
+.split{font:12px var(--mono);color:var(--dim);margin-top:3px}
+.legend{display:flex;gap:22px;flex-wrap:wrap;font:13px var(--mono);color:var(--dim);margin-top:16px}
+.legend i{display:inline-block;width:14px;height:14px;margin-right:7px;vertical-align:-2px}
+.headline{font-size:34px;line-height:1.25;border-left:3px solid var(--amber);padding:6px 0 6px 22px;margin:34px 0 10px;max-width:30ch}
+.endings{list-style:none;border-top:1px solid var(--line)}
+.endings li{display:grid;grid-template-columns:1fr 60px;padding:10px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--soft)}
+.endings li b{font:600 18px var(--mono);text-align:right;color:var(--bone)}
+.debrief{margin-top:34px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs .btn[aria-selected="true"]{border-color:var(--amber);color:var(--amber)}
+.prompt{font-size:38px;line-height:1.25;max-width:32ch}
+.terms{list-style:none;display:grid;gap:10px}
+.terms li{font-size:30px;line-height:1.25}
+body.present header .ctl .aux,body.present .aux{display:none!important}
+body.present main{width:calc(100% - 80px)}
+body.present .big{font-size:120px}
+.names{display:flex;gap:10px;flex-wrap:wrap}.names span{border:1px solid var(--line2);padding:6px 12px;font:15px var(--mono)}.names .dimmed{color:var(--dimmer);border-style:dashed}
+.grp{margin-bottom:20px}.grp h3{font:500 14px var(--mono);color:var(--amber);margin-bottom:6px}
+.endings li b.hl{font:18px var(--serif);text-align:left;color:var(--bone)}
+.grp .endings li{grid-template-columns:200px 1fr}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:10px}
+.qs{margin-left:20px;color:var(--soft);font-size:15px}.qs li{margin-bottom:5px}
+.qs li.hit.direct{color:var(--amber)}.qs li.hit.partial{color:#E7C88E}.qs em{font:12px var(--mono)}
+.plan{margin-top:10px;font-size:15px;color:var(--soft)}.plan b{font:500 12px var(--mono);color:var(--dim);margin-right:6px}
+.route{font-size:15px;color:var(--soft);margin-top:10px}.route b{display:block;font:500 12px var(--mono);color:var(--amber)}.route.partial b{color:#E7C88E}
+@media(max-width:900px){.grid2,.stage{grid-template-columns:1fr}.bar-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="t">Eighteen Months Later<small id="hs">Instructor</small></div>
+  <div class="ctl" id="ctl"></div>
+</header>
+<main id="app"></main>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const SIM='rapid-08-later';
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// The platform's own launch endpoint, same origin, deliberately not under /sim08.
+const PLATFORM_LAUNCH_PATH='/api/launch';
+const TOKEN_KEY='m08-faculty-lt',SESSION_KEY='m08-faculty-session';
+const incoming=new URLSearchParams(location.hash.slice(1)).get('lt')||new URLSearchParams(location.search).get('lt')||null;
+let LT=incoming||sessionStorage.getItem(TOKEN_KEY)||null;
+if(incoming){sessionStorage.setItem(TOKEN_KEY,incoming);const p=new URLSearchParams(location.search);p.delete('lt');history.replaceState(null,'',location.pathname+(p.toString()?'?'+p:''))}
+function tokenInfo(t){try{return JSON.parse(atob(t.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{return null}}
+let course=new URLSearchParams(location.search).get('course')||tokenInfo(LT)?.course||'';
+let facultyCode='',code=localStorage.getItem(SESSION_KEY)||'',state=null,poll=null,error='',busy=false,tab='1';
+let draft={name:'',mode:''},teamDraft={},teamSize=4;
+
+async function renewFaculty(){
+  if(!BASE)throw new Error('Open this session from your RapidSims faculty dashboard, or enter your facilitator code.');
+  const q=new URLSearchParams({sim:SIM,mode:'session',format:'json'});if(course)q.set('course',course);
+  const r=await fetch(PLATFORM_LAUNCH_PATH+'?'+q,{credentials:'same-origin',cache:'no-store'});let d={};try{d=await r.json()}catch{}
+  if(r.status===401)throw new Error('Sign in to your faculty account from the dashboard, then try again.');
+  if(!r.ok)throw new Error(d.message||'Unable to renew faculty access. Open your faculty dashboard and try again.');
+  let t=null;try{const u=new URL(d.url,location.origin);t=new URLSearchParams(u.hash.slice(1)).get('lt')||u.searchParams.get('lt')}catch{}
+  const info=tokenInfo(t);
+  if(!info||info.sim!==SIM||!['faculty','faculty_preview'].includes(info.role)||info.mode!=='session')throw new Error('Sign in with a faculty account to run a class session.');
+  LT=t;sessionStorage.setItem(TOKEN_KEY,LT);
+}
+async function api(x){
+  const send=async()=>{const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;
+    const r=await fetch(BASE+'/api/session',{method:'POST',headers:h,body:JSON.stringify({...x,facultyCode})});let d={};try{d=await r.json()}catch{}return{r,d}};
+  let {r,d}=await send();
+  if(d.error==='faculty_authorization_required'&&!facultyCode&&BASE){await renewFaculty();({r,d}=await send())}
+  if(!r.ok){const e=new Error(d.message||friendly(d.error)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+function friendly(c){return({faculty_authorization_required:'Enter your facilitator code, or open this page from your RapidSims faculty dashboard.',
+  play_mode_required:'Choose individual or team play. There is no default.',not_your_session:'That session belongs to another instructor.',
+  no_such_session:'No session with that code.',teams_locked:'Teams are fixed once the session starts.'})[c]||''}
+
+function header(){
+  const s=state?.session;
+  document.getElementById('hs').textContent=s?`Session ${s.code} · ${s.mode==='team'?'Team':'Individual'}`:'Instructor';
+  const ctl=document.getElementById('ctl');
+  if(!s){ctl.innerHTML='';return}
+  const btns=[];
+  if(s.state==='running'){
+    btns.push(s.paused?`<button class="btn sm aux" data-c="resume">Resume</button>`:`<button class="btn sm aux" data-c="pause">Pause</button>`);
+    btns.push(`<button class="btn sm aux" data-c="close">Close session</button>`);
+  }
+  if(s.state!=='lobby')btns.push(`<button class="btn sm" id="pres">${document.body.classList.contains('present')?'Exit projector':'Projector'}</button>`);
+  btns.push(`<button class="btn sm aux" id="leave">Leave</button>`);
+  ctl.innerHTML=btns.join('');
+  ctl.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>control(b.dataset.c));
+  const pres=document.getElementById('pres');if(pres)pres.onclick=()=>{document.body.classList.toggle('present');render()};
+  document.getElementById('leave').onclick=()=>{clearInterval(poll);code='';state=null;localStorage.removeItem(SESSION_KEY);document.body.classList.remove('present');render()};
+}
+
+function render(){
+  header();
+  if(!state)return createView();
+  if(state.session.state==='lobby')return lobbyView();
+  projectorView();
+}
+
+function createView(){
+  const needCode=!LT;
+  app.innerHTML=`<h2>Set up this room</h2>
+  <p class="body">Every student sees the same clock. Choose how the room plays before anyone joins.</p>
+  ${error?`<div class="note bad">${esc(error)}</div>`:''}
+  <div class="grid2"><section class="card"><h3>New session</h3>
+    <div class="field"><label for="nm">Session name (only you see this)</label><input id="nm" value="${esc(draft.name)}" placeholder="Eighteen Months Later"></div>
+    <div class="field"><label>How will the room play?</label><div class="choice" role="radiogroup">
+      <label><input type="radio" name="mode" value="team" ${draft.mode==='team'?'checked':''}><div><b>Team</b><span>Recommended. Each team shares six questions, then votes privately on the vendor and the plan. Buying is a committee job, and the argument is part of the lesson.</span></div></label>
+      <label><input type="radio" name="mode" value="individual" ${draft.mode==='individual'?'checked':''}><div><b>Individual</b><span>Each student spends six questions and chooses alone.</span></div></label>
+    </div></div>
+    ${needCode?`<div class="field"><label for="fc">Facilitator code</label><input id="fc" type="password" autocomplete="off" value="${esc(facultyCode)}"></div>`:''}
+    <div style="margin-top:18px"><button class="btn pri" id="mk" ${busy?'disabled':''}>Create session</button></div>
+  </section>
+  <section class="card"><h3>Return to a session</h3>
+    <div class="field"><label for="rc">Session code</label><input id="rc" maxlength="5" value="${esc(code)}"></div>
+    ${needCode?`<div class="field"><label for="fc2">Facilitator code</label><input id="fc2" type="password" autocomplete="off" value="${esc(facultyCode)}"></div>`:''}
+    <div style="margin-top:18px"><button class="btn" id="rs" ${busy?'disabled':''}>Open session</button></div>
+  </section></div>`;
+  document.getElementById('mk').onclick=create;document.getElementById('rs').onclick=resume;
+}
+function readDraft(){
+  draft.name=document.getElementById('nm')?.value.trim()||'';
+  draft.mode=document.querySelector('input[name=mode]:checked')?.value||'';
+  facultyCode=(document.getElementById('fc')?.value||document.getElementById('fc2')?.value||facultyCode).trim();
+}
+async function create(){
+  readDraft();if(!draft.mode){error=friendly('play_mode_required');return render()}
+  busy=true;error='';
+  try{const d=await api({action:'create',name:draft.name||undefined,mode:draft.mode});code=d.session.code;localStorage.setItem(SESSION_KEY,code);await refresh();startPoll()}
+  catch(e){error=e.message}finally{busy=false;render()}
+}
+async function resume(){
+  readDraft();code=(document.getElementById('rc').value||'').trim().toUpperCase();busy=true;error='';
+  try{await refresh(true);localStorage.setItem(SESSION_KEY,code);startPoll()}catch(e){error=e.message;state=null}finally{busy=false;render()}
+}
+function startPoll(){clearInterval(poll);poll=setInterval(()=>refresh().catch(e=>{error=e.message}),2000)}
+let shown='';
+async function refresh(throwErr){
+  if(!code)return;
+  try{
+    const d=await api({action:'faculty_state',code});state=d;
+    const key=JSON.stringify([d.session.state,d.session.paused,d.roster,d.projector.clock.phase,d.projector.clock.closed,d.projector.live,d.projector.revealStep,d.projector.rows]);
+    const active=document.activeElement;const typing=active&&active.tagName==='INPUT';
+    if(key!==shown&&!typing){shown=key;render()}else tickClock();
+  }catch(e){if(throwErr)throw e;error=e.message}
+}
+
+function lobbyView(){
+  const s=state.session,people=state.roster.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const joinUrl=s.joinUrl||location.origin+BASE+'/index.html?session='+s.code;
+  const team=s.mode==='team';
+  const rows=people.map(p=>`<li><span>${esc(p.name)}</span>${team?`<input data-id="${esc(p.id)}" value="${esc(teamDraft[p.id]??p.teamLabel)}" placeholder="Team name" aria-label="Team for ${esc(p.name)}">`:''}</li>`).join('');
+  app.innerHTML=`<h2>Students join with this code</h2>
+  <div class="join"><div class="code">${esc(s.code)}</div><div class="url">${esc(joinUrl)}</div></div>
+  ${error?`<div class="note bad">${esc(error)}</div>`:''}
+  <div class="grid2"><section class="card"><h3>${people.length} joined</h3>
+    ${people.length?`<ul class="roster">${rows}</ul>`:`<p class="body">Nobody has joined yet. This list updates on its own.</p>`}
+    ${team&&people.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center">
+      <button class="btn sm" id="split">Split into teams of</button><input id="ts" type="number" min="2" max="8" value="${teamSize}" style="width:64px;background:var(--night);border:1px solid var(--line2);padding:6px 8px">
+      <button class="btn sm" id="save">Save teams</button>${s.platformAuth&&s.courseId?`<button class="btn sm" id="imp">Add approved course students</button>`:''}</div>`:''}
+  </section>
+  <section class="card"><h3>When everyone is in</h3>
+    <p class="body">Starting runs a two-minute briefing, three minutes of demonstrations, nine minutes of questions, two minutes to commit to a vendor and one to choose a go-live plan. Then every student sees the eighteen-month report. About seventeen minutes on the clock.</p>
+    ${team?`<p class="body">Teams are fixed when you start. Students who arrive later can't join a team session.</p>`:`<p class="body">Students who join after questions open can still play, but they stay out of the room's comparison.</p>`}
+    <button class="btn pri" id="go">Start the session</button>
+  </section></div>`;
+  document.getElementById('go').onclick=()=>control('start');
+  if(team&&people.length){
+    app.querySelectorAll('.roster input').forEach(i=>i.oninput=()=>{teamDraft[i.dataset.id]=i.value});
+    document.getElementById('split').onclick=()=>{teamSize=Math.max(2,Math.min(8,Number(document.getElementById('ts').value)||4));
+      const shuffled=people.map(p=>p.id).sort(()=>Math.random()-.5);const n=Math.max(1,Math.round(shuffled.length/teamSize));
+      shuffled.forEach((id,i)=>{teamDraft[id]='Team '+String.fromCharCode(65+(i%n))});render()};
+    document.getElementById('save').onclick=saveTeams;
+    const imp=document.getElementById('imp');if(imp)imp.onclick=async()=>{try{await api({action:'faculty_enrolments',code});error=''}catch(e){error=e.message}shown='';await refresh()};
+  }
+}
+async function saveTeams(){
+  const assign={};for(const [id,v] of Object.entries(teamDraft))assign[id]=v.trim()||'__unassigned__';
+  try{await api({action:'group',code,assign});teamDraft={};error=''}catch(e){error=e.message}
+  shown='';await refresh();
+}
+async function control(set,step){
+  if(set==='close'&&!confirm('Close this session? No further questions or votes can be made.'))return;
+  if(set==='start'&&Object.keys(teamDraft).length)await saveTeams();
+  try{await api({action:'control',code,set,step});error=''}catch(e){error=e.message}
+  shown='';await refresh();
+}
+
+let clockAt=0,clockLeft=0;
+function tickClock(){
+  const el=document.getElementById('big');if(!el||!state)return;
+  const c=state.projector.clock;
+  if(state._synced!==state){state._synced=state;clockAt=performance.now();clockLeft=c.remaining}
+  const left=c.paused?clockLeft:Math.max(0,clockLeft-(performance.now()-clockAt)/1000);
+  el.textContent=`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`;
+}
+setInterval(tickClock,250);
+
+function phaseLine(c){
+  if(c.paused)return 'Paused';
+  return ({briefing:'Briefing · demonstrations begin in',demos:'Demonstrations · questions open in',questions:'Questions · closing in',
+    commit:'Committing to a vendor · closing in',plan:'Choosing a go-live plan · closing in',report:'Eighteen months later'})[c.phase]||'Session closed';
+}
+function stepVendors(P){
+  const by={};P.rows.forEach(r=>(by[r.vendor]||=[]).push(r));
+  return `<div class="bars">${P.routes.map(v=>{const rs=by[v.vendor]||[];return `<div class="bar-row"><div class="lab">${esc(v.name)}<small>${rs.length} ${P.mode==='team'?'team':'player'}${rs.length===1?'':'s'}</small></div><div class="names">${rs.map(r=>`<span>${esc(r.label)}${r.boardChose?' · board chose':''}</span>`).join('')||'<span class="dimmed">none</span>'}</div></div>`}).join('')}</div>`;
+}
+function stepOutcomes(P){
+  const by={};P.rows.forEach(r=>(by[r.vendor]||=[]).push(r));
+  return `<p class="prompt" style="margin:8px 0 26px">${esc(P.disagreement)}</p>${P.routes.filter(v=>by[v.vendor]).map(v=>`<section class="grp"><h3>${esc(v.name)}</h3><ul class="endings">${by[v.vendor].map(r=>`<li><span>${esc(r.label)}</span><b class="hl">${esc(r.headline)}</b></li>`).join('')}</ul></section>`).join('')}`;
+}
+function stepQuestions(P,marked){
+  return `<div class="qgrid">${P.rows.map(r=>`<section class="card"><h3>${esc(r.label)} · ${esc(r.vendorName)}</h3><ol class="qs">${r.questions.map(q=>`<li class="${marked&&q.route?'hit '+q.route:''}">${esc(q.text)}${marked&&q.route?` <em>${q.route}</em>`:''}</li>`).join('')||'<li>No questions spent</li>'}</ol><p class="plan"><b>Plan</b> ${esc(r.planText||'None agreed')}</p>${marked?`<p class="plan"><b>Warning</b> ${r.found?'found':'not found'}</p>`:''}</section>`).join('')}</div>`;
+}
+function stepRoutes(P){
+  return `<div class="qgrid">${P.routes.map(v=>`<section class="card"><h3>${esc(v.name)} · ${esc(v.risk)}</h3>${v.direct.map(q=>`<p class="route"><b>Direct · ${esc(q.text)}</b>${esc(q.answer)}</p>`).join('')}${v.partial.map(q=>`<p class="route partial"><b>Partial · ${esc(q.text)}</b>${esc(q.answer)}</p>`).join('')}</section>`).join('')}</div>
+  <p class="body" style="margin-top:14px">A warning counts as found with one direct answer, or two partial ones.</p>`;
+}
+function projectorView(){
+  const P=state.projector,c=P.clock;
+  const unit=P.mode==='team'?'team members':'students';
+  const timer=['briefing','demos','questions','commit','plan'].includes(c.phase)&&!c.closed?`<div class="big" id="big"></div>`:'';
+  let live='';
+  if(P.live&&P.live.kind==='questions')live=`<div class="decided">${P.live.spent} of ${P.live.of} questions spent · ${P.live.finished} of ${P.live.runs} ${P.mode==='team'?'teams':'students'} finished</div>`;
+  else if(P.live)live=`<div class="decided">${P.live.decided} of ${P.live.of} ${unit} have voted</div>`;
+  const late=P.late?`<p class="body aux">${P.late} joined after questions opened and ${P.late===1?'is':'are'} not in the comparison.</p>`:'';
+  let stage='';
+  if(P.rows){
+    const tabs=[...P.steps.map((st,i)=>[String(i+1),st.label]),['naming','Naming'],['turn','The turn']];
+    const cur=tab==='naming'||tab==='turn'?tab:String(Math.max(1,P.revealStep||1));
+    const n=Number(cur);
+    let body='';
+    if(cur==='naming')body=`<ul class="terms">${P.debrief.naming.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`;
+    else if(cur==='turn')body=`<p class="prompt">${esc(P.debrief.turn)}</p>`;
+    else if(!P.revealStep)body=`<p class="body">Every student is reading their eighteen-month report. Reveal step 1 when the room is ready.</p>`;
+    else body=n===1?stepVendors(P):n===2?stepOutcomes(P):n===3?stepQuestions(P,false):stepQuestions(P,true)+stepRoutes(P);
+    stage=`<section class="debrief"><div class="tabs" role="tablist">${tabs.map(([k,l],i)=>{const locked=i<4&&Number(k)>(P.revealStep||0)+1;return `<button class="btn sm" role="tab" aria-selected="${cur===k}" data-t="${k}" ${locked?'disabled':''}>${esc(l)}</button>`}).join('')}</div>${body}</section>`;
+  }
+  const side=`<section class="card aux"><h3>In the room</h3><ul class="endings"><li><span>Joined</span><b>${P.joined}</b></li>${P.teams!=null?`<li><span>Teams</span><b>${P.teams}</b></li>`:''}</ul></section>`;
+  app.innerHTML=`${error?`<div class="note bad aux">${esc(error)}</div>`:''}
+  <div class="${P.rows?'':'stage'}"><div><div class="now">${esc(phaseLine(c))}</div>${timer}${live}${late}${stage}</div>${P.rows?'':side}</div>`;
+  app.querySelectorAll('[data-t]').forEach(b=>b.onclick=async()=>{const k=b.dataset.t;tab=k;
+    if(/^\d$/.test(k)&&Number(k)>(P.revealStep||0)){await control('reveal',Number(k))}else render()});
+  tickClock();
+}
+
+(async()=>{if(code&&(LT||facultyCode)){try{await refresh(true);startPoll()}catch{state=null}}render()})();
+</script>
+</body>
+</html>

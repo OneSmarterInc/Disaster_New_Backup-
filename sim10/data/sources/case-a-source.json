@@ -1,0 +1,543 @@
+{
+  "_comment": "SERVER-SIDE ONLY. Real, unscaled figures for Case A. Never served to students before reveal stage 1. All amounts USD thousands unless unit says otherwise.",
+  "case": "A",
+  "company": "Global Crossing Ltd.",
+  "periods": {
+    "Q1": {
+      "label": "Quarter 1",
+      "real": "three months ended 30 June 2000",
+      "doc": "gc-10q-2000q2"
+    },
+    "Q2": {
+      "label": "Quarter 2",
+      "real": "three months ended 30 September 2000",
+      "doc": "gc-10q-2000q3"
+    }
+  },
+  "documents": {
+    "gc-10q-2000q2": {
+      "form": "10-Q",
+      "period_end": "2000-06-30",
+      "filed": "2000-08-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/1061322/000095013000004525/0001.txt"
+    },
+    "gc-10q-2000q3": {
+      "form": "10-Q",
+      "period_end": "2000-09-30",
+      "filed": "2000-11-14",
+      "url": "https://www.sec.gov/Archives/edgar/data/1061322/000095013000006104/0001.txt"
+    }
+  },
+  "lines": [
+    {
+      "tag": "hl.cash_revenue",
+      "section": "summary",
+      "label": "Cash revenue (company measure)",
+      "unit": "usd_m_as_reported",
+      "Q1": 1107,
+      "Q2": 1400,
+      "prior_year": {
+        "Q1": 191,
+        "Q2": 266
+      },
+      "note": "Company defines as revenue plus the cash portion of the change in deferred revenue. Q2 figure rounded by the company to $1.4bn.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.17 MD&A 'Cash revenue'",
+        "Q2": "gc-10q-2000q3 p.18 MD&A 'Cash revenue'"
+      }
+    },
+    {
+      "tag": "hl.adj_ebitda",
+      "section": "summary",
+      "label": "Adjusted EBITDA (company measure)",
+      "unit": "usd_k",
+      "Q1": 323092,
+      "Q2": 329845,
+      "prior_year": {
+        "Q1": 116004,
+        "Q2": 139078
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.14 note 8 reconciliation",
+        "Q2": "gc-10q-2000q3 p.14 note 10 reconciliation"
+      }
+    },
+    {
+      "tag": "hl.proforma_growth",
+      "section": "summary",
+      "label": "Revenue growth, like-for-like (company pro forma)",
+      "unit": "pct",
+      "Q1": 7,
+      "Q2": 13,
+      "note": "Company pro forma: as if all acquisitions held in both periods, excluding the business held for sale.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.18 MD&A; note 5 table 999,144 vs 932,016",
+        "Q2": "gc-10q-2000q3 p.19 MD&A; note 5 table 1,013,072 vs 889,441"
+      }
+    },
+    {
+      "tag": "is.revenue",
+      "section": "income",
+      "label": "Revenue",
+      "unit": "usd_k",
+      "Q1": 918420,
+      "Q2": 1013072,
+      "prior_year": {
+        "Q1": 188459,
+        "Q2": 234582
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3 statement of operations",
+        "Q2": "gc-10q-2000q3 p.3 statement of operations"
+      }
+    },
+    {
+      "tag": "is.revenue_upfront",
+      "section": "income",
+      "label": "of which: capacity sales recognised up front",
+      "unit": "usd_k",
+      "Q1": 98833,
+      "Q2": 52583,
+      "prior_year": {
+        "Q1": 181322,
+        "Q2": 137934
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.13 segment note 'Sales-type leases'",
+        "Q2": "gc-10q-2000q3 p.13 segment note 'Sales-type leases'"
+      }
+    },
+    {
+      "tag": "is.cost_of_sales",
+      "section": "income",
+      "label": "Cost of sales",
+      "unit": "usd_k",
+      "Q1": 631182,
+      "Q2": 599875,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "is.depreciation",
+      "section": "income",
+      "label": "Depreciation",
+      "unit": "usd_k",
+      "Q1": 126952,
+      "Q2": 160427,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "is.goodwill_amort",
+      "section": "income",
+      "label": "Amortisation of acquired goodwill and intangibles",
+      "unit": "usd_k",
+      "Q1": 159501,
+      "Q2": 235461,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "is.operating_loss",
+      "section": "income",
+      "label": "Operating income (loss)",
+      "unit": "usd_k",
+      "Q1": -391407,
+      "Q2": -469684,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "is.interest_expense",
+      "section": "income",
+      "label": "Interest expense",
+      "unit": "usd_k",
+      "Q1": -94303,
+      "Q2": -111944,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "is.net_loss_common",
+      "section": "income",
+      "label": "Net income (loss) to common shareholders",
+      "unit": "usd_k",
+      "Q1": -516191,
+      "Q2": -602355,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.3",
+        "Q2": "gc-10q-2000q3 p.3"
+      }
+    },
+    {
+      "tag": "recon.deferred_cash",
+      "section": "adjustments",
+      "label": "Adjusted EBITDA includes: cash received but not yet recognised as revenue",
+      "unit": "usd_k",
+      "Q1": 307891,
+      "Q2": 353908,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.14 'Incremental cash deferred revenue'",
+        "Q2": "gc-10q-2000q3 p.14 'Incremental cash deferred revenue'"
+      }
+    },
+    {
+      "tag": "recon.noncash_capacity",
+      "section": "adjustments",
+      "label": "Adjusted EBITDA includes: cost of capacity sold, added back",
+      "unit": "usd_k",
+      "Q1": 112318,
+      "Q2": 40854,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.14",
+        "Q2": "gc-10q-2000q3 p.14"
+      }
+    },
+    {
+      "tag": "recon.stock_comp",
+      "section": "adjustments",
+      "label": "Adjusted EBITDA includes: share-based pay, added back",
+      "unit": "usd_k",
+      "Q1": 7837,
+      "Q2": 8879,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.14",
+        "Q2": "gc-10q-2000q3 p.14"
+      }
+    },
+    {
+      "tag": "bs.cash",
+      "section": "balance",
+      "label": "Cash and cash equivalents",
+      "unit": "usd_k",
+      "Q1": 2294502,
+      "Q2": 1191714,
+      "opening": 1629546,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4",
+        "opening": "31 Dec 1999 column"
+      }
+    },
+    {
+      "tag": "bs.ppe_in_service",
+      "section": "balance",
+      "label": "Network and equipment in service, net",
+      "unit": "usd_k",
+      "Q1": 4641218,
+      "Q2": 5453865,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.11 note 6",
+        "Q2": "gc-10q-2000q3 p.12 note 6"
+      }
+    },
+    {
+      "tag": "bs.cip",
+      "section": "balance",
+      "label": "Construction in progress",
+      "unit": "usd_k",
+      "Q1": 3268197,
+      "Q2": 3374984,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.11 note 6",
+        "Q2": "gc-10q-2000q3 p.12 note 6"
+      }
+    },
+    {
+      "tag": "bs.goodwill",
+      "section": "balance",
+      "label": "Goodwill and intangibles from acquisitions",
+      "unit": "usd_k",
+      "Q1": 10867908,
+      "Q2": 10640256,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.total_assets",
+      "section": "balance",
+      "label": "Total assets",
+      "unit": "usd_k",
+      "Q1": 26901865,
+      "Q2": 26605584,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.accrued_construction",
+      "section": "balance",
+      "label": "Construction costs owed to builders",
+      "unit": "usd_k",
+      "Q1": 667573,
+      "Q2": 665983,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.debt_current",
+      "section": "balance",
+      "label": "Debt due within a year",
+      "unit": "usd_k",
+      "Q1": 11329,
+      "Q2": 773411,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.debt_long",
+      "section": "balance",
+      "label": "Long-term debt",
+      "unit": "usd_k",
+      "Q1": 6230195,
+      "Q2": 5329897,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.deferred_revenue",
+      "section": "balance",
+      "label": "Deferred revenue (cash received, not yet earned)",
+      "unit": "usd_k",
+      "Q1": 1014788,
+      "Q2": 1393973,
+      "note": "Current plus long-term: Q1 183,674 + 831,114; Q2 230,549 + 1,163,424.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "bs.preferred",
+      "section": "balance",
+      "label": "Redeemable preferred shares",
+      "unit": "usd_k",
+      "Q1": 3156961,
+      "Q2": 3157503,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.4",
+        "Q2": "gc-10q-2000q3 p.4"
+      }
+    },
+    {
+      "tag": "cf.capex_quarter",
+      "section": "cashflow",
+      "label": "Cash paid for capital expenditure (quarter)",
+      "unit": "usd_k",
+      "Q1": 892239,
+      "Q2": 1203652,
+      "src": {
+        "Q1": "gc-10q-2000q2 p.13 segment note, consolidated",
+        "Q2": "gc-10q-2000q3 p.14 segment note, consolidated"
+      }
+    },
+    {
+      "tag": "cf.operating_ytd",
+      "section": "cashflow",
+      "label": "Cash from operations (year to date)",
+      "unit": "usd_k",
+      "Q1": 328405,
+      "Q2": 506499,
+      "ytd_months": {
+        "Q1": 6,
+        "Q2": 9
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.5",
+        "Q2": "gc-10q-2000q3 p.5"
+      }
+    },
+    {
+      "tag": "cf.investing_ytd",
+      "section": "cashflow",
+      "label": "Cash used in investing (year to date)",
+      "unit": "usd_k",
+      "Q1": -1898993,
+      "Q2": -3114564,
+      "ytd_months": {
+        "Q1": 6,
+        "Q2": 9
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.5",
+        "Q2": "gc-10q-2000q3 p.5"
+      }
+    },
+    {
+      "tag": "cf.equity_raised_ytd",
+      "section": "cashflow",
+      "label": "New shares issued, common and preferred (year to date)",
+      "unit": "usd_k",
+      "Q1": 1858235,
+      "Q2": 1887182,
+      "ytd_months": {
+        "Q1": 6,
+        "Q2": 9
+      },
+      "note": "Q1 746,559 + 1,111,676; Q2 775,506 + 1,111,676.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.5",
+        "Q2": "gc-10q-2000q3 p.5"
+      }
+    },
+    {
+      "tag": "cf.debt_raised_ytd",
+      "section": "cashflow",
+      "label": "New borrowing (year to date)",
+      "unit": "usd_k",
+      "Q1": 443630,
+      "Q2": 1037390,
+      "ytd_months": {
+        "Q1": 6,
+        "Q2": 9
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.5",
+        "Q2": "gc-10q-2000q3 p.5"
+      }
+    },
+    {
+      "tag": "cf.debt_repaid_ytd",
+      "section": "cashflow",
+      "label": "Borrowing repaid (year to date)",
+      "unit": "usd_k",
+      "Q1": -100694,
+      "Q2": -804604,
+      "ytd_months": {
+        "Q1": 6,
+        "Q2": 9
+      },
+      "src": {
+        "Q1": "gc-10q-2000q2 p.5",
+        "Q2": "gc-10q-2000q3 p.5"
+      }
+    },
+    {
+      "tag": "nt.remaining_build",
+      "section": "notes",
+      "label": "Estimated cost to finish the announced network",
+      "unit": "usd_m_as_reported",
+      "Q1": 3300,
+      "Q2": 3000,
+      "note": "Both quarters: completion expected by the middle of next year.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.22 Liquidity",
+        "Q2": "gc-10q-2000q3 p.23 Liquidity"
+      }
+    },
+    {
+      "tag": "nt.credit_line",
+      "section": "notes",
+      "label": "Committed bank credit available",
+      "unit": "usd_m_as_reported",
+      "Q1": 1000,
+      "Q2": 2250,
+      "src": {
+        "Q1": "gc-10q-2000q3 p.12 note 8 (pre-amendment amount)",
+        "Q2": "gc-10q-2000q3 p.12 note 8"
+      }
+    },
+    {
+      "tag": "nt.asset_sale",
+      "section": "notes",
+      "label": "Agreed sale of a separate regional business, cash expected",
+      "unit": "usd_m_as_reported",
+      "Q1": 3650,
+      "Q2": 3650,
+      "note": "Agreed after Quarter 1 closed; disclosed in the Quarter 1 report. Stripped of buyer and business type.",
+      "src": {
+        "Q1": "gc-10q-2000q2 p.8 note 1",
+        "Q2": "gc-10q-2000q3 p.8 note 1"
+      }
+    }
+  ],
+  "text_lines": [
+    {
+      "tag": "tx.amort_life",
+      "section": "notes",
+      "fact": "After discussion with the securities regulator, the company shortened the life over which it writes off one block of acquired goodwill from 10 years to 5, and restated earlier periods. No effect on cash.",
+      "src": "gc-10q-2000q2 p.8 note 1; gc-10q-2000q3 p.8 note 1 (goodwill $1.5bn)"
+    },
+    {
+      "tag": "tx.asset_lives",
+      "section": "notes",
+      "fact": "Network systems are depreciated over their remaining economic lives. The company's policy puts transmission equipment at 3 to 25 years.",
+      "src": "gc-10q-2000q2 p.16; gc-10q-2000q3 p.17; 1999 10-K/A policy note (3-25 years)"
+    },
+    {
+      "tag": "tx.deferral_shift",
+      "section": "notes",
+      "fact": "From this year most capacity contracts are booked as revenue spread over the contract term instead of up front. The company says this lowers reported revenue now, raises it later, and does not change cash.",
+      "src": "gc-10q-2000q2 p.9-10 note 3; gc-10q-2000q3 p.9-10 note 3"
+    },
+    {
+      "tag": "tx.customer_financing",
+      "section": "notes",
+      "fact": "The company has lent limited amounts to customers to help them buy capacity, repayable in instalments over up to four years, and says this will not materially affect its liquidity.",
+      "src": "gc-10q-2000q2 p.22; gc-10q-2000q3 p.24"
+    },
+    {
+      "tag": "tx.price_decline",
+      "section": "notes",
+      "fact": "Margins fell partly because of lower prices on the long-distance capacity the company sells.",
+      "src": "gc-10q-2000q2 p.18 Cost of sales; gc-10q-2000q3 p.19 Cost of sales"
+    },
+    {
+      "tag": "tx.losses_on_contracts",
+      "section": "notes",
+      "fact": "The company wrote down assets for expected losses on capacity sales contracts: $38m in Quarter 1, $3m in Quarter 2.",
+      "src": "gc-10q-2000q2 p.10 note 3; gc-10q-2000q3 p.10 note 3"
+    }
+  ],
+  "management_statements_source": [
+    {
+      "tag": "mg.strategy",
+      "src": "gc-10q-2000q2 p.8 note 1",
+      "gist": "Aims to be the leading provider of broadband data services over a network of unprecedented scope, and expects the network to make it the low-cost provider in most of its markets."
+    },
+    {
+      "tag": "mg.demand",
+      "src": "gc-10q-2000q2 p.18; gc-10q-2000q3 p.19",
+      "gist": "Like-for-like revenue growth is driven mainly by rising demand for data products."
+    },
+    {
+      "tag": "mg.funding",
+      "src": "gc-10q-2000q3 p.23 Liquidity",
+      "gist": "With the larger credit line, an affiliate's share sale and bond issue, the agreed business sale and expected operating cash, the company expects to fund all planned expansion without further financing."
+    },
+    {
+      "tag": "mg.debt",
+      "src": "gc-10q-2000q2 p.23; gc-10q-2000q3 p.24",
+      "gist": "Has a substantial amount of debt; believes operating cash, the credit facility and its continued ability to raise capital will cover capital spending, interest and repayments for the foreseeable future."
+    }
+  ],
+  "strip_hazards": [
+    "Named acquisitions and the web-hosting division sale to a named buyer (the Case B rival) \u2014 remove entirely",
+    "Regional telephone business held for sale \u2014 describe only as 'a separate regional business'",
+    "Affiliate IPO in Asia \u2014 describe only as 'a part-owned affiliate raised equity and debt'",
+    "Marine cable installation segment \u2014 omit segment; consolidated figures only",
+    "Coupon and LIBOR rates on debt \u2014 omit (date the period)",
+    "Share counts, EPS, share price used in acquisitions \u2014 omit (reveal scale and era)",
+    "Litigation with the cable builder \u2014 omit",
+    "Route miles, countries, cities served, 'subsea', 'fiber', 'IP', 'Internet' \u2014 omit"
+  ]
+}

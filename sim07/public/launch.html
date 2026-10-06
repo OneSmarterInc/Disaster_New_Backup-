@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Would You Have Bought It? — access</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0E1524;color:#E8E4DA;font-family:'Newsreader',Georgia,serif}.box{width:min(520px,calc(100% - 36px));padding:30px;border:1px solid #2B3548;background:#161E2E}.ey{font:11px ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#F0A63C}h1{font-weight:400;margin:10px 0 10px}.muted{color:#8C95A8;line-height:1.55}.field{margin-top:22px}.field label{display:block;font:10px ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase;color:#F0A63C;margin-bottom:7px}.field input{width:100%;box-sizing:border-box;background:#0E1524;border:1px solid #3A4659;color:#E8E4DA;padding:12px 13px;font:16px ui-monospace,monospace}.btn{margin-top:12px;border:1px solid #F0A63C;background:#F0A63C;color:#1A1206;padding:11px 16px;font:600 11px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}.btn:disabled{opacity:.5;cursor:wait}.err{margin-top:12px;color:#E3B9C2;font-size:14px;min-height:20px}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="ey">Flexee RapidSim 07</div>
+  <h1 id="title">Would You Have Bought It?</h1>
+  <p class="muted" id="message">Checking your RapidSims sign-in…</p>
+  <div class="field" id="gate" hidden><label for="code">Access code</label><input id="code" type="password" autocomplete="off" spellcheck="false"><button class="btn" id="open">Open simulation</button><div class="err" id="err"></div></div>
+</div>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const tokenParams=new URLSearchParams(location.hash.slice(1));
+let launch=null,token=tokenParams.get('lt')||new URLSearchParams(location.search).get('lt')||null;
+if(token){try{launch=JSON.parse(atob(token.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{launch=null}}
+const faculty=launch&&(launch.role==='faculty'||launch.role==='faculty_preview')&&launch.mode==='session';
+if(faculty&&token)sessionStorage.setItem('w07-faculty-lt',token);
+const params=new URLSearchParams(location.search);params.delete('lt');const q=params.toString();
+function goWithToken(){const target=faculty?'/instructor.html':'/index.html';location.replace(BASE+target+(q?'?'+q:'')+'#lt='+encodeURIComponent(token))}
+if(!token && params.get('guest')!=='1' && !['localhost','127.0.0.1'].includes(location.hostname)){
+  const entry=new URLSearchParams({sim:'rapid-07-bought'});
+  if(params.get('session'))entry.set('session',params.get('session'));
+  if(params.get('course'))entry.set('course',params.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?'+entry.toString());
+}
+else if(token){goWithToken()}
+else if(params.get('session')){
+  sessionStorage.removeItem('w07-lt:'+params.get('session').trim().toUpperCase());
+  document.getElementById('gate').hidden=true;
+  document.getElementById('message').textContent='Opening your class session…';
+  location.replace(BASE+'/api/join?session='+encodeURIComponent(params.get('session')));
+}
+else{
+  sessionStorage.removeItem('w07-lt:solo');
+  const input=document.getElementById('code'),button=document.getElementById('open'),err=document.getElementById('err');
+  const remembered=sessionStorage.getItem('w07-access')||'';if(remembered)input.value=remembered;
+  async function verify(){
+    const code=input.value.trim();err.textContent='';button.disabled=true;
+    try{
+      const r=await fetch(BASE+'/api/config',{headers:code?{'x-access-code':code}:{}});
+      if(!r.ok){let d={};try{d=await r.json()}catch{};throw new Error(d.message||(d.error==='access_code_required'?'That access code is not valid.':'Unable to open the simulation.'))}
+      sessionStorage.setItem('w07-access',code);
+      location.replace(BASE+'/index.html'+(q?'?'+q:''));
+    }catch(e){sessionStorage.removeItem('w07-access');err.textContent=e.message;button.disabled=false;input.focus()}
+  }
+  button.onclick=verify;input.addEventListener('keydown',e=>{if(e.key==='Enter')verify()});
+  document.getElementById('gate').hidden=false;
+  document.getElementById('message').textContent='Enter the access code supplied by your instructor or administrator.';
+  input.focus();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+const assert=require('assert'),fs=require('fs'),path=require('path');const root=path.join(__dirname,'..');
+const session=fs.readFileSync(path.join(root,'api','session.js'),'utf8'),outcome=fs.readFileSync(path.join(root,'api','outcome.js'),'utf8'),finish=fs.readFileSync(path.join(root,'api','finish.js'),'utf8'),student=fs.readFileSync(path.join(root,'public','index.html'),'utf8'),instructor=fs.readFileSync(path.join(root,'public','instructor.html'),'utf8'),scenario=fs.readFileSync(path.join(root,'lib','scenario.js'),'utf8'),health=fs.readFileSync(path.join(root,'api','health.js'),'utf8');
+assert(!student.includes('id="teamName"'));
+assert(!session.includes('const asked = String(b.teamName'));
+for(const marker of ["case 'set_runner':", "case 'set_captain':", "case 'rename_team':", "label === '__unassigned__'", "error: 'unassigned_participants'", "error: 'team_lead_required'", 'wantsSharedDecision', 'next.reflections = map', 'next.finishedBy', 'previousCaptains', 'platform:${launched.sub}', 'completedBy', 'compareAndSetRun', 'runnerRevision']) assert(session.includes(marker), marker);
+assert(finish.includes('submitSession('));
+assert(finish.includes('teamSubjects'));
+assert(finish.includes('completedFor'));
+assert(finish.includes('beforeRun?.done'));
+assert(!finish.includes('await store.setRun('), 'completion must not bypass the shared transaction');
+assert(outcome.includes("'runner_only'"));
+assert(outcome.includes('runnerOf('));
+for(const marker of ['Join a facilitated session', 'Waiting for team assignment', 'your team can decide which one student will run the simulation', 'Who will run the simulation for your team?', 'Assign runner', 'Team mode · read-only', 'same team result will appear here', 'safeToRerender', 'viewCommitted', 'expectedRunnerId', 'runnerRevision']) assert(student.includes(marker), marker);
+assert(!student.includes('I will run this team'), 'ordinary members must not silently change team leadership');
+for(const marker of ['Resume session code', 'startPresent', "classList.contains('present')", 'dotcount', 'const savedCode=', 'Classroom readiness', 'Pilot calibration and debrief notes', 'not a correct answer or a grade', 'rehearse one Team-mode run']) assert(instructor.includes(marker), marker);
+const workspace=fs.readFileSync(path.join(root,'public','faculty-workspace.js'),'utf8');
+for(const marker of ['Auto split teams','Create team','Unassigned students','Team lead',"action:'rename_team'",'r.reflections?.[r.completedBy]','Start session →','recordsFrom(cfg.state)']) assert(workspace.includes(marker),marker);
+assert(!instructor.includes('Only students marked In this session can be assigned to teams'),'obsolete joined-only workflow removed');
+assert(!student.includes('Valuation pending authored rule'));
+assert(scenario.includes("band: 'data_no_room'"));
+assert(!scenario.includes('calibrationGap'));
+assert(!scenario.includes('unresolved_calibration'));
+assert(health.includes('not set (standalone access closed)'));
+console.log('RapidSim 03 separate-lead/runner team and classroom flow checks passed.');

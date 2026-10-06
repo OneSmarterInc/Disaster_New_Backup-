@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flexee RapidSims</title>
+<link rel="stylesheet" href="/sim-detail.css">
+<script src="/sim-identity.js"></script>
+<script src="/sim-detail.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F4F2; --panel:#FFFFFF; --sunk:#F8F8F6;
+  --ink:#15171B; --ink2:#4E535C; --ink3:#878C95;
+  --line:#E4E4E0; --line2:#CFCFC9;
+  --amber:#A8620D; --amber-bg:#FBF3E7;
+  --green:#2F6B4F; --rose:#9E3B50;
+  --serif:'Newsreader',Georgia,serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:var(--amber);text-decoration:none;cursor:pointer}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* ── Flexee.org-style global header ───────────────────────────────────── */
+.flexee-site-header{
+  padding:1.25rem 0;
+  border-bottom:1px solid rgba(19,18,17,.12);
+  position:sticky;
+  top:0;
+  z-index:100;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  background:rgba(244,238,221,.92);
+  font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+.flexee-header-container{
+  max-width:1240px;
+  margin:0 auto;
+  padding:0 1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1.25rem;
+}
+.flexee-brand{
+  flex-shrink:0;
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:1.75rem;
+  color:#1D3830;
+  letter-spacing:-.01em;
+  line-height:1;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.flexee-brand span{color:#B87942;font-style:italic}
+.flexee-brand:hover{text-decoration:none}
+.flexee-header-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:1.25rem;
+}
+.flexee-site-nav{
+  display:flex;
+  gap:1.25rem;
+  align-items:center;
+  font-size:.9375rem;
+  line-height:1.2;
+}
+.flexee-site-nav a{
+  color:#131211;
+  text-decoration:none;
+  transition:color .18s ease;
+  white-space:nowrap;
+}
+.flexee-site-nav a:hover,
+.flexee-site-nav a:focus-visible,
+.flexee-site-nav a[aria-current="page"]{
+  color:#B87942;
+  text-decoration:none;
+}
+.flexee-auth-slot{display:flex;align-items:center;flex-shrink:0}
+.flexee-auth-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:.55rem .9rem;
+  border:1px solid #A8620D;
+  background:#A8620D;
+  color:#fff;
+  font-family:var(--mono);
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-decoration:none;
+  transition:background .16s ease,border-color .16s ease;
+}
+.flexee-auth-button:hover{
+  background:#8C5109;
+  border-color:#8C5109;
+  color:#fff;
+  text-decoration:none;
+}
+.flexee-mobile-menu-toggle{
+  display:none;
+  background:none;
+  border:0;
+  cursor:pointer;
+  padding:0;
+  width:44px;
+  height:44px;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+}
+.flexee-mobile-menu-toggle span{
+  display:block;
+  width:24px;
+  height:2px;
+  background:#131211;
+  transition:all .25s ease;
+}
+.flexee-mobile-menu-overlay{
+  position:fixed;
+  inset:0;
+  background:#142822;
+  z-index:200;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .3s ease,visibility .3s ease;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:5.5rem 2rem 2rem;
+  font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+.flexee-mobile-menu-overlay.is-open{opacity:1;visibility:visible}
+.flexee-mobile-menu-close{
+  position:absolute;
+  top:1.25rem;
+  right:1.25rem;
+  background:none;
+  border:0;
+  color:#F4EEDD;
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:3rem;
+  font-weight:300;
+  line-height:1;
+  cursor:pointer;
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:color .18s ease;
+}
+.flexee-mobile-menu-close:hover{color:#B87942}
+.flexee-mobile-menu-brand{
+  position:absolute;
+  top:1.5rem;
+  left:1.5rem;
+  font-family:'Instrument Serif',Georgia,serif;
+  font-size:1.75rem;
+  color:#F4EEDD;
+  letter-spacing:-.01em;
+  line-height:1;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.flexee-mobile-menu-brand span{color:#B87942;font-style:italic}
+.flexee-mobile-menu-brand:hover{text-decoration:none}
+.flexee-mobile-nav{display:flex;flex-direction:column;gap:1.2rem;text-align:center}
+.flexee-mobile-nav a{
+  font-family:'Instrument Serif',Georgia,serif;
+  font-weight:400;
+  font-size:clamp(1.85rem,7vw,2.55rem);
+  line-height:1.1;
+  color:#F4EEDD;
+  text-decoration:none;
+  transition:color .18s ease;
+}
+.flexee-mobile-nav a:hover,
+.flexee-mobile-nav a:focus-visible,
+.flexee-mobile-nav a[aria-current="page"]{color:#B87942;text-decoration:none}
+.flexee-mobile-auth-slot{margin-top:1.75rem}
+.flexee-mobile-auth-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:.8rem 1.2rem;
+  border:1px solid #B87942;
+  background:#B87942;
+  color:#142822;
+  font-family:var(--mono);
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  text-decoration:none;
+}
+.flexee-mobile-auth-button:hover{background:#F4EEDD;border-color:#F4EEDD;color:#142822;text-decoration:none}
+body.flexee-menu-open{overflow:hidden}
+.flexee-site-header a:focus-visible,
+.flexee-site-header button:focus-visible,
+.flexee-mobile-menu-overlay a:focus-visible,
+.flexee-mobile-menu-overlay button:focus-visible{outline:2px solid #B87942;outline-offset:3px}
+
+/* Existing RapidSims buttons and page styling. */
+.btn{border:1px solid var(--line2);background:var(--panel);padding:8px 14px;font-family:var(--mono);
+     font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink2);transition:.12s;white-space:nowrap;display:inline-block}
+.btn:hover{border-color:var(--ink);color:var(--ink);text-decoration:none}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#fff}
+.btn.pri:hover{background:#8C5109;border-color:#8C5109}
+.btn.sm{padding:6px 10px;font-size:9.5px}
+
+.wrap{max-width:1060px;margin:0 auto;padding:0 22px 90px}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+
+/* ── the list ───────────────────────────────────────────────────────────── */
+.hero{padding:60px 0 34px;border-bottom:1px solid var(--line);margin-bottom:34px}
+.hero h1{font-size:46px;font-weight:300;letter-spacing:-.03em;line-height:1.08;margin:8px 0 16px}
+.hero h1 em{font-style:italic;color:var(--amber)}
+.hero p{font-size:18px;color:var(--ink2);max-width:58ch;line-height:1.62;margin-bottom:10px}
+.hero p:last-child{margin-bottom:0}
+
+/* Section header between the two product lines */
+.section-head{margin:44px 0 20px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.section-head:first-of-type{margin-top:0}
+.section-head h2{font-size:28px;font-weight:400;letter-spacing:-.02em;line-height:1.15;margin-bottom:6px}
+.section-head h2 em{font-style:italic;color:var(--amber)}
+.section-head p{font-size:15.5px;color:var(--ink2);max-width:56ch;line-height:1.55;margin:0}
+
+.card{background:var(--panel);border:1px solid var(--line);margin-bottom:14px;display:flex;
+      gap:0;cursor:pointer;transition:.12s}
+.card:hover{border-color:var(--line2)}
+.card .body{padding:24px 26px;flex:1;min-width:0}
+.card h2{font-size:24px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px}
+.card .tag{color:var(--amber);font-style:italic;font-size:16.5px;margin-bottom:12px}
+.card p{font-size:15.5px;color:var(--ink2);max-width:64ch;margin-bottom:14px}
+.facts{display:flex;gap:20px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.facts b{color:var(--ink2);font-weight:500}
+
+.teaches{border-top:1px solid var(--line);margin-top:16px;padding-top:14px;font-size:14px;color:var(--ink2)}
+.teaches span{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin-right:10px}
+
+.quote{border-left:2px solid var(--amber);background:var(--amber-bg);padding:16px 20px;margin:20px 0;
+  font-size:16px;color:var(--ink2);line-height:1.6}
+.quote b{color:var(--ink);font-weight:500}
+
+@media (max-width:1320px){
+  .flexee-site-nav,.flexee-auth-slot{display:none}
+  .flexee-mobile-menu-toggle{display:flex}
+}
+@media (max-width:560px){
+  .flexee-site-header{padding:1rem 0}
+  .flexee-brand{font-size:1.5rem}
+  .flexee-header-container{padding:0 1rem}
+}
+@media (max-width:880px){
+  /* .two, .side and .sim-head are handled in sim-detail.css, which both this
+     page and the faculty console load */
+  .hero h1{font-size:34px}
+  .section-head h2{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="flexee-site-header">
+  <div class="flexee-header-container">
+    <a href="/" class="flexee-brand" id="home" aria-label="Flexee RapidSims home">Flexee <span>RapidSims</span></a>
+    <div class="flexee-header-actions">
+      <nav class="flexee-site-nav" aria-label="Primary navigation">
+        <a href="https://flexee.org/#how-different">How the simulations work</a>
+        <a href="https://flexee.org/#simulations">Simulations</a>
+        <a href="/" aria-current="page">RapidSims</a>
+        <a href="https://flexee.org/books.php">Five Zero Books</a>
+        <a href="https://flexee.org/journal.php">Field Notes Journal</a>
+        <a href="https://flexee.org/#executive-education">Executive Education</a>
+        <a href="https://flexee.org/#licensing">Licensing</a>
+        <a href="https://flexee.org/#contact">Contact</a>
+      </nav>
+      <div class="flexee-auth-slot" id="topright">
+        <a class="flexee-auth-button" href="/signin.html">Sign in</a>
+      </div>
+      <button class="flexee-mobile-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="flexee-mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div id="flexee-mobile-menu" class="flexee-mobile-menu-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+  <a href="/" class="flexee-mobile-menu-brand" aria-label="Flexee RapidSims home">Flexee <span>RapidSims</span></a>
+  <button class="flexee-mobile-menu-close" type="button" aria-label="Close menu">&times;</button>
+  <nav class="flexee-mobile-nav" aria-label="Mobile primary navigation">
+    <a href="https://flexee.org/#how-different">How the simulations work</a>
+    <a href="https://flexee.org/#simulations">Simulations</a>
+    <a href="/" aria-current="page">RapidSims</a>
+    <a href="https://flexee.org/books.php">Five Zero Books</a>
+    <a href="https://flexee.org/journal.php">Field Notes Journal</a>
+    <a href="https://flexee.org/#executive-education">Executive Education</a>
+    <a href="https://flexee.org/#licensing">Licensing</a>
+    <a href="https://flexee.org/#contact">Contact</a>
+  </nav>
+  <div class="flexee-mobile-auth-slot" id="mobile-topright">
+    <a class="flexee-mobile-auth-button" href="/signin.html">Sign in</a>
+  </div>
+</div>
+
+<div class="wrap" id="app"></div>
+
+<div class="wrap"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+
+<script>
+(function setupFlexeeMobileMenu(){
+  const button = document.querySelector('.flexee-mobile-menu-toggle');
+  const overlay = document.getElementById('flexee-mobile-menu');
+  const closeButton = document.querySelector('.flexee-mobile-menu-close');
+  if (!button || !overlay || !closeButton) return;
+
+  const openMenu = () => {
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden','false');
+    button.setAttribute('aria-expanded','true');
+    document.body.classList.add('flexee-menu-open');
+    closeButton.focus();
+  };
+  const closeMenu = (returnFocus = true) => {
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden','true');
+    button.setAttribute('aria-expanded','false');
+    document.body.classList.remove('flexee-menu-open');
+    if (returnFocus) button.focus();
+  };
+
+  button.addEventListener('click',openMenu);
+  closeButton.addEventListener('click',() => closeMenu());
+  overlay.addEventListener('click',event => {
+    if (event.target.closest('a')) closeMenu(false);
+  });
+  document.addEventListener('keydown',event => {
+    if (event.key === 'Escape' && overlay.classList.contains('is-open')) closeMenu();
+  });
+})();
+</script>
+
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let SIMS = [], VIEW = null, ERR = null;
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+
+// Anyone already signed in gets a way through rather than being made to sign in
+// again — but the catalogue itself stays open to everybody.
+async function greet() {
+  try {
+    const d = await api('/api/auth', { action:'me' });
+    if (d.user) {
+      const where = d.user.role === 'admin' ? '/admin.html' : d.user.role === 'faculty' ? '/faculty.html' : '/student.html';
+      const firstName = esc((d.user.name || 'Account').split(' ')[0]);
+      const desktop = document.getElementById('topright');
+      const mobile = document.getElementById('mobile-topright');
+      if (desktop) desktop.innerHTML =
+        `<a class="flexee-auth-button" href="${where}">${firstName}'s console</a>`;
+      if (mobile) mobile.innerHTML =
+        `<a class="flexee-mobile-auth-button" href="${where}">${firstName}'s console</a>`;
+    }
+  } catch (e) { /* signed out, or no database — the catalogue does not care */ }
+}
+
+// Classify a sim as 'rapidsim' or 'rapidsim-plus'.
+// Prefers an explicit sim.type field if present. Falls back to duration:
+// 60 minutes or more is treated as a RapidSim+.
+function classify(sim) {
+  if (sim.type === 'rapidsim' || sim.type === 'rapidsim-plus') return sim.type;
+  if (RapidSimsIdentity.identity(sim).plus) return 'rapidsim-plus';
+  return (Number(sim.minutes) || 0) >= 60 ? 'rapidsim-plus' : 'rapidsim';
+}
+
+function catalogueFactsHTML(s) {
+  const d = s.detail || {};
+  const custom = Array.isArray(d.catalogueFacts)
+    ? d.catalogueFacts.filter(x => x && x.value).slice(0, 6)
+    : [];
+  if (!custom.length) {
+    return '';
+  }
+  return custom.map(x => `<span>${x.label ? esc(x.label) + ' ' : ''}<b>${esc(x.value)}</b></span>`).join('');
+}
+
+function cardHTML(s) {
+  return `<div class="card" data-open="${esc(s.id)}" role="link" tabindex="0" aria-label="${esc('View details: ' + s.title)}">
+    <div class="body">
+      <div class="eyebrow">${esc(RapidSimsIdentity.label(s))}${s.detail && s.detail.world ? ' · ' + esc(s.detail.world) : ''}</div>
+      <h2>${esc(s.title)}</h2>
+      ${s.tagline ? `<div class="tag">${esc(s.tagline)}</div>` : ''}
+      ${s.description ? `<p>${esc(s.description)}</p>` : ''}
+      <div class="facts">
+        ${s.minutes ? `<span><b>${s.minutes}</b> minutes</span>` : ''}
+        ${catalogueFactsHTML(s)}
+      </div>
+      ${s.detail && s.detail.teaches ? `<div class="teaches"><span>You will learn</span>${esc(s.detail.teaches)}</div>` : ''}
+      <div class="details-link">View details →</div>
+    </div>
+  </div>`;
+}
+
+function list(){
+  const byNumber = (a, b) => (RapidSimsIdentity.identity(a).number || 0) - (RapidSimsIdentity.identity(b).number || 0);
+  const rapidsims = SIMS.filter(s => classify(s) === 'rapidsim').sort(byNumber);
+  const rapidsimsPlus = SIMS.filter(s => classify(s) === 'rapidsim-plus').sort(byNumber);
+
+  app.innerHTML = `
+    <div class="hero">
+      <div class="eyebrow">Flexee</div>
+      <h1>Rapid<em>Sims</em></h1>
+      <p>Short-form simulations for the classroom.</p>
+      <p>Explore a situation, make choices, and discuss what happened. Each entry explains your role, the task, the time to allow, and what you will learn. <a href="https://flexee.org/#rapidsims" style="color:inherit;text-decoration:underline">More about both formats</a>.</p>
+    </div>
+
+    ${SIMS.length ? `
+      ${rapidsims.length ? `
+        <div class="section-head">
+          <h2>Rapid<em>Sims</em></h2>
+          <p>Short activities with different decisions and play formats. Open an entry for the full details.</p>
+        </div>
+        ${rapidsims.map(cardHTML).join('')}
+      ` : ''}
+
+      ${rapidsimsPlus.length ? `
+        <div class="section-head" id="rapidsimPlus">
+          <h2>Rapid<em>Sims+</em></h2>
+          <p>Longer investigations with time to gather evidence and prepare a report.</p>
+        </div>
+        ${rapidsimsPlus.map(cardHTML).join('')}
+      ` : ''}
+    ` : `<div class="card" style="cursor:default"><div class="body">
+        <p style="margin:0">${ERR ? 'The catalogue is not available at the moment.' : 'Nothing published yet.'}</p></div></div>`}
+
+    <div class="box" style="margin-top:34px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <div>
+        <h4 style="margin-bottom:6px">Questions</h4>
+        <p style="margin:0;font-size:14.5px">Ask Chuck whether one of these would fit your course.</p>
+      </div>
+      <a class="btn" href="mailto:chuck@theguruofbiz.com?subject=RapidSims%20-%20enquiry">chuck@theguruofbiz.com</a>
+    </div>
+
+    <div class="quote" style="margin-top:14px">
+
+  Students work with incomplete information and different points of view. The class discussion asks what they chose, why they chose it, and what new evidence might change their minds.
+
+    </div>`;
+  app.querySelectorAll('[data-open]').forEach(c => {
+    c.onclick = () => { VIEW = c.dataset.open; setLink(VIEW); render(); };
+    c.onkeydown = event => { if (event.key === 'Enter') c.onclick(); };
+  });
+}
+
+function detail(){
+  const sim = SIMS.find(x => x.id === VIEW);
+  if (!sim) { VIEW = null; return list(); }
+  app.innerHTML = `<div class="crumb"><a id="back">← All simulations</a></div>` +
+    simDetailHTML(sim);
+  document.getElementById('back').onclick = () => { VIEW = null; setLink(null); render(); };
+}
+
+// A page somebody can send to a colleague. Without this the address bar says
+// nothing about which simulation is open, so a link to one is a link to the list.
+function setLink(id) {
+  const url = id ? location.pathname + '?sim=' + encodeURIComponent(id) : location.pathname;
+  history.replaceState(null, '', url);
+}
+
+function render(){
+  VIEW ? detail() : list();
+  if (window.scrollTo) window.scrollTo(0, 0);
+}
+document.getElementById('home').onclick = event => { event.preventDefault(); VIEW = null; setLink(null); render(); };
+
+(async () => {
+  greet();
+  try { SIMS = (await api('/api/auth', { action:'catalogue' })).sims || []; }
+  catch (e) { ERR = e.message; }
+  // Opened straight at one? Show it.
+  const asked = new URLSearchParams(location.search).get('sim');
+  if (asked && SIMS.some(x => x.id === asked)) VIEW = asked;
+  render();
+})();
+</script>
+</body>
+</html>

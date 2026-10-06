@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administration — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/sim-identity.js"></script>
+</head>
+<body class="console">
+<div class="top">
+  <div class="brand">Flexee <span>RapidSims</span></div>
+  <div class="sep"></div>
+  <div class="role" id="who"></div>
+  <div class="right">
+    <a class="btn sm" href="/account.html">Account</a>
+    <button class="btn sm" id="out">Sign out</button>
+  </div>
+</div>
+<div class="wrap" id="app"></div>
+
+<div class="wrap"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const D = {
+  tab: 'fac', data: null, grants: null, students: null, allCourses: null,
+  detail: null, err: null,
+  q: {}, filter: {}, page: {},
+  open: null, personEdit: null, invite: false, lastInvite: null,
+  link: null, simEdit: null, reviewersFor: null, maint: false, grantSent: null, help: null, addSim: false, checkOut: null, ourBuild: null, copyFor: null, copyFields: null
+};
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+
+// Short enough not to squeeze the column beside it.
+const when = (t) => {
+  if (!t) return '—';
+  const d = new Date(t);
+  const o = d.getFullYear() === new Date().getFullYear()
+    ? { day:'numeric', month:'short' } : { day:'numeric', month:'short', year:'2-digit' };
+  return d.toLocaleDateString(undefined, o);
+};
+const simLabel = (x) => RapidSimsIdentity.label(x) + ' · ' + x.title;
+const dot = (k, label) => `<span class="st ${k}">${esc(label)}</span>`;
+
+// Explanations live behind a question mark: reachable when you need them,
+// invisible when you don't.
+const helpBtn = (key) => `<button class="qmark ${D.help===key?'on':''}" data-help="${key}" title="What happens next?">?</button>`;
+const explain = (key, title, body) => D.help === key
+  ? `<div class="explain"><h4>${esc(title)}</h4>${body}</div>` : '';
+
+// Every action says what happened, where it was pressed.
+function flash(btn, msg, kind) {
+  if (!btn) return;
+  const was = btn.textContent;
+  btn.textContent = msg;
+  btn.style.color = kind === 'bad' ? 'var(--rose)' : 'var(--green)';
+  btn.style.borderColor = kind === 'bad' ? 'var(--rose)' : 'var(--green)';
+  setTimeout(() => { btn.textContent = was; btn.style.color=''; btn.style.borderColor=''; }, 1700);
+}
+function acting(btn, working) {
+  if (!btn) return () => {};
+  const was = btn.textContent;
+  btn.disabled = true; btn.textContent = working || 'Working…';
+  return (msg, kind) => { btn.disabled = false; btn.textContent = was; if (msg) flash(btn, msg, kind); };
+}
+
+const PER_PAGE = 10;
+function paged(key, rows) {
+  const pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
+  const p = Math.min(Math.max(1, D.page[key] || 1), pages);
+  D.page[key] = p;
+  return { rows: rows.slice((p-1)*PER_PAGE, p*PER_PAGE), page:p, pages, total: rows.length };
+}
+function foot(key, r, noun) {
+  return `<div class="foot">
+    <span class="info">${r.total} ${noun}${r.total === 1 ? '' : 's'}</span>
+    ${r.pages > 1 ? `<span style="display:flex;gap:6px;align-items:center">
+      <button class="btn sm" data-page="${key}:${r.page-1}" ${r.page<=1?'disabled':''}>Previous</button>
+      <span class="info">Page ${r.page} of ${r.pages}</span>
+      <button class="btn sm" data-page="${key}:${r.page+1}" ${r.page>=r.pages?'disabled':''}>Next</button>
+    </span>` : `<span class="info">Page 1 of 1</span>`}
+  </div>`;
+}
+function toolbar(key, placeholder, segs, action) {
+  return `<div class="toolbar">
+    <div class="search"><input data-q="${key}" type="text" placeholder="${placeholder}" value="${esc(D.q[key]||'')}"></div>
+    ${segs ? `<div class="seg">${segs.map(x =>
+      `<button data-f="${key}:${x}" class="${(D.filter[key]||segs[0])===x?'on':''}">${x}</button>`).join('')}</div>` : ''}
+    ${action || ''}
+  </div>`;
+}
+const matches = (key, fields) => {
+  const q = (D.q[key]||'').toLowerCase().trim();
+  return !q || fields.filter(Boolean).join(' ').toLowerCase().includes(q);
+};
+
+document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
+
+async function load() {
+  try {
+    D.data = await api('/api/admin', { action:'overview' });
+    D.grants = (await api('/api/admin', { action:'sim_access_list' })).grants || [];
+    D.err = null;
+  } catch (e) { D.err = e.message; }
+  render();
+}
+
+function render() {
+  if (!D.data) return renderBlocked();
+  if (D.detail) return renderDetail();
+  const t = D.data.totals || {};
+  const tabs = [['fac','Facilitators',D.data.faculty.length],
+                ['stu','Students',t.students||0],
+                ['crs','Courses',t.courses||0],
+                ['cat','Catalogue',(D.data.sims||[]).length]];
+  app.innerHTML = `
+    <div class="strip">
+      <div class="cell"><div class="n">${D.data.faculty.length}</div><div class="l">Facilitators</div></div>
+      <div class="cell"><div class="n">${t.students||0}</div><div class="l">Students</div></div>
+      <div class="cell"><div class="n">${t.courses||0}</div><div class="l">Courses</div></div>
+      <div class="cell"><div class="n">${t.paid_seats||0}</div><div class="l">Released</div></div>
+      <div class="cell"><div class="n">${t.launches||0}</div><div class="l">Launches</div></div>
+      <div class="cell quiet"><div class="n">${(D.data.sims||[]).length}</div><div class="l">Simulations</div></div>
+    </div>
+    <div class="tabs">
+      ${tabs.map(([k,l,n]) => `<button class="tab ${D.tab===k?'on':''}" data-tab="${k}">${l} <span class="count">${n}</span></button>`).join('')}
+    </div>
+    <div id="body"></div>`;
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { D.tab = b.dataset.tab; D.open = null; render(); });
+  wireHelp();
+  const body = document.getElementById('body');
+  body.innerHTML = ({ fac:facTab, stu:stuTab, crs:crsTab, cat:catTab })[D.tab]();
+  ({ fac:wireFac, stu:wireStu, crs:wireCrs, cat:wireCat })[D.tab]();
+  wireCommon();
+}
+
+// The database can be behind a release that queries something new, and the fix
+// used to live on the page that would not load.
+function renderBlocked() {
+  const behind = D.err && /does not exist|column|relation/i.test(D.err);
+  app.innerHTML = D.err ? `
+    <div class="crumb" style="margin-top:34px">Administration</div>
+    <div class="head"><div><h1>${behind ? 'The database is behind the code' : 'Something went wrong'}</h1>
+      <p class="hint" style="margin-top:8px">${esc(D.err)}</p></div></div>
+    <div class="panel"><div style="padding:18px">
+      ${behind ? `<p class="hint" style="margin:0 0 12px">This release expects something the database has not got yet. Updating creates only what is missing and drops nothing.</p>
+        <button class="btn pri" id="fixdb">Update the database</button>`
+        : `<button class="btn" id="retry">Try again</button>`}
+      <div id="fixout"></div>
+    </div></div>` : `<div class="empty" style="margin-top:40px">Loading…</div>`;
+  const fd = document.getElementById('fixdb');
+  if (fd) fd.onclick = async () => {
+    const done = acting(fd, 'Updating…');
+    try { const d = await api('/api/admin', { action:'migrate' });
+      document.getElementById('fixout').innerHTML = `<div class="hint" style="color:var(--green)">Up to date — ${d.statements} statements checked.</div>`;
+      D.err = null; load(); }
+    catch (e) { document.getElementById('fixout').innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+  };
+  const rt = document.getElementById('retry');
+  if (rt) rt.onclick = () => { D.err = null; load(); };
+}
+
+/* ── facilitators ───────────────────────────────────────────────────────── */
+function facTab() {
+  const f0 = D.filter.fac || 'All';
+  const statusOf = f => f.disabled ? 'disabled' : f.accepted ? 'active' : 'invited';
+  const list = D.data.faculty
+    .filter(f => f0 === 'All' || statusOf(f) === f0.toLowerCase())
+    .filter(f => matches('fac', [f.name, f.email, f.institution, f.course_titles, f.sim_titles]));
+  const P = paged('fac', list);
+  return `
+    ${toolbar('fac','Search facilitators',['All','Active','Invited','Disabled'],
+      `<button class="btn ${D.invite?'':'pri'}" id="inv">${D.invite?'Cancel':'Invite a facilitator'}</button>`)}
+
+    ${D.invite ? explain('inv', 'How an invitation works', `<ol>
+      <li>Fill in a name and email. Nothing is sent — there is no email service.</li>
+      <li>You get a one-time link, valid for fourteen days. Copy it into your own message.</li>
+      <li>They open it, choose a password, and land in their own console.</li>
+      <li>Until then they show as <b>invited</b>. Sent it to the wrong address? Open them and cancel the invitation, then correct the email and issue a fresh one.</li>
+    </ol>`) : ''}
+
+    ${D.invite ? `<div class="cbox"><div style="padding:15px 16px">
+      <div class="mini" style="margin-bottom:10px">New facilitator ${helpBtn('inv')}</div>
+      <div class="field">
+        <div><label class="f">Name</label><input id="in" type="text" placeholder="Chuck Rivera"></div>
+        <div><label class="f">Email</label><input id="ie" type="email" placeholder="crivera@university.edu"></div>
+        <div><label class="f">Institution</label><input id="ii" type="text" placeholder="optional"></div>
+        <div style="flex:0 0 auto;min-width:0;align-self:flex-end"><button class="btn pri" id="invgo">Create invitation</button></div>
+      </div>
+      <div id="invout"></div>
+      ${D.lastInvite ? `<div class="note" style="margin-top:12px">
+        <b>Send this to ${esc(D.lastInvite.name)}${D.lastInvite.email ? ' at ' + esc(D.lastInvite.email) : ''}.</b>
+        There is no email service, so copy it into your own message. It works once and expires ${when(D.lastInvite.expiresAt)}.
+        <div class="copyrow"><input id="iurl" readonly value="${esc(D.lastInvite.inviteUrl)}">
+          <button class="btn" id="icopy">Copy</button><button class="btn" id="idone">Done</button></div>
+      </div>` : ''}
+    </div></div>` : ''}
+
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr>
+        <th style="width:25%">Name</th><th>Courses and simulations</th><th style="width:1%">Status</th>
+        <th class="num">Released</th><th class="num">Launches</th><th class="num">Last seen</th><th class="act"></th>
+      </tr></thead>
+      <tbody>
+      ${P.rows.length ? P.rows.map(f => {
+        const st = statusOf(f);
+        return `
+        <tr>
+          <td data-l="Name"><div class="nm">${esc(f.name)}</div><div class="sub">${esc(f.email)}</div>
+            ${f.institution ? `<div class="sub">${esc(f.institution)}</div>` : ''}</td>
+          <td data-l="Courses" class="meta">${f.course_titles ? esc(f.course_titles) : '<span class="dim">No courses yet</span>'}
+            ${f.sim_titles ? `<div class="dim">${esc(f.sim_titles)}</div>` : ''}</td>
+          <td data-l="Status">${dot(st === 'active' ? 'ok' : st === 'invited' ? 'warn' : 'off', st)}</td>
+          <td data-l="Released" class="num"><span class="ratio ${Number(f.paid_students) < Number(f.students) ? 'part' : ''}">${f.paid_students} <span class="of">of ${f.students}</span></span></td>
+          <td data-l="Launches" class="num">${f.launches || 0}</td>
+          <td data-l="Last seen" class="num">${when(f.last_seen_at)}</td>
+          <td data-l="" class="act">
+            <button class="btn sm" data-open="${esc(f.id)}">Open</button>
+            <button class="btn sm" data-pedit="${esc(f.id)}">${D.personEdit===f.id?'Close':'Edit'}</button>
+            <button class="btn sm" data-prow="${esc(f.id)}" data-acc="${f.accepted?'1':'0'}">${f.accepted?'Reset':'Re-invite'}</button>
+          </td>
+        </tr>
+        ${D.personEdit === f.id ? `<tr class="expand"><td colspan="7">
+          <div class="field">
+            <div><label class="f">Name</label><input data-pf="name" value="${esc(f.name)}"></div>
+            <div><label class="f">Email</label><input data-pf="email" value="${esc(f.email)}"></div>
+            <div><label class="f">Institution</label><input data-pf="institution" value="${esc(f.institution||'')}" placeholder="optional"></div>
+          </div>
+          <div class="hint">Correcting an email keeps their courses and students. If they never accepted the invitation, issue a fresh one afterwards — the old link points at the old address.</div>
+          <button class="btn pri sm" data-psave="${esc(f.id)}">Save changes</button>
+          <button class="btn sm" data-pedit="${esc(f.id)}">Cancel</button>
+          ${Number(f.courses) === 0 ? `<button class="btn sm danger" style="margin-left:6px" data-pdel="${esc(f.id)}">Delete account</button>` : ''}
+          <div data-pout="${esc(f.id)}"></div>
+        </td></tr>` : ''}
+        ${D.link && D.link.for === f.id ? `<tr class="expand"><td colspan="7">
+          <b>Send this to ${esc(f.name)}.</b> ${esc(D.link.note)}
+          <div class="copyrow"><input id="rowurl" readonly value="${esc(D.link.url)}">
+            <button class="btn" id="rowcopy">Copy</button><button class="btn" id="rowhide">Done</button></div>
+        </td></tr>` : ''}`;
+      }).join('') : `<tr><td colspan="7" class="empty">${D.data.faculty.length ? 'Nobody matches that.' : 'Nobody yet. Invite someone above.'}</td></tr>`}
+      </tbody></table></div>
+      ${foot('fac', P, 'facilitator')}
+    </div>`;
+}
+function wireFac() {
+  const inv = document.getElementById('inv');
+  if (inv) inv.onclick = () => { D.invite = !D.invite; if (!D.invite) D.lastInvite = null; render();
+    const n = document.getElementById('in'); if (n) n.focus(); };
+  const go = document.getElementById('invgo');
+  if (go) go.onclick = async () => {
+    const name = document.getElementById('in').value, email = document.getElementById('ie').value;
+    const out = document.getElementById('invout');
+    const done = acting(go, 'Creating…'); out.innerHTML = '';
+    try {
+      const d = await api('/api/admin', { action:'invite_faculty', name, email,
+        institution: document.getElementById('ii').value });
+      D.lastInvite = { name, email, inviteUrl: d.inviteUrl, expiresAt: d.expiresAt };
+      done(); await load();
+    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+  };
+  const ic = document.getElementById('icopy');
+  if (ic) ic.onclick = () => { const f = document.getElementById('iurl'); f.select();
+    navigator.clipboard.writeText(f.value); flash(ic, 'Copied'); };
+  const idn = document.getElementById('idone');
+  if (idn) idn.onclick = () => { D.lastInvite = null; render(); };
+
+  app.querySelectorAll('[data-open]').forEach(b => b.onclick = async () => {
+    const done = acting(b, 'Opening…');
+    try { D.detail = await api('/api/admin', { action:'faculty_detail', facultyId: b.dataset.open }); done(); render(); }
+    catch (e) { done('Failed','bad'); }
+  });
+  app.querySelectorAll('[data-prow]').forEach(btn => btn.onclick = async () => {
+    const fid = btn.dataset.prow, person = D.data.faculty.find(x => x.id === fid);
+    const done = acting(btn, 'Creating…');
+    try {
+      if (btn.dataset.acc === '1') {
+        const d = await api('/api/admin', { action:'issue_reset', userId: fid });
+        D.link = { for:fid, url:d.resetUrl, note:'A password reset. It works once and expires in three days.' };
+      } else {
+        const d = await api('/api/admin', { action:'invite_faculty', name: person.name, email: person.email, institution: person.institution });
+        D.link = { for:fid, url:d.inviteUrl, note:'A fresh invitation. It works once and replaces any earlier link.' };
+      }
+      D.personEdit = null; done(); render();
+    } catch (e) { done('Failed','bad'); }
+  });
+  const rc = document.getElementById('rowcopy');
+  if (rc) rc.onclick = () => { const f = document.getElementById('rowurl'); f.select();
+    navigator.clipboard.writeText(f.value); flash(rc, 'Copied'); };
+  const rh = document.getElementById('rowhide');
+  if (rh) rh.onclick = () => { D.link = null; render(); };
+  wirePerson();
+}
+
+/* ── students ───────────────────────────────────────────────────────────── */
+function stuTab() {
+  if (!D.students) { loadStudents(); return '<div class="panel"><div class="empty">Loading…</div></div>'; }
+  const f0 = D.filter.stu || 'All';
+  const accessOf = st => Number(st.with_access) > 0 ? 'released' : 'waiting';
+  const list = D.students
+    .filter(st => f0 === 'All' || accessOf(st) === f0.toLowerCase())
+    .filter(st => matches('stu', [st.name, st.email, st.course_titles, st.faculty_names, st.sim_titles]));
+  const P = paged('stu', list);
+  return `
+    ${toolbar('stu','Search students, courses or facilitators',['All','Released','Waiting'])}
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr>
+        <th style="width:23%">Student</th><th>Course</th><th>Simulations</th><th style="width:1%">Access</th>
+        <th class="num">Played</th><th class="num">Finished</th><th class="act"></th>
+      </tr></thead>
+      <tbody>
+      ${P.rows.length ? P.rows.map(st => `
+        <tr>
+          <td data-l="Student"><div class="nm">${esc(st.name)}</div><div class="sub">${esc(st.email)}</div>
+            <div class="sub">joined ${when(st.created_at)}</div></td>
+          <td data-l="Course" class="meta">${esc(st.course_titles || '—')}
+            ${st.faculty_names ? `<div class="dim">${esc(st.faculty_names)}</div>` : ''}</td>
+          <td data-l="Simulations" class="meta">${st.sim_titles ? esc(st.sim_titles) : '<span class="dim">none yet</span>'}</td>
+          <td data-l="Access">${dot(Number(st.with_access) === Number(st.courses) && Number(st.courses) > 0 ? 'ok' : 'warn',
+            `${st.with_access} of ${st.courses}`)}</td>
+          <td data-l="Played" class="num">${st.launches}</td>
+          <td data-l="Finished" class="num">${st.finished}</td>
+          <td data-l="" class="act">
+            <button class="btn sm" data-pedit="${esc(st.id)}">${D.personEdit===st.id?'Close':'Edit'}</button>
+            <button class="btn sm danger" data-sdel="${esc(st.id)}">Delete</button>
+          </td>
+        </tr>
+        ${D.personEdit === st.id ? `<tr class="expand"><td colspan="7">
+          <div class="field">
+            <div><label class="f">Name</label><input data-pf="name" value="${esc(st.name)}"></div>
+            <div><label class="f">Email</label><input data-pf="email" value="${esc(st.email)}"></div>
+          </div>
+          <div class="hint">Their email is how they sign in. Changing it does not tell them.</div>
+          <button class="btn pri sm" data-psave="${esc(st.id)}">Save changes</button>
+          <button class="btn sm" data-pedit="${esc(st.id)}">Cancel</button>
+          <div data-pout="${esc(st.id)}"></div>
+        </td></tr>` : ''}`).join('')
+        : `<tr><td colspan="7" class="empty">${D.studentsFailed
+            ? `<b style="color:var(--rose)">Could not load students.</b><div class="hint" style="margin:6px 0 10px">${esc(D.studentsFailed)}</div><button class="btn sm" id="sturetry">Try again</button>`
+            : D.students.length ? 'Nobody matches that.' : 'No students yet. They appear when a facilitator shares a course link.'}</td></tr>`}
+      </tbody></table></div>
+      ${foot('stu', P, 'student')}
+    </div>`;
+}
+async function loadStudents() {
+  // Distinguish "nobody yet" from "could not ask". Rendering the first when it
+  // was the second is how somebody concludes their students have disappeared.
+  try { D.students = (await api('/api/admin', { action:'all_students' })).students; D.studentsFailed = null; }
+  catch (e) { D.students = []; D.studentsFailed = e.message; }
+  render();
+}
+function wireStu() {
+  const sr = document.getElementById('sturetry');
+  if (sr) sr.onclick = () => { D.students = null; D.studentsFailed = null; render(); };
+  app.querySelectorAll('[data-sdel]').forEach(btn => btn.onclick = async () => {
+    if (!confirm('Delete this student? Their enrolments go with them.')) return;
+    const done = acting(btn, 'Deleting…');
+    try { await api('/api/admin', { action:'delete_student', userId: btn.dataset.sdel });
+      done(); D.students = null; await load(); }
+    catch (e) {
+      if (confirm(e.message + '\n\nDelete anyway?')) {
+        await api('/api/admin', { action:'delete_student', userId: btn.dataset.sdel, force:true });
+        done(); D.students = null; await load();
+      } else done('Kept','bad');
+    }
+  });
+  wirePerson();
+}
+
+/* ── courses ────────────────────────────────────────────────────────────── */
+function crsTab() {
+  if (!D.allCourses) { loadCourses(); return '<div class="panel"><div class="empty">Loading…</div></div>'; }
+  const f0 = D.filter.crs || 'Active';
+  const list = D.allCourses
+    .filter(c => f0 === 'Active' ? !c.archived : c.archived)
+    .filter(c => matches('crs', [c.title, c.term, c.join_code, c.faculty_name, c.sim_titles]));
+  const P = paged('crs', list);
+  return `
+    ${toolbar('crs','Search courses, terms or join codes',['Active','Archived'])}
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr>
+        <th style="width:25%">Course</th><th>Facilitator</th><th>Simulations</th>
+        <th class="num">Enrolled</th><th class="num">Released</th><th class="num">Launches</th>
+      </tr></thead>
+      <tbody>
+      ${P.rows.length ? P.rows.map(c => `<tr>
+        <td data-l="Course"><div class="nm">${esc(c.title)}</div>
+          <div class="sub">${esc(c.term || 'no term')} · ${esc(c.join_code)}</div></td>
+        <td data-l="Facilitator" class="meta">${esc(c.faculty_name)}
+          ${c.institution ? `<div class="dim">${esc(c.institution)}</div>` : ''}</td>
+        <td data-l="Simulations" class="meta">${esc(c.sim_titles || '—')}</td>
+        <td data-l="Enrolled" class="num">${c.enrolled}</td>
+        <td data-l="Released" class="num"><span class="ratio ${Number(c.paid) < Number(c.enrolled) ? 'part' : ''}">${c.paid}</span></td>
+        <td data-l="Launches" class="num">${c.launches}</td>
+      </tr>`).join('') : `<tr><td colspan="6" class="empty">${D.coursesFailed
+          ? `<b style="color:var(--rose)">Could not load courses.</b>
+             <div class="hint" style="margin:6px 0 10px">${esc(D.coursesFailed)}</div>
+             <button class="btn sm" id="crsretry">Try again</button>`
+          : 'Nothing matches that.'}</td></tr>`}
+      </tbody></table></div>
+      ${foot('crs', P, 'course')}
+    </div>`;
+}
+async function loadCourses() {
+  try { D.allCourses = (await api('/api/admin', { action:'all_courses' })).courses; D.coursesFailed = null; }
+  catch (e) { D.allCourses = []; D.coursesFailed = e.message; }
+  render();
+}
+function wireCrs() {
+  const cr = document.getElementById('crsretry');
+  if (cr) cr.onclick = () => { D.allCourses = null; D.coursesFailed = null; render(); };
+}
+
+/* ── catalogue ──────────────────────────────────────────────────────────── */
+function catTab() {
+  const all = D.data.sims || [];
+  const f0 = D.filter.cat || 'All';
+  const matching = all
+    .filter(si => f0 === 'All' || (f0 === 'Published') === !!si.published)
+    .filter(si => matches('cat', [si.title, si.id, si.tagline, si.description, String(si.number||'')]));
+  const rapid = matching.filter(si => (Number(si.minutes) || 0) < 60);
+  const rapidPlus = matching.filter(si => (Number(si.minutes) || 0) >= 60);
+  const list = rapid.concat(rapidPlus);
+  const P = paged('cat', list);
+  return `
+    ${toolbar('cat','Search simulations',['All','Published','Draft'],
+      `<button class="btn" id="chk">Check all</button>
+       <button class="btn ${D.addSim?'':'pri'}" id="addsim">${D.addSim?'Cancel':'Add a simulation'}</button>`)}
+
+    ${D.addSim ? `<div class="cbox"><div style="padding:15px 16px">
+      <div class="mini" style="margin-bottom:10px">A new simulation ${helpBtn('add')}</div>
+      ${explain('add', 'Bringing a new simulation in', `<ol>
+        <li>Push it to the repository as its own folder, and give it a Vercel project with that folder as the Root Directory.</li>
+        <li>Set its environment variables — the API key, an access code, the shared launch secret, this platform's address, and a session store.</li>
+        <li>Paste its address below. It will tell us its id and whether it is configured properly.</li>
+        <li>It arrives as a draft. Nobody sees it until you publish it or give somebody review access.</li>
+      </ol>`)}
+      <div class="field" style="margin-bottom:0">
+        <div><label class="f">Where is it deployed?</label><input id="s_url" type="text" placeholder="https://…vercel.app"></div>
+        <div style="flex:0 0 auto;align-self:flex-end"><button class="btn pri" id="s_probe">Look it up</button></div>
+      </div>
+      <div id="s_probeout"></div>
+    </div></div>` : ''}
+
+    ${D.checkOut ? `<div class="cbox"><div style="padding:14px 16px">
+      <div class="mini" style="margin-bottom:9px">Checked just now${D.ourBuild ? ' · this platform is on ' + esc(D.ourBuild) : ''}</div>
+      ${D.checkOut.map(r => `<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;align-items:baseline">
+        <div><b>${esc(r.title)}</b>
+          ${r.build ? `<span class="sub" style="display:inline;margin-left:6px">${esc(r.build)}</span>` : ''}
+          ${r.detail ? `<div class="hint" style="margin:2px 0 0">${esc(r.detail)}</div>` : ''}</div>
+        ${dot(r.state === 'ready' ? 'ok' : r.state === 'unreachable' ? 'bad' : 'warn', r.state)}
+      </div>`).join('')}
+      <div style="margin-top:10px"><button class="btn sm" id="chkdone">Done</button></div>
+    </div></div>` : ''}
+    <div class="panel">
+    ${P.rows.length ? P.rows.map((si, index) => {
+      const revs = (D.grants || []).filter(g => g.sim_id === si.id);
+      const plus = (Number(si.minutes) || 0) >= 60;
+      const prev = index > 0 ? P.rows[index - 1] : null;
+      const prevPlus = prev ? (Number(prev.minutes) || 0) >= 60 : null;
+      const beginsLine = index === 0 || prevPlus !== plus;
+      const lineHead = beginsLine ? `<div class="section" style="padding:14px 18px;margin:0;border-top:${index ? '1px solid var(--line)' : '0'}">
+        <span>${plus ? 'RapidSims+' : 'RapidSims'} <span class="count">${plus ? rapidPlus.length : rapid.length}</span></span>
+        <span class="sub">${plus ? 'Longer investigations' : 'Twenty-minute decisions'}</span>
+      </div>` : '';
+      return lineHead + `<div class="sim">
+        <div class="no">${RapidSimsIdentity.number(si)}</div>
+        <div class="body">
+          <div class="t">${esc(si.title)}</div>
+          <div class="tag">${esc(si.tagline || '')}</div>
+          <div class="id">${plus ? 'RapidSim+' : 'RapidSim'} · ${esc(si.id)} · ${si.minutes || '?'} min · ${esc(si.launch_url || '')}</div>
+
+          ${D.simEdit === si.id ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+            <div class="field">
+              <div style="flex:0 0 90px;min-width:90px"><label class="f">Catalogue order</label><input type="number" min="1" data-sf="number" value="${si.number||''}"></div>
+              <div><label class="f">Title</label><input data-sf="title" value="${esc(si.title||'')}"></div>
+              <div style="flex:0 0 100px;min-width:100px"><label class="f">Minutes</label><input type="number" data-sf="minutes" value="${si.minutes||''}"></div>
+            </div>
+            <div class="field"><div><label class="f">Tagline</label><input data-sf="tagline" value="${esc(si.tagline||'')}"></div></div>
+            <div class="field"><div><label class="f">Description</label><textarea rows="3" data-sf="description">${esc(si.description||'')}</textarea></div></div>
+            <div class="field"><div><label class="f">Address</label><input data-sf="launchUrl" value="${esc(si.launch_url||'')}"></div></div>
+            <div class="hint">The id comes from the deployment and cannot change. The address is what students are sent to — the simulation reports its own, but if that is a deployment-specific URL rather than the project's stable one, correct it here and set <span class="mono">SIM_URL</span> on that project so it stops re-registering the wrong address. Everything else you write is yours; the simulation will not overwrite it.</div>
+            <button class="btn pri sm" data-simsave="${esc(si.id)}">Save changes</button>
+            <button class="btn sm" data-simedit="${esc(si.id)}">Cancel</button>
+            <div data-simout="${esc(si.id)}"></div>
+          </div>` : ''}
+
+          ${D.copyFor === si.id ? (() => {
+            // the situation is a column of its own; the rest is in detail
+            const d = Object.assign({ tagline: si.tagline || '', description: si.description || '' }, si.detail || {});
+            const mine = d._edited || [];
+            const fields = D.copyFields || [];
+            return `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+              <div class="mini">What the public catalogue says ${helpBtn('copy')}</div>
+              ${explain('copy', 'Whose words these are', `<ol>
+                <li>Every box below already holds the sentence the page is showing right now — from the simulation itself, or a wording that is true of all of them.</li>
+                <li>Anything you rewrite is marked <b>yours</b> and survives every later redeploy of that simulation.</li>
+                <li>Clearing a box hands it back, and the page returns to what the simulation says.</li>
+                <li>This page is public and read by people deciding whether to teach with it. Do not put the ending in it.</li>
+              </ol>`)}
+              ${fields.length ? fields.map(f => `<div class="field" style="margin-bottom:12px"><div>
+                <label class="f">${esc(f.label)}${mine.includes(f.key) ? ' · yours' : ''}</label>
+                ${f.rows ? `<textarea rows="${f.rows}" data-cf="${esc(f.key)}" placeholder="${esc(f.eg||'')}">${esc(d[f.key] || '')}</textarea>`
+                         : `<input data-cf="${esc(f.key)}" value="${esc(d[f.key] || '')}" placeholder="${esc(f.eg||'')}">`}
+                ${f.hint ? `<div class="hint" style="margin:4px 0 0">${esc(f.hint)}</div>` : ''}
+              </div></div>`).join('') : '<div class="hint">Loading…</div>'}
+              <div class="hint">The four characters and the three moments come from the simulation and are not edited here — they describe what it does.</div>
+              <button class="btn pri sm" data-copysave="${esc(si.id)}">Save catalogue page</button>
+              <button class="btn sm" data-copy="${esc(si.id)}">Cancel</button>
+              <a class="btn sm" href="/" target="_blank" style="margin-left:6px">View the page</a>
+              <button class="btn sm" data-copyreset="${esc(si.id)}" style="margin-left:6px">Use the simulation's own words</button>
+              <div data-copyout="${esc(si.id)}"></div>
+            </div>`;
+          })() : ''}
+
+          ${D.reviewersFor === si.id ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
+            <div class="mini">Who can see it before it is published ${helpBtn('grant:'+si.id)}</div>
+            ${explain('grant:'+si.id, 'How a reviewer gets in', `<ol>
+              <li>Give them access below. If they have no account, one is made for them.</li>
+              <li>You get a written message — <b>nothing is sent automatically</b>. Copy it and send it however you normally would.</li>
+              <li>They open it, set a password if they are new, and sign in at <span class="mono">${esc((D.data && D.data.baseUrl) || location.origin)}</span>.</li>
+              <li>The simulation appears under <b>Simulations</b>. They press <b>Preview for 7 days</b>, then <b>Play it</b>.</li>
+              <li>They land straight in it — no access code, nothing else to type.</li>
+              <li>You can revoke at any time, and grants disappear on their own when you publish.</li>
+            </ol>`)}
+            ${revs.length ? revs.map(g => `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0">
+              <div><b>${esc(g.name)}</b> <span class="sub" style="display:inline">${esc(g.email)}</span>
+                ${g.note ? `<div class="hint" style="margin:2px 0 0">${esc(g.note)}</div>` : ''}</div>
+              <button class="btn sm" data-revgrant="${esc(g.id)}">Revoke</button>
+            </div>`).join('') : '<div class="hint" style="margin:0">Nobody yet — it is invisible to everyone but administrators.</div>'}
+            <div class="field" style="margin-top:12px">
+              <div><label class="f">Their email</label><input type="email" data-grantmail="${esc(si.id)}" placeholder="reviewer@university.edu"></div>
+              <div style="flex:0 0 150px;min-width:150px"><label class="f">Their name</label><input data-grantname="${esc(si.id)}" placeholder="if new"></div>
+              <div><label class="f">Why</label><input data-grantnote="${esc(si.id)}" placeholder="reviewing before we ship"></div>
+              <div style="flex:0 0 auto;align-self:flex-end"><button class="btn sm" data-grant="${esc(si.id)}">Give access</button></div>
+            </div>
+            <div class="hint" style="margin:6px 0 0">If they have no account yet, one is made for them and you get an invitation to send.</div>
+            <div data-grantout="${esc(si.id)}"></div>
+
+            ${D.grantSent && D.grantSent.sim === si.id ? `<div class="note" style="margin-top:12px">
+              <b>${esc(D.grantSent.who)} can now see it.</b> Nothing is sent automatically — copy this and send it however you normally would.
+              <div class="copyrow"><textarea id="gmsg" readonly rows="6" style="flex:1;min-width:260px;font-size:13px;line-height:1.5;
+                background:var(--card);border:1px solid var(--line2);padding:9px 11px;font-family:var(--serif)">${esc(D.grantSent.message)}</textarea></div>
+              <div style="margin-top:8px"><button class="btn" id="gcopy">Copy the message</button>
+                <button class="btn" id="gdone">Done</button></div>
+            </div>` : ''}
+          </div>` : ''}
+        </div>
+        <div class="side">
+          ${si.published ? dot('ok','Published') : dot('warn', revs.length ? `Draft · ${revs.length} reviewing` : 'Draft')}
+          <div>
+            <button class="btn sm" data-simedit="${esc(si.id)}">${D.simEdit===si.id?'Close':'Edit'}</button>
+            <button class="btn sm" data-copy="${esc(si.id)}">${D.copyFor===si.id?'Close':'Catalogue page'}</button>
+            ${!si.published ? `<button class="btn sm" data-rev="${esc(si.id)}">${D.reviewersFor===si.id?'Hide':'Reviewers'}</button>` : ''}
+            <button class="btn sm" data-pub="${esc(si.id)}" data-now="${si.published?'1':'0'}">${si.published?'Unpublish':'Publish'}</button>
+            <button class="btn sm danger" data-simdel="${esc(si.id)}">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('') : `<div class="empty">${all.length ? 'Nothing matches that.' : 'Nothing yet. A simulation appears here the first time its deployment is used.'}</div>`}
+      ${foot('cat', P, 'simulation')}
+    </div>
+
+    <div class="section" style="margin:22px 0 0">
+      <span>About this list ${helpBtn('cat')}</span>
+      <button class="btn sm" data-help="build">${D.help==='build'?'Hide':'Adding a new simulation'}</button>
+    </div>
+
+    ${D.help === 'build' ? `<div class="explain" style="padding:18px 20px">
+      <h4>From an idea to something a class can play</h4>
+
+      <p style="margin:0 0 10px"><b>1 · Write the scenario.</b> Twenty minutes, one tangle, three moments where a
+      position is recorded. The format brief is in <span class="mono">docs/</span> in the repository. The rule that
+      matters: two competent people must carry opposite exposure, so the student is weighing expert judgment from
+      parties who would each rather it were the other explanation. Without that it is a quiz.</p>
+
+      <p style="margin:0 0 10px"><b>2 · Build it.</b> Copy an existing simulation's folder in the repository as
+      <span class="mono">sim-03</span> and replace <span class="mono">lib/scenario.js</span> — ground truth, the
+      cast, their knowledge split by moment, the scene beats and the debrief. The engine around it does not change.
+      Nothing in that file may reach the browser; <span class="mono">node build.js</span> refuses to write a bundle
+      that contains any of it.</p>
+
+      <p style="margin:0 0 10px"><b>3 · Give it a place to run.</b> Push the folder, then create a Vercel project
+      from the same repository with Root Directory <span class="mono">sim-03</span>. Set these:</p>
+      <ul style="margin:0 0 10px 18px;padding:0">
+        <li><span class="mono">ANTHROPIC_API_KEY</span> — generates the characters. Nobody answers without it.</li>
+        <li><span class="mono">LAUNCH_SECRET</span> — must match this platform's exactly, or every student we send is refused.</li>
+        <li><span class="mono">PLATFORM_URL</span> — this platform's address, so completions come back.</li>
+        <li><span class="mono">SIM_URL</span> — the project's own stable address, so it does not register a
+          deployment-specific one that freezes students on an old build.</li>
+        <li><span class="mono">ACCESS_CODE</span> — optional, for playing it outside a course.</li>
+        <li><span class="mono">FACULTY_CODES</span> — optional, for the live console outside a course.</li>
+        <li>A Redis store from the Storage tab — only needed for live classroom sessions.</li>
+      </ul>
+
+      <p style="margin:0 0 10px"><b>4 · Bring it in.</b> Press <b>Add a simulation</b> above and paste its address.
+      It reports its own id and whether it is configured properly. It arrives as a draft — invisible to every
+      facilitator.</p>
+
+      <p style="margin:0 0 10px"><b>5 · Have it reviewed.</b> Give one or two people access under
+      <b>Reviewers</b>. They get a link, set a password, and play it exactly as a student would. Only they can see
+      it. Watch for the things that are always wrong first: a character conceding too much to a loose question, an
+      earned detail given away in the example questions, and any wording carried over from the simulation it was
+      copied from.</p>
+
+      <p style="margin:0"><b>6 · Publish it.</b> Every facilitator can then add it to a course, and the review
+      grants clear themselves. Unpublishing later hides it from anyone new without breaking a course already using
+      it.</p>
+    </div>` : ''}
+    ${explain('cat', 'Where these come from, and what publishing does', `<ol>
+      <li>A simulation registers itself the first time its deployment is used. There is nothing to add by hand.</li>
+      <li>It arrives as a <b>draft</b> — invisible to every facilitator until you act.</li>
+      <li><b>Give review access</b> to one or two people while it is being checked. Only they see it.</li>
+      <li><b>Publish</b> when it is ready. Every facilitator can then add it to a course, and the review grants are cleared.</li>
+      <li><b>Unpublish</b> hides it again. Courses already using it keep working; nobody can add it anywhere new.</li>
+      <li>Deleting is not permanent — it reappears, unpublished, the next time that deployment is used.</li>
+    </ol>`)}
+    <div class="note" style="${D.help==='cat'?'display:none':''}">Simulations appear here on their own. Each deployment tells the platform it exists the first time it is used, and arrives unpublished — invisible to everyone but you until you publish it or grant someone review access.</div>
+
+    <div class="section"><span>Maintenance</span><button class="btn sm" id="mt">${D.maint?'Hide':'Show'}</button></div>
+    ${D.maint ? `<div class="panel">
+      <div class="chead">
+        <div><b>Update the database</b>
+          <div class="hint" style="margin:2px 0 0">Run after a release that adds tables or columns. Creates only what is missing and never drops anything.</div></div>
+        <button class="btn" id="mig">Update</button>
+      </div>
+      <div id="migout" style="padding:0 16px"></div>
+      <div class="chead" style="border-bottom:none">
+        <div><b style="color:var(--rose)">Clear the pilot data</b>
+          <div class="hint" style="margin:2px 0 0">Deletes every facilitator, student, course and record of play, so a trial can be run again from nothing. Administrators and the catalogue survive. There is no undo.</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="rst_confirm" placeholder="type DELETE EVERYTHING" style="width:190px;border:1px solid var(--line2);padding:7px 10px;font-size:13px">
+          <button class="btn danger" id="rst_go">Clear</button></div>
+      </div>
+      <div id="rst_out" style="padding:0 16px 14px"></div>
+    </div>` : ''}`;
+}
+function wireCat() {
+  app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    D.copyFor = D.copyFor === b.dataset.copy ? null : b.dataset.copy;
+    D.simEdit = null; D.reviewersFor = null;
+    if (D.copyFor && !D.copyFields) {
+      const done = acting(b, 'Opening…');
+      try { D.copyFields = (await api('/api/admin', { action:'catalogue_fields' })).fields; done(); }
+      catch (e) { D.copyFields = []; done('Failed', 'bad'); }
+    }
+    render();
+  });
+
+  app.querySelectorAll('[data-copyreset]').forEach(btn => btn.onclick = async () => {
+    if (!confirm('Throw away everything written here and take the simulation\'s own description?')) return;
+    const done = acting(btn, 'Asking it…');
+    try { await api('/api/admin', { action:'reset_detail', id: btn.dataset.copyreset });
+      done(); D.copyFor = null; load(); }
+    catch (e) { done('Failed','bad'); }
+  });
+
+  app.querySelectorAll('[data-copysave]').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.copysave, panel = btn.parentElement;
+    const out = app.querySelector(`[data-copyout="${id}"]`);
+    const done = acting(btn, 'Saving…');
+    const payload = { action:'save_detail', id };
+    panel.querySelectorAll('[data-cf]').forEach(el => { payload[el.dataset.cf] = el.value; });
+    try {
+      await api('/api/admin', payload);
+      done('Saved'); D.copyFor = null; load();
+    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+  });
+
+  app.querySelectorAll('[data-simedit]').forEach(b => b.onclick = () => {
+    D.simEdit = D.simEdit === b.dataset.simedit ? null : b.dataset.simedit; D.reviewersFor = null; render(); });
+  app.querySelectorAll('[data-rev]').forEach(b => b.onclick = () => {
+    D.reviewersFor = D.reviewersFor === b.dataset.rev ? null : b.dataset.rev; D.simEdit = null; render(); });
+
+  app.querySelectorAll('[data-simsave]').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.simsave, si = (D.data.sims||[]).find(x => x.id === id);
+    const panel = btn.parentElement;
+    const v = f => { const el = panel.querySelector(`[data-sf="${f}"]`); return el ? el.value : ''; };
+    const out = app.querySelector(`[data-simout="${id}"]`);
+    const done = acting(btn, 'Saving…');
+    try {
+      await api('/api/admin', { action:'save_sim', id, number:v('number'), title:v('title'),
+        tagline:v('tagline'), description:v('description'), minutes:v('minutes'),
+        launchUrl: v('launchUrl') || si.launch_url, published: !!si.published });
+      done('Saved'); D.simEdit = null; load();
+    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+  });
+
+  app.querySelectorAll('[data-pub]').forEach(btn => btn.onclick = async () => {
+    const si = (D.data.sims||[]).find(x => x.id === btn.dataset.pub);
+    const done = acting(btn, 'Saving…');
+    try {
+      await api('/api/admin', { action:'save_sim', id:si.id, number:si.number, title:si.title,
+        tagline:si.tagline, description:si.description, launchUrl:si.launch_url,
+        minutes:si.minutes, published: btn.dataset.now !== '1' });
+      done(); load();
+    } catch (e) { done('Failed','bad'); }
+  });
+
+  app.querySelectorAll('[data-grant]').forEach(btn => btn.onclick = async () => {
+    const sid = btn.dataset.grant;
+    const g = k => { const el = app.querySelector(`[data-grant${k}="${sid}"]`); return el ? el.value : ''; };
+    const done = acting(btn, 'Granting…');
+    try {
+      const d = await api('/api/admin', { action:'grant_sim_access', simId:sid,
+        email: g('mail'), name: g('name'), note: g('note') });
+      D.grantSent = { sim: sid, who: d.who, message: [
+        `Hello ${d.who},`, '',
+        `You have early access to ${d.simTitle} on the Flexee RapidSims platform, before it is published.`,
+        '',
+        d.isNew
+          ? `Set your password here — the link works once:\n${d.inviteUrl}`
+          : `Sign in at ${d.signInUrl} with the account you already have.`,
+        '',
+        'It will be listed under Simulations. Start a preview and play it as a student would.',
+        '',
+        'Thanks for looking at it.'
+      ].join('\n') };
+      done('Granted'); load();
+    } catch (e) {
+      const out = app.querySelector(`[data-grantout="${sid}"]`);
+      if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`;
+      done('Failed','bad');
+    }
+  });
+  const gc = document.getElementById('gcopy');
+  if (gc) gc.onclick = () => { const t = document.getElementById('gmsg'); t.select();
+    navigator.clipboard.writeText(t.value); flash(gc, 'Copied'); };
+  const gd = document.getElementById('gdone');
+  if (gd) gd.onclick = () => { D.grantSent = null; render(); };
+  app.querySelectorAll('[data-revgrant]').forEach(btn => btn.onclick = async () => {
+    const done = acting(btn, 'Revoking…');
+    try { await api('/api/admin', { action:'revoke_sim_access', grantId: btn.dataset.revgrant }); done(); load(); }
+    catch (e) { done('Failed','bad'); }
+  });
+
+  app.querySelectorAll('[data-simdel]').forEach(btn => btn.onclick = async () => {
+    if (!confirm('Delete this simulation from the catalogue? It will reappear, unpublished, the next time that deployment is used.')) return;
+    const done = acting(btn, 'Deleting…');
+    try { await api('/api/admin', { action:'delete_sim', simId: btn.dataset.simdel }); done(); load(); }
+    catch (e) {
+      if (confirm(e.message + '\n\nDelete it anyway?')) {
+        await api('/api/admin', { action:'delete_sim', simId: btn.dataset.simdel, force:true }); done(); load();
+      } else done('Kept','bad');
+    }
+  });
+
+  const ad = document.getElementById('addsim');
+  if (ad) ad.onclick = () => { D.addSim = !D.addSim; D.checkOut = null; render();
+    const u = document.getElementById('s_url'); if (u) u.focus(); };
+
+  const pb = document.getElementById('s_probe');
+  if (pb) pb.onclick = async () => {
+    const out = document.getElementById('s_probeout');
+    const done = acting(pb, 'Asking…'); out.innerHTML = '';
+    try {
+      const d = await api('/api/admin', { action:'probe_sim', launchUrl: document.getElementById('s_url').value });
+      await api('/api/admin', { action:'save_sim', id: d.id, number: d.suggestedNumber,
+        title: d.existing ? d.existing.title : d.id, launchUrl: d.launchUrl, minutes: 20, published: false });
+      out.innerHTML = `<div class="explain" style="margin-top:12px">
+        <b>${esc(d.id)}</b> ${d.existing ? 'was already here — its address has been refreshed.' : 'has been added as a draft.'}
+        ${d.problems.length ? `<div style="margin-top:8px;color:var(--rose)">${d.problems.map(x => '· ' + esc(x)).join('<br>')}</div>`
+          : '<div style="margin-top:8px;color:var(--green)">Configured correctly — it will accept students we send it.</div>'}
+        <div style="margin-top:8px">Open it below to give it a title and description, then publish it when you are ready.</div>
+      </div>`;
+      done('Added'); D.addSim = false; load();
+    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not found','bad'); }
+  };
+
+  const ck = document.getElementById('chk');
+  if (ck) ck.onclick = async () => {
+    const done = acting(ck, 'Checking…');
+    try { const d = await api('/api/admin', { action:'refresh_sims' });
+      D.checkOut = d.results; D.ourBuild = d.ourBuild; D.addSim = false; done(); render(); }
+    catch (e) { done('Failed','bad'); }
+  };
+  const cd = document.getElementById('chkdone');
+  if (cd) cd.onclick = () => { D.checkOut = null; render(); };
+
+  const mt = document.getElementById('mt');
+  if (mt) mt.onclick = () => { D.maint = !D.maint; render(); };
+  const mb = document.getElementById('mig');
+  if (mb) mb.onclick = async () => {
+    const out = document.getElementById('migout');
+    const done = acting(mb, 'Updating…');
+    try { const d = await api('/api/admin', { action:'migrate' });
+      out.innerHTML = `<div class="hint" style="color:var(--green)">Up to date — ${d.statements} statements checked.</div>`; done(); }
+    catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+  };
+  const rg = document.getElementById('rst_go');
+  if (rg) rg.onclick = async () => {
+    const out = document.getElementById('rst_out');
+    const done = acting(rg, 'Clearing…');
+    try {
+      await api('/api/admin', { action:'reset_test_data', confirm: document.getElementById('rst_confirm').value });
+      out.innerHTML = '<div class="hint" style="color:var(--green)">Done. Everything except administrators and the catalogue is gone.</div>';
+      D.detail = null; D.lastInvite = null; D.allCourses = null; D.students = null; done(); load();
+    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+  };
+}
+
+/* ── one facilitator ────────────────────────────────────────────────────── */
+function renderDetail() {
+  const { person, courses, students, courseSims } = D.detail;
+  const q = (D.q.det || '').toLowerCase().trim();
+  const st = person.disabled ? 'disabled' : person.accepted ? 'active' : 'invited';
+  const totals = {
+    students: students.filter(s => !s.dropped).length,
+    paid: students.filter(s => !s.dropped && s.paid).length,
+    launches: students.reduce((n, s) => n + Number(s.launches || 0), 0)
+  };
+  app.innerHTML = `
+    <div class="crumb"><a id="back">← Facilitators</a></div>
+    <div class="head">
+      <div>
+        <h1>${esc(person.name)}</h1>
+        <div class="sub" style="font-size:12px;margin-top:5px">${esc(person.email)}${person.institution?' · '+esc(person.institution):''}</div>
+        <div style="margin-top:9px">${dot(st==='active'?'ok':st==='invited'?'warn':'off', st)}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" id="rst">${person.accepted ? 'Reset password' : 'Fresh invitation'}</button>
+        ${!person.accepted ? '<button class="btn sm" id="rev">Cancel invitation</button>' : ''}
+        <button class="btn sm" id="tog">${person.disabled ? 'Re-enable' : 'Disable'}</button>
+        ${courses.length ? '' : '<button class="btn sm danger" id="del">Delete</button>'}
+      </div>
+    </div>
+    <div id="rstout"></div>
+
+    <div class="strip" style="border-top:1px solid var(--line);margin-bottom:24px">
+      <div class="cell"><div class="n">${courses.length}</div><div class="l">Courses</div></div>
+      <div class="cell"><div class="n">${totals.students}</div><div class="l">Students</div></div>
+      <div class="cell"><div class="n">${totals.paid}</div><div class="l">Released</div></div>
+      <div class="cell"><div class="n">${totals.launches}</div><div class="l">Launches</div></div>
+    </div>
+
+    ${courses.length ? `
+      ${students.filter(s => !s.dropped).length ? `<div class="toolbar admin-detail-toolbar">
+        <div class="search"><input data-q="det" type="text" placeholder="Search this facilitator's students" value="${esc(D.q.det||'')}"></div>
+      </div>` : ''}
+      ${courses.map(c => {
+        const sims = courseSims.filter(cs => cs.course_id === c.id);
+        const matchingStudents = students.filter(s => s.course_id === c.id && !s.dropped)
+          .filter(s => !q || [s.name, s.email].join(' ').toLowerCase().includes(q));
+        const coursePage = paged('det_' + c.id, matchingStudents);
+        const inCourse = coursePage.rows;
+        return `<div class="cbox admin-detail-course">
+          <div class="chead">
+            <div><b>${esc(c.title)}</b><div class="sub">${esc(c.term||'no term')} · join code ${esc(c.join_code)}</div></div>
+            <div class="meta">${sims.length ? esc(sims.map(x => x.title).join(', ')) : '<span class="dim">no simulations yet</span>'}</div>
+          </div>
+          ${inCourse.length ? `<div class="tablewrap"><table>
+            <thead><tr><th style="width:34%">Student</th><th style="width:1%">Access</th><th>Note</th><th class="num">Played</th></tr></thead>
+            <tbody>${inCourse.map(s => `<tr>
+              <td data-l="Student"><div class="nm">${esc(s.name)}</div><div class="sub">${esc(s.email)}</div></td>
+              <td data-l="Access">${dot(s.paid?'ok':'warn', s.paid?'released':'waiting')}</td>
+              <td data-l="Note" class="meta">${s.paid_note ? esc(s.paid_note) : '<span class="dim">—</span>'}</td>
+              <td data-l="Played" class="num">${s.launches}</td>
+            </tr>`).join('')}</tbody></table></div>${foot('det_' + c.id, coursePage, 'student')}`
+            : `<div class="empty">${q ? 'Nobody in this course matches that.' : 'Nobody enrolled yet.'}</div>`}
+        </div>`;
+      }).join('')}`
+      : '<div class="panel"><div class="empty">No courses yet. Nothing to show until they create one.</div></div>'}`;
+
+  const out = () => document.getElementById('rstout');
+  const showLink = (label, url, note) => {
+    out().innerHTML = `<div class="note"><b>${esc(label)}</b> ${esc(note||'')}
+      <div class="copyrow"><input id="rurl" readonly value="${esc(url)}"><button class="btn" id="rcopy">Copy</button></div></div>`;
+    document.getElementById('rcopy').onclick = () => {
+      document.getElementById('rurl').select(); navigator.clipboard.writeText(url);
+      flash(document.getElementById('rcopy'), 'Copied'); };
+  };
+  document.getElementById('back').onclick = () => { D.detail = null; D.q.det = ''; render(); };
+  document.getElementById('rst').onclick = async () => {
+    const b = document.getElementById('rst'); const done = acting(b, 'Creating…');
+    try {
+      if (person.accepted) {
+        const d = await api('/api/admin', { action:'issue_reset', userId: person.id });
+        showLink(`Send this to ${d.who}.`, d.resetUrl, 'It works once and expires in three days.');
+      } else {
+        const d = await api('/api/admin', { action:'invite_faculty', name:person.name, email:person.email, institution:person.institution });
+        showLink(`Send this to ${person.name}.`, d.inviteUrl, 'A fresh invitation. It works once; any earlier link is replaced.');
+      }
+      done();
+    } catch (e) { out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+  };
+  const rev = document.getElementById('rev');
+  if (rev) rev.onclick = async () => {
+    if (!confirm('Cancel the invitation? Any link already sent will stop working.')) return;
+    const done = acting(rev, 'Cancelling…');
+    try { await api('/api/admin', { action:'revoke_invites', facultyId: person.id });
+      out().innerHTML = '<div class="hint" style="color:var(--green)">Invitation cancelled. Any link already sent is now dead.</div>'; done(); }
+    catch (e) { done('Failed','bad'); }
+  };
+  document.getElementById('tog').onclick = async () => {
+    const b = document.getElementById('tog'); const done = acting(b, 'Saving…');
+    try { await api('/api/admin', { action:'set_faculty_disabled', facultyId: person.id, disabled: !person.disabled });
+      D.detail = await api('/api/admin', { action:'faculty_detail', facultyId: person.id });
+      done(); await load(); }
+    catch (e) { done('Failed','bad'); }
+  };
+  const del = document.getElementById('del');
+  if (del) del.onclick = async () => {
+    if (!confirm(`Delete ${person.name}? Only possible because they have no courses.`)) return;
+    const done = acting(del, 'Deleting…');
+    try { await api('/api/admin', { action:'delete_faculty', facultyId: person.id });
+      done(); D.detail = null; await load(); }
+    catch (e) { out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Refused','bad'); }
+  };
+  wireCommon();
+}
+
+/* ── shared ─────────────────────────────────────────────────────────────── */
+function wirePerson() {
+  app.querySelectorAll('[data-pedit]').forEach(b => b.onclick = () => {
+    D.personEdit = D.personEdit === b.dataset.pedit ? null : b.dataset.pedit; D.link = null; render(); });
+  app.querySelectorAll('[data-psave]').forEach(btn => btn.onclick = async () => {
+    const uid = btn.dataset.psave, cell = btn.parentElement;
+    const v = f => { const el = cell.querySelector(`[data-pf="${f}"]`); return el ? el.value : undefined; };
+    const out = app.querySelector(`[data-pout="${uid}"]`);
+    const done = acting(btn, 'Saving…');
+    try {
+      await api('/api/admin', { action:'update_person', userId:uid, name:v('name'), email:v('email'), institution:v('institution') });
+      done('Saved'); D.personEdit = null; D.students = null; await load();
+    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+  });
+  app.querySelectorAll('[data-pdel]').forEach(btn => btn.onclick = async () => {
+    if (!confirm('Delete this account? Only possible because they have no courses.')) return;
+    const done = acting(btn, 'Deleting…');
+    try { await api('/api/admin', { action:'delete_faculty', facultyId: btn.dataset.pdel });
+      done(); D.personEdit = null; await load(); }
+    catch (e) {
+      const out = app.querySelector(`[data-pout="${btn.dataset.pdel}"]`);
+      if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`;
+      done('Refused','bad');
+    }
+  });
+}
+function wireHelp() {
+  app.querySelectorAll('[data-help]').forEach(b => b.onclick = () => {
+    D.help = D.help === b.dataset.help ? null : b.dataset.help; render(); });
+}
+function wireCommon() {
+  wireHelp();
+  app.querySelectorAll('[data-q]').forEach(i => i.oninput = () => {
+    const k = i.dataset.q;
+    D.q[k] = i.value; D.page[k] = 1;
+    if (k === 'det') Object.keys(D.page).filter(x => x.startsWith('det_')).forEach(x => { D.page[x] = 1; });
+    render();
+    const again = app.querySelector(`[data-q="${k}"]`);
+    if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+  });
+  app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+    const [k, v] = b.dataset.f.split(':'); D.filter[k] = v; D.page[k] = 1; render(); });
+  app.querySelectorAll('[data-page]').forEach(b => b.onclick = () => {
+    const [k, n] = b.dataset.page.split(':'); D.page[k] = parseInt(n, 10); render(); });
+}
+
+(async () => {
+  try {
+    const me = await api('/api/auth', { action:'me' });
+    if (!me.user) { location.href = '/signin.html'; return; }
+    if (me.user.role !== 'admin') { location.href = me.user.role === 'faculty' ? '/faculty.html' : '/student.html'; return; }
+    document.getElementById('who').textContent = me.user.name + ' · administrator';
+  } catch (e) { location.href = '/signin.html'; return; }
+  load();
+})();
+</script>
+</body>
+</html>

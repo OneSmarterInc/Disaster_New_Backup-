@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RapidSim 01 — Faculty console</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524; --panel:#161E2E; --panel2:#1D2637; --raise:#232D40;
+  --line:#2B3548; --line2:#3A4659;
+  --bone:#E8E4DA; --dim:#8C95A8; --dimmer:#616B7E;
+  --amber:#F0A63C; --amber-dim:#8A6427; --sys:#5E9089; --rose:#CE7C8D;
+  --serif:'Newsreader',Georgia,serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--night);color:var(--bone);font-family:var(--serif);font-size:16px;line-height:1.55;
+  background-image:radial-gradient(1200px 600px at 70% -10%, rgba(240,166,60,.05), transparent 60%);min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,select{font:inherit;color:inherit}
+.mono{font-family:var(--mono)}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer)}
+.wrap{max-width:1180px;margin:0 auto;padding:30px 24px 70px}
+h1{font-size:34px;font-weight:300;letter-spacing:-.02em;margin:8px 0 14px}
+h1 em{font-style:italic;color:var(--amber)}
+h2{font-size:12px;font-family:var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-weight:500;margin:32px 0 12px}
+p{color:#CFCCC4;margin-bottom:13px}
+.btn{border:1px solid var(--line2);padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--dim);transition:.13s;white-space:nowrap}
+.btn:hover{border-color:var(--bone);color:var(--bone)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206;font-weight:600}
+.btn.pri:hover{background:#FFB94E}
+.btn.warn{border-color:var(--rose);color:var(--rose)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+input[type=text],input[type=password]{background:var(--night);border:1px solid var(--line2);padding:10px 12px;
+  font-family:var(--mono);font-size:13px;min-width:200px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.card{border:1px solid var(--line);background:var(--panel);padding:18px 20px;margin-bottom:14px}
+.code{font-family:var(--mono);font-size:42px;letter-spacing:.16em;color:var(--amber);font-weight:600}
+.joinurl{font-family:var(--mono);font-size:13px;color:var(--dim);word-break:break-all}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 9px;border:1px solid var(--line2);color:var(--dim)}
+.pill.on{border-color:var(--amber);color:var(--amber)}
+.pill.done{border-color:var(--sys);color:var(--sys)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:11px}
+.gcard{border:1px solid var(--line);background:var(--panel);padding:13px 15px}
+.gcard h3{font-size:15px;font-weight:500;margin-bottom:3px}
+.gcard .mem{font-size:13px;color:var(--dim);line-height:1.45}
+.gcard .st{margin-top:9px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.unassigned{border-style:dashed;opacity:.8}
+table{width:100%;border-collapse:collapse;margin-top:6px}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dimmer);
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:500;vertical-align:bottom}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14.5px;line-height:1.5}
+tr:hover td{background:rgba(255,255,255,.015)}
+.grp{font-family:var(--mono);font-size:12px;color:var(--amber);white-space:nowrap}
+.tw{font-style:italic;color:#C4C1B9;font-size:13.5px}
+.flag{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--rose);color:var(--rose);padding:1px 6px;white-space:nowrap;margin-left:6px}
+.rev-i{color:var(--rose)}
+.rev-r{color:var(--sys)}
+.note{font-size:13.5px;color:var(--dimmer);line-height:1.55;border-left:2px solid var(--line2);padding-left:12px;margin:10px 0}
+.err{color:var(--rose);font-size:14px;margin-top:10px}
+select{background:var(--night);border:1px solid var(--line2);padding:5px 8px;font-family:var(--mono);font-size:11px}
+@media (max-width:760px){.wrap{padding:20px 14px 60px}.code{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+// Served from this deployment's root, or under /sim01 behind the platform's
+// domain. Everything it asks for has to carry the same prefix.
+const BASE = (location.pathname.match(/^\/sim\d+/) || [''])[0];
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const el = h => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild; };
+
+const F = {
+  facultyCode: null,
+  accessCode: (location.hash + location.search).match(/code=([^&]+)/)?.[1] || null,
+  launchToken: (location.hash + location.search).match(/lt=([^&]+)/)?.[1] || null,
+  code: null,
+  data: null,
+  tab: 'room',
+  err: null,
+  polling: null
+};
+
+async function api(payload) {
+  const r = await fetch(BASE + '/api/session', {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' },
+      F.launchToken ? { 'x-launch-token': decodeURIComponent(F.launchToken) }
+                    : (F.accessCode ? { 'x-access-code': F.accessCode } : {}),
+      F.facultyCode ? { 'x-faculty-code': F.facultyCode } : {}),
+    body: JSON.stringify(Object.assign({ facultyCode: F.facultyCode }, payload))
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || ('HTTP ' + r.status)); e.body = d; throw e; }
+  return d;
+}
+
+// ---------- screens ----------
+function screenStart() {
+  app.innerHTML = `
+    <div class="eyebrow">Flexee RapidSims · faculty console</div>
+    <h1>Run a <em>session</em></h1>
+    <p>Create a session, hand the code to the room, put people into groups, then start. You control the clock and when the resolution appears.</p>
+    <div class="card">
+      <div class="row">
+        ${F.launchToken ? '' : `<input type="password" id="fc" placeholder="facilitator code" value="${esc(F.facultyCode || '')}">`}
+        <button class="btn pri" id="mk">Create a session</button>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <input type="text" id="rc" placeholder="or rejoin an existing code" style="text-transform:uppercase">
+        <button class="btn" id="rj">Rejoin</button>
+      </div>
+      ${F.err ? `<div class="err">${esc(F.err)}</div>` : ''}
+      <div class="note">Sessions last 48 hours and then delete themselves. Nothing about a student is stored beyond the name they type.</div>
+    </div>`;
+  document.getElementById('mk').onclick = async () => {
+    const fcEl = document.getElementById('fc');
+    if (fcEl) F.facultyCode = fcEl.value.trim() || null;
+    F.err = null;
+    try {
+      const d = await api({ action: 'create', name: 'RapidSim 01 — Disaster or Breach?' });
+      F.code = d.session.code;
+      F.you = d.you || null;
+      startPolling();
+    } catch (e) { F.err = e.message; screenStart(); }
+  };
+  document.getElementById('rj').onclick = async () => {
+    const fcEl = document.getElementById('fc');
+    if (fcEl) F.facultyCode = fcEl.value.trim() || null;
+    F.code = document.getElementById('rc').value.trim().toUpperCase();
+    F.err = null;
+    if (F.code) startPolling();
+  };
+}
+
+function startPolling() {
+  if (F.polling) clearInterval(F.polling);
+  const tick = async () => {
+    try { F.data = await api({ action: 'faculty_state', code: F.code }); F.err = null; }
+    catch (e) { F.err = e.message; }
+    renderConsole();
+  };
+  tick();
+  F.polling = setInterval(tick, 4000);
+}
+
+function joinURL() {
+  // BASE is '' on this simulation's own deployment and '/sim01' behind the
+  // platform's domain. Without it the link sends students to the catalogue.
+  return location.origin + BASE + '/?s=' + F.code +
+    (F.accessCode ? '&code=' + encodeURIComponent(decodeURIComponent(F.accessCode)) : '');
+}
+
+function groupsOf() {
+  const ps = Object.values((F.data && F.data.participants) || {}).filter(Boolean);
+  const map = {};
+  ps.forEach(p => {
+    const g = p.groupId || '_none';
+    (map[g] = map[g] || []).push(p);
+  });
+  return map;
+}
+
+function renderConsole() {
+  if (!F.data) {
+    app.innerHTML = `<div class="eyebrow">Session ${esc(F.code)}</div><h1>Loading…</h1>${F.err ? `<div class="err">${esc(F.err)}</div>` : ''}`;
+    return;
+  }
+  const s = F.data.session;
+  const groups = groupsOf();
+  const runs = F.data.runs || {};
+  const nP = Object.keys(F.data.participants || {}).length;
+  const nG = Object.keys(groups).filter(g => g !== '_none').length;
+
+  const tabs = [['room', 'The room'], ['progress', 'Progress'], ['compare', 'Compare positions']];
+
+  app.innerHTML = `
+    <div class="eyebrow">Flexee RapidSims · faculty console${F.data.you ? ' · ' + esc(F.data.you) : ''}</div>
+    <h1>Disaster or <em>Breach?</em></h1>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="eyebrow">Students join with</div>
+          <div class="code">${esc(s.code)}</div>
+          <div class="joinurl">${esc(joinURL())}</div>
+        </div>
+        <div class="row">
+          <span class="pill ${s.state === 'running' ? 'on' : ''}">${esc(s.state)}</span>
+          ${s.paused ? '<span class="pill on">paused</span>' : ''}
+          ${s.revealed ? '<span class="pill done">revealed</span>' : ''}
+        </div>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="copy">Copy join link</button>
+        ${s.state === 'lobby' ? `<button class="btn pri" id="start" ${nG ? '' : 'disabled'}>Start the incident</button>` : ''}
+        ${s.state === 'running' && !s.paused ? '<button class="btn" id="pause">Freeze the clock</button>' : ''}
+        ${s.state === 'running' && s.paused ? '<button class="btn pri" id="resume">Resume</button>' : ''}
+        ${!s.revealed ? '<button class="btn" id="reveal">Release the debrief</button>' : ''}
+        <button class="btn warn" id="close">Close session</button>
+      </div>
+      ${!s.revealed ? `<div class="note">Groups who finish will be held on a waiting screen until you release the debrief. Hold it until the room has committed out loud — the discussion is better before anyone knows.</div>` : ''}
+      ${F.err ? `<div class="err">${esc(F.err)}</div>` : ''}
+    </div>
+
+    <div class="row" style="margin:26px 0 4px">
+      ${tabs.map(([k, l]) => `<button class="btn ${F.tab === k ? 'pri' : ''}" data-tab="${k}">${l}</button>`).join('')}
+      <span style="color:var(--dimmer);font-size:13px;margin-left:8px">${nP} joined · ${nG} group${nG === 1 ? '' : 's'}</span>
+    </div>
+
+    <div id="tabbody"></div>`;
+
+  document.getElementById('copy').onclick = () => navigator.clipboard.writeText(joinURL());
+  const ctl = (set) => async () => { try { await api({ action: 'control', code: F.code, set }); } catch (e) { F.err = e.message; } startPolling(); };
+  ['start', 'pause', 'resume', 'reveal'].forEach(k => { const b = document.getElementById(k); if (b) b.onclick = ctl(k); });
+  document.getElementById('close').onclick = () => { if (confirm('Close the session? Students still playing will be stopped and the debrief released.')) ctl('close')(); };
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { F.tab = b.dataset.tab; renderConsole(); });
+
+  const body = document.getElementById('tabbody');
+  if (F.tab === 'room') body.innerHTML = tabRoom(groups, runs);
+  if (F.tab === 'progress') body.innerHTML = tabProgress(groups, runs);
+  if (F.tab === 'compare') body.innerHTML = tabCompare(groups, runs);
+  if (F.tab === 'room') wireRoom();
+}
+
+// ---------- room / grouping ----------
+function tabRoom(groups, runs) {
+  const none = groups._none || [];
+  const named = Object.keys(groups).filter(g => g !== '_none').sort();
+  return `
+    <h2>Starting them off</h2>
+    <p>Everyone plays their own run, on their own screen. Press this once the room has joined; anyone arriving late can be added the same way.</p>
+    <div class="row" style="margin-bottom:16px">
+      <button class="btn pri" id="solo">Put everyone on their own run</button>
+    </div>
+    ${none.length ? `<div class="gcard unassigned" style="margin-bottom:14px">
+      <h3>Not yet grouped</h3>
+      <div class="mem">${none.map(p => esc(p.name)).join(' · ')}</div>
+    </div>` : ''}
+    <div class="grid">
+      ${named.map(g => {
+        const r = runs[g];
+        return `<div class="gcard">
+          <h3>${esc(g)}</h3>
+          <div class="mem">${groups[g].map(p => esc(p.name)).join(' · ')}</div>
+          <div class="st">
+            ${r ? `<span class="pill ${r.done ? 'done' : 'on'}">${r.done ? 'finished' : (F.data.phases[r.phase] || 'playing')}</span>` : '<span class="pill">not started</span>'}
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:var(--dimmer)">Nobody has been started yet.</p>'}
+    </div>`;
+}
+
+function wireRoom() {
+  const shuffle = async (size) => {
+    const ps = Object.values(F.data.participants || {}).filter(Boolean);
+    for (let i = ps.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ps[i], ps[j]] = [ps[j], ps[i]]; }
+    const assign = {};
+    ps.forEach((p, i) => { assign[p.id] = 'Group ' + (Math.floor(i / size) + 1); });
+    try { await api({ action: 'group', code: F.code, assign }); } catch (e) { F.err = e.message; }
+    startPolling();
+  };
+  const so = document.getElementById('solo');
+  if (so) so.onclick = () => shuffle(1);
+}
+
+// ---------- progress ----------
+function tabProgress(groups, runs) {
+  const named = Object.keys(groups).filter(g => g !== '_none').sort();
+  if (!named.length) return '<p style="color:var(--dimmer)">Nobody has been started yet.</p>';
+  const now = Date.now();
+  return `
+    <h2>Where everyone is</h2>
+    <p>The column worth watching is the last one. A group that hasn't moved in several minutes is either stuck or has drifted onto something else.</p>
+    <table>
+      <tr><th>Student</th><th>Name</th><th>At</th><th>Locked</th><th>Last activity</th></tr>
+      ${named.map(g => {
+        const r = runs[g];
+        const idle = r && r.updatedAt ? Math.round((now - r.updatedAt) / 60000) : null;
+        return `<tr>
+          <td class="grp">${esc(g)}</td>
+          <td>${groups[g].map(p => esc(p.name)).join(', ')}</td>
+          <td>${r ? esc(r.done ? 'finished' : (F.data.phases[r.phase] || '—')) : '<span style="color:var(--dimmer)">not started</span>'}</td>
+          <td>${r ? (r.positions || []).length + ' of 3' : '—'}</td>
+          <td>${idle === null ? '—' : (idle >= 5 ? `<span style="color:var(--rose)">${idle} min ago</span>` : idle + ' min ago')}</td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+}
+
+// ---------- comparison ----------
+const READ_LABEL = { hardware: 'Hardware fault', breach: 'Intrusion', both: 'Both / one enabling the other', unknown: 'Undetermined' };
+
+function tabCompare(groups, runs) {
+  const named = Object.keys(groups).filter(g => g !== '_none').sort();
+  const withRuns = named.filter(g => runs[g] && (runs[g].positions || []).length);
+  if (!withRuns.length) return '<p style="color:var(--dimmer)">Nothing to compare yet — positions appear here as groups lock them.</p>';
+
+  const phase = F.comparePhase || 0;
+  return `
+    <h2>Positions side by side</h2>
+    <p>Ask why, not what. They have each already read a debrief telling them what they did — the room's job is comparing reasoning. Look for two groups who did the same thing for opposite reasons.</p>
+    <div class="row" style="margin-bottom:14px">
+      ${F.data.phases.map((l, i) => `<button class="btn ${phase === i ? 'pri' : ''}" data-ph="${i}">${esc(l)}</button>`).join('')}
+    </div>
+    <table>
+      <tr><th style="width:110px">Group</th><th style="width:170px">Read it as</th><th style="width:230px">Did</th><th>Tripwire they named</th></tr>
+      ${withRuns.map(g => {
+        const p = (runs[g].positions || []).find(x => x.phase === phase);
+        if (!p) return `<tr><td class="grp">${esc(g)}</td><td colspan="3" style="color:var(--dimmer)">not reached</td></tr>`;
+        const act = (window.__ACTIONS || {})[p.action] || { label: p.action, reversibility: '' };
+        return `<tr>
+          <td class="grp">${esc(g)}</td>
+          <td>${esc(READ_LABEL[p.reading] || p.reading)}</td>
+          <td>${esc(act.label)} <span class="${act.reversibility === 'reversible' ? 'rev-r' : 'rev-i'}" style="font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase">${esc(act.reversibility)}</span></td>
+          <td class="tw">${esc(p.tripwire)}</td>
+        </tr>`;
+      }).join('')}
+    </table>
+    <div class="note">Coverage admission: ${withRuns.map(g => {
+      const c = runs[g].coverageEarnedAt;
+      return esc(g) + ' — ' + (c === null || c === undefined ? 'never got it' : (F.data.phases[c] || '?'));
+    }).join(' · ')}</div>`;
+}
+
+// action labels, fetched once so the table can show reversibility
+fetch(BASE + '/api/scene', {
+  method: 'POST',
+  headers: Object.assign({ 'Content-Type': 'application/json' },
+    F.launchToken ? { 'x-launch-token': decodeURIComponent(F.launchToken) }
+                  : (F.accessCode ? { 'x-access-code': F.accessCode } : {})),
+  body: JSON.stringify({ init: true })
+}).then(r => r.json()).then(d => {
+  window.__ACTIONS = {};
+  (d.actions || []).forEach(a => window.__ACTIONS[a.id] = a);
+}).catch(() => {});
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-ph]');
+  if (b) { F.comparePhase = +b.dataset.ph; renderConsole(); }
+});
+
+screenStart();
+</script>
+</body>
+</html>

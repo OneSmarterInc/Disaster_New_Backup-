@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapid-06-switch' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Do We Switch?</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{--n:#0E1524;--p:#161E2E;--p2:#1D2637;--l:#2B3548;--l2:#3A4659;--b:#E8E4DA;--d:#8C95A8;--dd:#616B7E;--a:#F0A63C;--g:#75A98C;--r:#CE7C8D;--x:#6FA8D6;--s:'Newsreader',Georgia,serif;--m:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--n);color:var(--b);font-family:var(--s);line-height:1.55}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;background:none}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--l);background:rgba(14,21,36,.96)}
+header h1{font-size:18px;font-weight:500;margin:0 auto 0 0}
+.m{font:10px var(--m);letter-spacing:.13em;text-transform:uppercase;color:var(--dd)}
+.ey{font:10px var(--m);letter-spacing:.14em;text-transform:uppercase;color:var(--a);margin-bottom:8px}
+.header-metrics{display:flex;align-items:center;gap:18px}.metric{display:flex;flex-direction:column;gap:2px;white-space:nowrap}.metric .m{font-size:9px}.clock{font:600 17px var(--m);color:var(--b)}.clock.left{color:var(--g)}.tick{font:600 15px var(--m);color:var(--r)}
+.page{width:min(1100px,calc(100% - 32px));margin:auto;padding:28px 0 80px}
+.grid{display:grid;grid-template-columns:1.25fr .9fr;gap:18px}@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{border:1px solid var(--l);background:var(--p);padding:18px;margin-bottom:16px}
+h2{font-size:30px;font-weight:400;line-height:1.15;margin:0 0 12px}h3{font-size:20px;font-weight:400;margin:4px 0 10px}
+p{margin:0 0 12px}.muted{color:var(--d)}
+.btn{border:1px solid var(--l2);padding:10px 14px;font:11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--d)}
+.btn:hover{border-color:var(--b);color:var(--b)}.pri{background:var(--a);border-color:var(--a);color:#191206;font-weight:600}
+.btn:disabled{opacity:.35;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.field{margin-top:12px}.field label{display:block;font:10px var(--m);letter-spacing:.11em;text-transform:uppercase;color:var(--dd);margin-bottom:6px}
+.field input,textarea{width:100%;background:var(--n);border:1px solid var(--l2);padding:10px}
+textarea{min-height:70px;resize:vertical}
+.rep{border-left:2px solid var(--l2);padding:8px 0 8px 12px;margin-bottom:10px}.rep.new{border-left-color:var(--a);animation:f 1.2s}
+@keyframes f{from{background:rgba(240,166,60,.12)}to{background:transparent}}
+.rep .src{font:10px var(--m);letter-spacing:.09em;text-transform:uppercase;color:var(--dd)}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice button{border:1px solid var(--l2);padding:14px;text-align:left;background:var(--p2)}
+.choice button:hover{border-color:var(--a)}.choice b{display:block;font-weight:500;font-size:17px}.choice span{font-size:13px;color:var(--d)}
+.notice{border-left:2px solid var(--a);background:rgba(240,166,60,.06);padding:10px 13px;margin:10px 0;color:#cbc8c0}
+.bad{border-left-color:var(--r);color:#e1afba}
+.play-grid{grid-template-areas:"reports actions"}.play-reports{grid-area:reports}.play-actions{grid-area:actions}.status-title{font-size:21px;margin:0 0 8px}.status-box{border-left:3px solid var(--a);background:var(--p2);padding:12px 14px;margin:12px 0}.status-box p:last-child{margin-bottom:0}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(6,10,18,.8);display:grid;place-items:center;padding:16px}
+.doc{width:min(720px,100%);max-height:88vh;overflow:auto;background:#F4F1EA;color:#1d1d1d;padding:26px 28px;font-family:Georgia,serif}
+.doc h4{margin:14px 0 4px;font-size:15px}.doc .sub{font-style:italic;color:#555;margin-bottom:12px}
+.doc p{font-size:15px}.doc mark{background:#F6D38E}
+.close{float:right;font:11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:#555}
+svg text{font-family:var(--m)}
+@media(max-width:560px){.choice{grid-template-columns:1fr}.doc{padding:20px 18px}}
+.steps{display:flex;gap:6px;margin:0 0 14px}.steps i{flex:1;height:3px;background:var(--l2)}.steps i.on{background:var(--a)}.wt p{font-size:18px}
+.kv{display:flex;justify-content:space-between;border-bottom:1px solid var(--l);padding:7px 0}.kv b{font:600 16px var(--m);color:var(--a)}
+@media(max-width:860px){.play-grid{grid-template-columns:1fr;grid-template-areas:"actions" "reports"}}
+@media(max-width:600px){header{gap:8px;padding:10px 14px}header h1{font-size:17px}.header-metrics{width:100%;justify-content:space-between;gap:8px}.metric .m{font-size:8px}.clock{font-size:15px}.tick{font-size:12px}}
+</style>
+</head>
+<body>
+<header><h1>Do We Switch?</h1><span class="m" id="phase"></span><div class="header-metrics" id="metrics" hidden>
+  <div class="metric"><span class="m">Simulation time</span><span class="clock" id="clock"></span></div>
+  <div class="metric"><span class="m">Real time left</span><span class="clock left" id="remaining"></span></div>
+  <div class="metric"><span class="m">Card sales lost</span><span class="tick" id="tick"></span></div>
+</div></header>
+<main class="page" id="app"><p class="muted">Loading…</p></main>
+<div id="modal"></div>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const app=document.getElementById('app'),modal=document.getElementById('modal');
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML}
+const INITIAL_SESSION=(new URLSearchParams(location.search).get('session')||'').trim().toUpperCase();
+const tokenKey='m06-lt:'+(INITIAL_SESSION||'solo');
+const hashLT=new URLSearchParams(location.hash.slice(1)).get('lt')||new URLSearchParams(location.search).get('lt');
+if(hashLT){sessionStorage.setItem(tokenKey,hashLT);const q=new URLSearchParams(location.search);q.delete('lt');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q:''))}
+const LT=sessionStorage.getItem(tokenKey)||null;
+const ACCESS=sessionStorage.getItem('m06-access')||'';
+function tokenInfo(t){try{return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(t.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))))}catch{return null}}
+const launch=LT?tokenInfo(LT):null;
+let CODE=INITIAL_SESSION;
+let CFG=null,PID=null,state=null,seen=0,pending=null,revealed=null,poll=null,err='',sig='',wtStep=0,peekMode='',entryName='',entryTeam='',completionTimer=null,metricTimer=null,metricSnapshot=null;
+const soloKey='m06-solo'+(launch?.sub?':'+launch.sub:'');
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
+const fmtDuration=ms=>{const sec=Math.max(0,Math.ceil(ms/1000));return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`};
+function captureMetrics(){
+  if(!state?.session||!state?.view)return;
+  const s=state.session,v=state.view;
+  metricSnapshot={elapsedMs:Number(v.elapsedMs||0),sampledAt:Date.now(),playMs:Number(s.playMs||CFG?.clock?.playSeconds*1000||600000),switchUntilMs:v.status?.kind==='switching'&&Number.isFinite(v.status.untilMs)?v.status.untilMs:null};
+  updateMetrics();
+}
+function updateMetrics(){
+  const metrics=document.getElementById('metrics');
+  if(!metrics)return;
+  if(!state?.session||state.session.phase==='lobby'||!metricSnapshot){metrics.hidden=true;return}
+  metrics.hidden=false;
+  const elapsed=Math.min(metricSnapshot.playMs,metricSnapshot.elapsedMs+Math.max(0,Date.now()-metricSnapshot.sampledAt));
+  const left=Math.max(0,metricSnapshot.playMs-elapsed);
+  document.getElementById('remaining').textContent=fmtDuration(left);
+  document.querySelectorAll('[data-run-remaining]').forEach(el=>el.textContent=fmtDuration(left));
+  const switchLeft=document.getElementById('switch-remaining');
+  if(switchLeft) switchLeft.textContent=fmtDuration(Math.max(0,(metricSnapshot.switchUntilMs??elapsed)-elapsed));
+  if(left===0&&pending){pending=null;modal.innerHTML='';sig='';refresh()}
+}
+function headers(){const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;else if(ACCESS)h['x-access-code']=ACCESS;return h}
+async function api(action,extra={}){
+  const r=await fetch(BASE+'/api/session',{method:'POST',headers:headers(),body:JSON.stringify({action,code:CODE,participantId:PID,launchToken:LT,...extra})});
+  let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||d.error||'Request failed');e.data=d;e.status=r.status;throw e}
+  return d;
+}
+function pidKey(){return 'm06-pid-'+CODE}
+async function boot(){
+  try{
+    const q=new URLSearchParams();
+    if(INITIAL_SESSION){q.set('session',INITIAL_SESSION);const saved=localStorage.getItem(pidKey());if(saved)q.set('participantId',saved)}
+    const r=await fetch(BASE+'/api/config'+(q.size?'?'+q:''),{headers:headers()});
+    const data=await r.json();
+    if(!r.ok){
+      if(INITIAL_SESSION&&['platform_signin_required','launch_token_invalid','access_code_required'].includes(data.error)){
+        sessionStorage.removeItem(tokenKey);location.replace(BASE+'/api/join?session='+encodeURIComponent(INITIAL_SESSION));return;
+      }
+      if(!INITIAL_SESSION&&!LT&&data.error==='access_code_required'){location.replace(BASE+'/launch.html');return}
+      throw new Error(data.message||data.error||'Unable to open the simulation.');
+    }
+    CFG=data;
+    if(INITIAL_SESSION){
+      PID=localStorage.getItem(pidKey());
+      if(launch)return join();
+      if(PID){try{await api('state');await refresh();startPoll();return}catch{PID=null;localStorage.removeItem(pidKey())}}
+    }else{
+      let saved=null;try{saved=JSON.parse(sessionStorage.getItem(soloKey)||'null')}catch{}
+      if(saved){
+        CODE=saved.code;PID=saved.pid;
+        try{state=await api('state');renderResume();return}catch{sessionStorage.removeItem(soloKey);CODE='';PID=null}
+      }
+      if(launch?.sub)return solo();
+    }
+    renderEntry();
+  }catch(e){app.innerHTML=`<div class="notice bad">${esc(e.message)}</div><button class="btn" onclick="location.reload()">Try again</button>`}
+}
+function startPoll(){clearInterval(poll);if(state?.session.phase!=='ended')poll=setInterval(refresh,1500)}
+function renderResume(){
+  const s=state.session,v=state.view;
+  const status=s.phase==='ended'?'This run has ended. You can read its explanation.':s.phase==='lobby'?'Your briefing is ready. The clock has not started.':`This run is in progress. The clock continues while this page is closed. Real time left: ${fmtDuration(Math.max(0,s.playMs-v.elapsedMs))}.`;
+  const decision=v.decision?`<p>Your recorded decision: <b>${v.decision.choice==='switch'?'Switch to ClearPath':'Stay on Northline'}</b>. It is final for this run.</p>`:'';
+  app.innerHTML=`<div class="card" style="max-width:680px"><div class="ey">Your previous run</div><h2>${esc(CFG.sim.title)}</h2><p>${status}</p>${decision}
+  <div class="row"><button class="btn pri" id="continue-run">${s.phase==='ended'?'View explanation':s.phase==='lobby'?'Open briefing':'Continue run'}</button><button class="btn" id="new-run">Start a new run</button></div>
+  <p class="muted" style="margin-top:12px">A new run opens the briefing and gives you a separate attempt.</p><div id="resume-error"></div></div>`;
+  document.getElementById('continue-run').onclick=async()=>{await refresh();startPoll()};
+  document.getElementById('new-run').onclick=async()=>{
+    document.getElementById('new-run').disabled=true;
+    const name=state.me?.name||entryName;
+    try{
+      const d=await api('solo',{name});CODE=d.session.code;PID=d.participantId;
+      sessionStorage.setItem(soloKey,JSON.stringify({code:CODE,pid:PID}));
+      seen=0;pending=null;revealed=null;err='';clearTimeout(completionTimer);
+      await refresh();startPoll();
+    }catch(e){document.getElementById('resume-error').textContent=e.message;document.getElementById('new-run').disabled=false}
+  };
+}
+const wtKey=()=>'m06-wt-'+(CODE||'solo'),wtDone=()=>localStorage.getItem(wtKey())==='1';
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.innerHTML){if(pending){pending=null}sig='';modal.innerHTML='';refresh()}});
+const JOIN_ERR={session_ended:'The clock for this session has already ended.',team_name_required:'This is a team session. Enter your team name.',name_required:'Enter your name.',no_such_session:'No session with that code. Check the link with your instructor.',session_closed:'That session is closed to new students.',private_session:'That is a private run, not a class session.'};
+function renderEntry(){
+  const classLink=!!INITIAL_SESSION;
+  app.innerHTML=`<div class="card" style="max-width:560px"><div class="ey">${classLink?'Join your class session':'Play on your own'}</div><h2>${esc(CFG.sim.title)}</h2>
+  <p class="muted">${esc(CFG.sim.cardLine)}</p>
+  ${launch?'':`<div class="field"><label for="nm">Your name</label><input id="nm" maxlength="60" autocomplete="name" value="${esc(entryName)}"></div>`}
+  ${classLink?`<div class="field" id="teamf" ${peekMode==='team'?'':'hidden'}><label for="team">Team name (everyone in your team types the same name)</label><input id="team" maxlength="40" value="${esc(entryTeam)}"></div>`:''}
+  <div class="row"><button class="btn pri" id="go">${classLink?'Join session':'Open briefing'}</button></div>${err?`<div class="notice bad">${esc(err)}</div>`:''}</div>`;
+  document.getElementById('go').onclick=async()=>{
+    entryName=document.getElementById('nm')?.value.trim()||entryName;
+    entryTeam=document.getElementById('team')?.value.trim()||entryTeam;
+    document.getElementById('go').disabled=true;
+    if(classLink)await join({name:entryName,teamName:entryTeam});else await solo(entryName);
+  };
+  if(classLink&&!peekMode)api('peek').then(d=>{peekMode=d.mode;const f=document.getElementById('teamf');if(f)f.hidden=d.mode!=='team'}).catch(()=>{});
+}
+async function solo(name){
+  try{
+    const d=await api('solo',{name});CODE=d.session.code;PID=d.participantId;
+    sessionStorage.setItem(soloKey,JSON.stringify({code:CODE,pid:PID}));err='';
+    await refresh();startPoll();
+  }catch(e){err=e.data?.error==='name_required'?'Enter your name.':e.message;renderEntry()}
+}
+async function join(extra={}){
+  try{
+    const d=await api('join',{name:extra.name,teamName:extra.teamName});
+    PID=d.participantId;localStorage.setItem(pidKey(),PID);err='';
+    await refresh();startPoll();
+  }catch(e){
+    err=JOIN_ERR[e.data?.error]||e.message;
+    if(e.data?.error==='team_name_required')peekMode='team';
+    renderEntry();
+  }
+}
+async function refresh(){
+  if(pending)return; // never repaint under someone typing a reason
+  try{state=await api('state')}catch(e){if(e.status===403){localStorage.removeItem(pidKey());PID=null;clearInterval(poll);renderEntry()}return}
+  const s=state.session,v=state.view;
+  document.getElementById('phase').textContent=s.phase==='lobby'?'Briefing':s.phase==='playing'?'Live':'Ended';
+  document.getElementById('clock').textContent=s.phase==='lobby'?'':v.storyTime;
+  document.getElementById('tick').textContent=s.phase==='lobby'?'':fmt(v.lost);
+  captureMetrics();
+  if(s.phase==='ended'){clearInterval(poll);return showReveal()}
+  const next=[CODE,s.phase,v.reports.length,v.decision?.choice||'',v.status?.kind||'',state.me.mates,wtDone(),wtStep].join('|');
+  if(next===sig)return;sig=next;render();
+}
+function docButtons(){return CFG.documents.map(d=>`<button class="btn" data-doc="${esc(d.id)}">${esc(d.title)}</button>`).join('')}
+function wireDocs(){app.querySelectorAll('[data-doc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.doc))}
+function docHtml(d,highlight){return `<h3 style="margin:0">${esc(d.title)}</h3><div class="sub">${esc(d.subtitle)}</div>`+d.blocks.map(bl=>`${bl.heading?`<h4>${esc(bl.heading)}</h4>`:''}<p>${highlight&&bl.revealHighlight?`<mark>${esc(bl.text)}</mark>`:esc(bl.text)}</p>`).join('')}
+function openDoc(id,docs=CFG.documents,highlight=false){
+  const d=docs.find(x=>x.id===id);if(!d)return;
+  modal.innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="doc"><button class="close" id="cx">Close</button>${docHtml(d,highlight)}</div></div>`;
+  const cx=document.getElementById('cx');cx.onclick=()=>modal.innerHTML='';cx.focus();
+  if(!highlight)api('open_doc',{docId:id}).catch(()=>{});
+}
+function renderWalkthrough(){
+  const W=CFG.walkthrough,w=W[wtStep],s=state.session,team=s.mode==='team';
+  const lines=s.solo&&w.soloText?w.soloText:w.text;
+  const live=s.phase==='playing'?'<div class="notice">The clock has started and reports are arriving. You can skip ahead.</div>':'';
+  app.innerHTML=`<div class="card wt" style="max-width:680px">${live}<div class="steps">${W.map((_,i)=>`<i class="${i<=wtStep?'on':''}"></i>`).join('')}</div>
+  <div class="ey">${wtStep+1} of ${W.length}</div><h2>${esc(w.title)}</h2>${lines.map(t=>`<p>${esc(t)}</p>`).join('')}
+  ${team&&w.teamNote?`<div class="notice">${esc(w.teamNote)}</div>`:''}
+  <div class="row">${wtStep>0?'<button class="btn" id="back">Back</button>':''}<button class="btn pri" id="next">${wtStep<W.length-1?'Next':'Go to the briefing'}</button>${wtStep<W.length-1?'<button class="btn" id="skip">Skip</button>':''}</div></div>`;
+  const done=()=>{localStorage.setItem(wtKey(),'1');sig='';refresh()};
+  document.getElementById('next').onclick=()=>{if(wtStep<W.length-1){wtStep++;sig='';render()}else done()};
+  const b=document.getElementById('back');if(b)b.onclick=()=>{wtStep--;sig='';render()};
+  const k=document.getElementById('skip');if(k)k.onclick=done;
+}
+function render(){
+  const s=state.session,v=state.view,me=state.me;
+  if(!wtDone())return renderWalkthrough();
+  const who=me.team?`<p class="m">Team ${esc(me.team)} · ${me.mates} joined</p>`:'';
+  if(s.phase==='lobby'){
+    app.innerHTML=`<div class="grid"><div><div class="card"><div class="ey">Briefing</div>${CFG.briefing.map(p=>`<p>${esc(p)}</p>`).join('')}${who}</div></div>
+    <div><div class="card"><div class="ey">Documents</div><p class="muted">Open them now or during play.</p><div class="row">${docButtons()}</div></div>
+    ${s.solo?'<div class="notice">Read the briefing and documents, then start your ten-minute run.</div><button class="btn pri" id="begin">Start simulation</button><div id="begin-error"></div>':'<div class="notice">Waiting for your instructor to start the clock. Every report arrives at the same moment for the whole room.</div>'}<div class="row"><button class="btn" id="rewt">See the introduction again</button></div></div></div>`;
+    wireDocs();
+    document.getElementById('rewt').onclick=()=>{localStorage.removeItem(wtKey());wtStep=0;sig='';render()};
+    if(s.solo)document.getElementById('begin').onclick=async()=>{
+      document.getElementById('begin').disabled=true;
+      try{await api('start_solo');await refresh()}catch(e){document.getElementById('begin-error').textContent=e.message;document.getElementById('begin').disabled=false}
+    };
+    return;
+  }
+  const fresh=v.reports.length>seen;seen=v.reports.length;
+  const reps=[...v.reports].reverse().map((r,i)=>`<div class="rep ${i===0&&fresh?'new':''}"><div class="src">Report ${r.n} of 12 · ${esc(r.source)}</div>${esc(r.text)}</div>`).join('');
+  let panel;
+  if(v.decision){
+    const what=v.decision.choice==='switch'?'switched to ClearPath':'committed to staying on Northline';
+    const by=v.decision.by?` (${esc(v.decision.by)} pressed)`:'';
+    const st=v.status?.kind==='switching'?`<div class="status-box" role="status"><h3 class="status-title">Switching is in progress</h3><p>Terminals are re-registering. Stores cannot take card payments during this window.</p><p>About eight simulation minutes, or up to 1 minute 20 seconds in real time, in total. Estimated time left in this window: <strong id="switch-remaining">${fmtDuration(Math.max(0,v.status.untilMs-v.elapsedMs))}</strong>.</p></div>`:v.status?.text?`<div class="status-box" role="status"><h3 class="status-title">The switching window has ended</h3><p>${esc(v.status.text)} Keep reading the reports as the simulation continues.</p></div>`:'';
+    panel=`<div class="card"><div class="ey">Decision recorded</div><p>${me.team?'Your team':'You'} ${what} at report ${v.decision.atReport}${by}. This choice is final for the run.</p>${st}
+    <h3>What to do now</h3><p>Keep reading new reports. Open both provider documents if you have not already. You do not need to submit anything else.</p><p>The run ends when the <strong>real time left</strong> reaches <strong>00:00</strong> (<strong data-run-remaining>${fmtDuration(Math.max(0,s.playMs-v.elapsedMs))}</strong> remaining). The explanation opens automatically.</p></div>`;
+  }else{
+    panel=`<div class="card"><div class="ey">Decide</div><div class="choice">
+      <button data-c="switch"><b>Switch to ClearPath</b><span>About 8 simulation minutes (up to 1:20 in real time) with no card payments while terminals re-register.</span></button>
+      <button data-c="stay"><b>Stay on Northline</b><span>Commit to holding on the primary provider.</span></button></div>
+      <p class="muted" style="margin-top:10px">Read the reports and both documents before deciding. New reports arrive automatically; you can decide now or keep reading. A confirmed choice is final for this run. If you make no choice before the real-time countdown ends, that is recorded as no decision. The explanation opens automatically at 00:00.</p></div>`;
+  }
+  app.innerHTML=`<div class="grid play-grid"><div class="play-reports"><div class="card"><div class="ey">Reports</div>${reps}</div></div>
+  <div class="play-actions">${panel}<div class="card"><div class="ey">Documents</div><p class="muted">Open the reports and provider documents while you wait.</p><div class="row">${docButtons()}</div></div>
+  <div class="card"><div class="ey">Briefing</div>${CFG.briefing.map(p=>`<p class="muted">${esc(p)}</p>`).join('')}${who}</div></div></div>`;
+  wireDocs();
+  app.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>askReason(b.dataset.c));
+}
+function askReason(choice){
+  pending=choice;
+  const label=choice==='switch'?'Switch to ClearPath':'Stay on Northline';
+  modal.innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="card" style="width:min(520px,100%)"><div class="ey">${label}</div>
+  <p>${choice==='switch'?'No store can take a card for about eight minutes. ':''}This decision is final for this run. Choose “Not yet” to keep reading.</p><p>In one line, why?</p><textarea id="why" maxlength="${CFG.reasonMaxLength}" aria-label="Your reason"></textarea><div class="m" id="cnt">0 / ${CFG.reasonMaxLength}</div>
+  <div class="row"><button class="btn pri" id="ok">Confirm: ${label}</button><button class="btn" id="no">Not yet</button></div><div id="me"></div></div></div>`;
+  const ta=document.getElementById('why');ta.focus();
+  ta.oninput=()=>document.getElementById('cnt').textContent=`${ta.value.length} / ${CFG.reasonMaxLength}`;
+  document.getElementById('no').onclick=()=>{pending=null;modal.innerHTML='';sig='';refresh()};
+  document.getElementById('ok').onclick=async()=>{
+    const reason=ta.value.trim();if(!reason){document.getElementById('me').innerHTML='<div class="notice bad">Write one line saying why.</div>';return}
+    const confirm=document.getElementById('ok'),message=document.getElementById('me');confirm.disabled=true;
+    try{await api('decide',{choice,reason})}
+    catch(e){
+      const done=e.data?.error==='decision_already_made'||/clock has ended/.test(e.data?.message||'');
+      if(!done){if(pending&&confirm.isConnected){confirm.disabled=false;message.innerHTML=`<div class="notice bad">${esc(e.data?.message||e.message)}</div>`}return}
+    }
+    pending=null;modal.innerHTML='';sig='';refresh();
+  };
+}
+function mapSvg(map){
+  const pos={stores:[260,34],northline:[135,124],clearpath:[385,124],meridian:[260,214],processor:[260,304]};
+  const W=230,H=38;
+  const edges=map.edges.map(([a,b])=>`<line x1="${pos[a][0]}" y1="${pos[a][1]+H/2}" x2="${pos[b][0]}" y2="${pos[b][1]-H/2}" stroke="#3A4659" stroke-width="2"/>`).join('');
+  const nodes=map.nodes.map(n=>{const [x,y]=pos[n.id];const f=n.fault;return `<g><rect x="${x-W/2}" y="${y-H/2}" width="${W}" height="${H}" rx="2" fill="${f?'rgba(206,124,141,.15)':'#1D2637'}" stroke="${f?'#CE7C8D':'#3A4659'}" stroke-width="${f?2:1}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" fill="${f?'#E3B9C2':'#E8E4DA'}">${esc(n.label)}</text></g>`}).join('');
+  return `<svg viewBox="0 0 520 330" role="img" aria-label="Both providers connect to Meridian Transit, where the fault was" style="width:100%;display:block">${edges}${nodes}</svg>`;
+}
+async function showReveal(){
+  if(!revealed){try{
+    const data=await api('reveal');revealed=data.reveal;
+    clearTimeout(completionTimer);
+    if(data.completionRequired&&!data.completionReported)completionTimer=setTimeout(()=>{revealed=null;showReveal()},5000);
+  }catch(e){app.innerHTML=`<div class="notice bad">${esc(e.message)}</div><button class="btn" onclick="showReveal()">Try again</button>`;return}}
+  const r=revealed;
+  const reading=CFG.documents.map(d=>`<div class="kv"><span>${esc(d.title)}</span><b>${r.reading[d.id]?'Yes':'No'}</b></div>`).join('');
+  const win=r.switchWindow?`<p class="muted">Includes the switch window, ${esc(r.switchWindow.fromStory)} to ${esc(r.switchWindow.toStory)}, when no store could take a card.</p>`:'';
+  app.innerHTML=`<div class="grid"><div><div class="card"><div class="ey">What was underneath</div>${mapSvg(r.map)}<p class="notice">${esc(r.map.faultNote)}</p><p>${esc(r.caption)}</p></div></div>
+  <div><div class="card"><div class="ey">Your decision</div><p>${esc(r.decisionLine)}</p></div>
+  <div class="card"><div class="ey">${esc(r.readingLabel)}</div>${reading}</div>
+  <div class="card"><div class="ey">Card sales lost by 12:05</div><h2>${fmt(r.lostTotal)}</h2>${win}</div>
+  <div class="card"><div class="ey">The documents again</div><p class="muted">The lines about Meridian are marked.</p><div class="row">${r.documents.map(d=>`<button class="btn" data-rdoc="${esc(d.id)}">${esc(d.title)}</button>`).join('')}</div></div></div></div>`;
+  app.querySelectorAll('[data-rdoc]').forEach(b=>b.onclick=()=>openDoc(b.dataset.rdoc,r.documents,true));
+}
+metricTimer=setInterval(updateMetrics,1000);
+window.addEventListener('pagehide',()=>{clearInterval(poll);clearInterval(metricTimer);clearTimeout(completionTimer)});
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "flexee-rapid-sim-03",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Flexee RapidSim 03 \u2014 Midland Equipment",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node tools/run-checks.js",
+    "test:browser": "node tools/team-runner-browser-check.js --required"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

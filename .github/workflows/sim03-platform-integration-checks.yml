@@ -1,0 +1,33 @@
+name: sim03-platform-integration-checks
+
+on:
+  pull_request:
+    paths:
+      - 'platform/**'
+      - 'sim03/**'
+      - '.github/workflows/sim03-platform-integration-checks.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'platform/**'
+      - 'sim03/**'
+      - '.github/workflows/sim03-platform-integration-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify Sim03 platform contract
+        run: node platform/tools/check-sim03-integration.js
+      - name: Verify full Sim03 platform lifecycle
+        run: node platform/tools/sim03-lifecycle-check.js
+      - name: Verify session account entry and identity boundaries
+        run: node platform/tools/sim03-account-entry-check.js

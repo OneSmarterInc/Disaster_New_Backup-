@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your simulations — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+<style>
+  /* A student sees a handful of things, so this reads as a short page rather
+     than a console. Wider than prose, narrower than a table screen. */
+  .swrap{max-width:1180px;margin:0 auto;padding:38px 28px 80px}
+  .simcard{border:1px solid var(--line);background:var(--card);margin-bottom:12px}
+  .simcard .body{padding:18px 20px}
+  .simcard .no{font-family:var(--mono);font-size:12px;color:var(--ink3)}
+  .simcard h3{font-size:19px;font-weight:500;letter-spacing:-.01em;margin:3px 0 5px}
+  .simcard .tag{font-size:14.5px;color:var(--ink2);line-height:1.5}
+  .simcard .foot2{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:13px 20px;border-top:1px solid var(--line);background:var(--sunk);flex-wrap:wrap}
+  .facts{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+  .facts b{color:var(--ink);font-weight:600}
+  .result{border-top:1px solid var(--line);padding:14px 20px;background:var(--sunk)}
+  .result .row2{display:flex;justify-content:space-between;gap:14px;padding:3px 0;font-size:13.5px}
+  .result .row2 span:first-child{color:var(--ink3)}
+  .before{border-left:2px solid var(--line2);padding:0 0 0 14px;margin:16px 0 0;font-size:13.5px;color:var(--ink2);line-height:1.6}
+  .student-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);background:var(--card);margin:0 0 22px}
+  .student-summary .cell{padding:14px 16px;border-right:1px solid var(--line)}
+  .student-summary .cell:last-child{border-right:none}
+  .student-summary .n{font:600 19px var(--mono);line-height:1}
+  .student-summary .l{font:9px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+  .student-tools{display:flex;gap:9px;align-items:center;margin:0 0 18px;flex-wrap:wrap}
+  .student-tools .search{flex:1;min-width:220px}
+  .student-filter{display:flex;border:1px solid var(--line2);background:var(--card)}
+  .student-filter button{font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:8px 11px;color:var(--ink3);border-right:1px solid var(--line);background:transparent}
+  .student-filter button:last-child{border-right:0}
+  .student-filter button.on{background:var(--ink);color:var(--card)}
+  .student-pager{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 24px;font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+  .student-pager .nav{display:flex;gap:6px;align-items:center}
+  .student-course{margin-bottom:30px}
+  .student-page-kicker{font:10px var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+  .student-page-title{font-size:38px;font-weight:300;letter-spacing:-.025em;line-height:1.1;margin:0 0 8px}
+  .student-page-lede{font-size:16.5px;color:var(--ink2);margin:0 0 26px}
+  .student-section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:0 0 12px}
+  .student-section-head h2{font-size:24px;font-weight:400;letter-spacing:-.015em;margin:0}
+  .student-section-head span{font:9.5px var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--ink3)}
+  .student-course{border:1px solid var(--line);background:var(--card);margin-bottom:18px}
+  .student-course-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start;padding:18px 20px;border-bottom:1px solid var(--line);background:var(--sunk)}
+  .student-course-label{font:9px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+  .student-course-title{font-size:24px;font-weight:500;letter-spacing:-.015em;margin:2px 0 3px}
+  .student-course-meta{font-size:13px;color:var(--ink3)}
+  .student-course-status{text-align:right}.student-course-status .progress-text{font:10px var(--mono);color:var(--ink3);margin-top:8px}
+  .student-course-body{padding:18px 20px}
+  .student-sim-row{display:grid;grid-template-columns:64px minmax(0,1fr) 190px;gap:18px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}
+  .student-sim-row:last-child{border-bottom:none}.student-sim-no{font:12px var(--mono);color:var(--ink3)}
+  .student-sim-title{font-size:18px;font-weight:500;margin-bottom:3px}.student-sim-tag{font-size:13.5px;color:var(--ink2);line-height:1.45}
+  .student-sim-side{text-align:right}.student-sim-side .btn{margin-top:6px}
+  .student-result-preview{margin-top:13px;border-left:2px solid #E8C88E;background:#FBF3E7;padding:11px 13px}
+  .student-result-preview .mini{margin-bottom:5px}.student-result-preview p{font-size:13.5px;color:var(--ink2);line-height:1.45;margin:0}
+  .student-result-page{max-width:980px;margin:0 auto}.student-result-hero{border:1px solid #E8C88E;background:#FBF3E7;padding:20px 22px;margin:18px 0 24px}
+  .student-result-hero .mini{color:var(--amber);margin-bottom:6px}.student-result-hero p{font-size:20px;line-height:1.5;margin:0}
+  .student-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.student-result-card{border:1px solid var(--line);background:var(--card);padding:16px 18px}
+  .student-result-card h3{font:10px var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px}.student-result-card p{margin:0;line-height:1.55;color:var(--ink2)}
+  .student-result-timeline{display:grid;gap:10px}.student-result-event{border:1px solid var(--line);background:var(--card);padding:15px 17px}.student-result-event b{display:block;font-size:17px;margin-bottom:4px}.student-result-event p{margin:0;color:var(--ink2);line-height:1.5}
+  .student-result-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.student-result-metric{border-bottom:1px solid var(--line);padding:7px 0}.student-result-metric span{display:block;font:9px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}.student-result-metric b{font-weight:500}
+  @media(max-width:640px){
+    .student-summary{grid-template-columns:1fr 1fr}.student-summary .cell:nth-child(2){border-right:0}.student-summary .cell:nth-child(-n+2){border-bottom:1px solid var(--line)}
+    .student-tools{align-items:stretch}.student-filter{width:100%}.student-filter button{flex:1}
+    .student-course-head,.student-sim-row,.student-result-grid{grid-template-columns:1fr}.student-course-status,.student-sim-side{text-align:left}
+  }
+</style>
+<script src="/sim-identity.js"></script>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Flexee <span>RapidSims</span></div>
+  <div class="sep"></div>
+  <div class="role" id="who"></div>
+  <div class="right">
+    <a class="btn sm" href="/account.html">Account</a>
+    <button class="btn sm" id="out">Sign out</button>
+  </div>
+</div>
+<div class="swrap" id="app"></div>
+
+<div class="narrow"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dot = (k, l) => `<span class="st ${k}">${esc(l)}</span>`;
+const when = t => t ? new Date(t).toLocaleDateString(undefined, { day:'numeric', month:'short' }) : '';
+const mins = s => s ? Math.round(s/60) + ' minutes' : null;
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
+
+let LAST = '';
+let FAILED = 0;
+const SV = { q:'', filter:'All', page:1, result:null };
+let CURRENT = null;
+const STUDENT_PAGE_SIZE = 8;
+
+function applyStudentView() {
+  const cards = [...app.querySelectorAll('[data-student-card]')];
+  if (!cards.length) return;
+  const q = SV.q.trim().toLowerCase();
+  const matching = cards.filter(card => {
+    const status = card.dataset.status || '';
+    const statusOk = SV.filter === 'All' || (SV.filter === 'Finished' ? status === 'Finished' : status !== 'Finished');
+    return statusOk && (!q || (card.dataset.search || '').includes(q));
+  });
+  const pages = Math.max(1, Math.ceil(matching.length / STUDENT_PAGE_SIZE));
+  SV.page = Math.min(Math.max(1, SV.page), pages);
+  const visible = new Set(matching.slice((SV.page-1)*STUDENT_PAGE_SIZE, SV.page*STUDENT_PAGE_SIZE));
+  cards.forEach(card => { card.style.display = visible.has(card) ? '' : 'none'; });
+  app.querySelectorAll('.student-course').forEach(course => {
+    const own = [...course.querySelectorAll('[data-student-card]')];
+    course.style.display = !own.length || own.some(card => visible.has(card)) ? '' : 'none';
+  });
+  const empty = document.getElementById('studentEmpty');
+  if (empty) empty.style.display = matching.length ? 'none' : '';
+  app.querySelectorAll('[data-student-filter]').forEach(b => b.classList.toggle('on', b.dataset.studentFilter === SV.filter));
+  const pager = document.getElementById('studentPager');
+  if (pager) pager.innerHTML = `<span>${matching.length} simulation${matching.length===1?'':'s'}</span><span class="nav"><button class="btn sm" id="sprev" ${SV.page<=1?'disabled':''}>Previous</button><span>Page ${SV.page} of ${pages}</span><button class="btn sm" id="snext" ${SV.page>=pages?'disabled':''}>Next</button></span>`;
+  const prev = document.getElementById('sprev'), next = document.getElementById('snext');
+  if (prev) prev.onclick = () => { SV.page--; applyStudentView(); };
+  if (next) next.onclick = () => { SV.page++; applyStudentView(); };
+}
+function summaryObject(x){
+  if(!x||!x.summary)return {};
+  if(typeof x.summary==='object')return x.summary;
+  try{return JSON.parse(x.summary)||{}}catch{return {}}
+}
+function friendlyLabel(k){
+  const known={year3Band:'Year 3 outcome',openingView:'Opening view',reflection1:'Reflection 1',reflection2:'Reflection 2',year1Connect:'Year 1 Connect',year1Allocation:'Year 1 allocation',cumulativeConnect:'Cumulative Connect',cumulativeUptime:'Cumulative Uptime',cumulativeCapacity:'Cumulative Capacity'};
+  return known[k]||String(k).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+}
+function bandCopy(b){return ({strong:'The architecture reached the strongest authored outcome for this stage.',pilot:'The architecture supports a credible pilot, but not yet a full capability.',middle:'The result landed in the middle path: workable, but with visible constraints.',weak:'The architecture left an important capability gap exposed.'})[b]||''}
+function renderStudentResult(){
+  if(!CURRENT||!SV.result)return;
+  const {courseId,simId}=SV.result;
+  const c=CURRENT.courses.find(x=>x.id===courseId), x=CURRENT.sims.find(y=>y.id===simId&&y.course_id===courseId);
+  if(!c||!x){SV.result=null;LAST='';draw();return}
+  const m=x.metrics||{}, sum=summaryObject(x), publicResult=sum.result||{};
+  const y1=sum.year1||null, y2=sum.year2||null, cum=publicResult.cumulative||null;
+  const overall=publicResult.overall||bandCopy(sum.year3Band||m.year3Band)||'This run is complete. The simulation recorded your choices and outcome.';
+  const events=[];
+  if(publicResult.year1)events.push(['Year 1',publicResult.year1]);
+  if(publicResult.year2&&publicResult.year2.heat)events.push(['Year 2 · Heat wave',publicResult.year2.heat]);
+  if(publicResult.year2&&publicResult.year2.competitor)events.push(['Year 2 · Competitor',publicResult.year2.competitor]);
+  if(publicResult.year3)events.push(['Year 3',publicResult.year3]);
+  const alloc=(a)=>a?`Run ${a.run} · Uptime ${a.uptime} · Capacity ${a.capacity} · Connect ${a.connect} · Features ${a.features}`:'—';
+  const hiddenKeys=new Set(['openingView','reflection1','reflection2','year1Allocation','year3Band']);
+  const otherMetrics=Object.entries(m).filter(([k])=>!hiddenKeys.has(k));
+  app.innerHTML=`<div class="student-result-page">
+    <div class="crumb"><a href="#" id="resultBack">← My courses</a></div>
+    <div class="student-page-kicker">Completed simulation</div>
+    <div style="display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap">
+      <div><h1 class="student-page-title" style="font-size:34px">${esc(x.title)}</h1><div class="student-course-meta">${esc(c.title)} · ${esc(c.faculty_name||'')}</div></div>
+      ${dot('ok','finished')}
+    </div>
+    <div class="strip" style="border-top:1px solid var(--line);margin-top:20px">
+      <div class="cell"><div class="n">${Number(x.played)||1}</div><div class="l">Run starts</div></div>
+      <div class="cell"><div class="n">${x.completed_at?when(x.completed_at):'—'}</div><div class="l">Latest completion</div></div>
+      <div class="cell"><div class="n">${mins(x.duration_seconds)||'—'}</div><div class="l">Time taken</div></div>
+    </div>
+    <div class="student-result-hero"><div class="mini">Your result</div><p>${esc(overall)}</p></div>
+    ${events.length?`<div class="section"><span>What happened</span></div><div class="student-result-timeline">${events.map(([label,o])=>`<div class="student-result-event"><div class="mini">${esc(label)}</div><b>${esc(o.title||friendlyLabel(o.band||''))}</b><p>${esc(o.narrative||bandCopy(o.band))}</p></div>`).join('')}</div>`:''}
+    ${(y1||y2||cum)?`<div class="section"><span>The portfolio that produced this</span></div><div class="student-result-grid">
+      <div class="student-result-card"><h3>Year 1 allocation</h3><p>${esc(alloc(y1))}</p></div>
+      <div class="student-result-card"><h3>Year 2 allocation</h3><p>${esc(alloc(y2))}</p></div>
+      ${cum?`<div class="student-result-card" style="grid-column:1/-1"><h3>Cumulative portfolio</h3><p>${esc(alloc(cum))}</p></div>`:''}
+    </div>`:''}
+    ${(sum.strategicView||m.openingView)?`<div class="section"><span>Your opening view</span></div><div class="student-result-card"><p>${esc(sum.strategicView||m.openingView)}</p></div>`:''}
+    ${(sum.reflection1||sum.reflection2||m.reflection1||m.reflection2)?`<div class="section"><span>Your reflections</span></div><div class="student-result-grid"><div class="student-result-card"><h3>Reflection 1</h3><p>${esc(sum.reflection1||m.reflection1||'—')}</p></div><div class="student-result-card"><h3>Reflection 2</h3><p>${esc(sum.reflection2||m.reflection2||'—')}</p></div></div>`:''}
+    ${otherMetrics.length&&!events.length?`<div class="section"><span>Recorded result details</span></div><div class="student-result-card"><div class="student-result-metrics">${otherMetrics.map(([k,v])=>`<div class="student-result-metric"><span>${esc(friendlyLabel(k))}</span><b>${esc(typeof v==='object'?JSON.stringify(v):v)}</b></div>`).join('')}</div></div>`:''}
+    <div class="actions" style="margin-top:24px"><button class="btn" id="resultHome">Back to my courses</button><a class="btn pri" href="/api/launch?sim=${encodeURIComponent(x.id)}&course=${encodeURIComponent(c.id)}">Play again</a></div>
+  </div>`;
+  const back=()=>{SV.result=null;LAST='';draw()};
+  document.getElementById('resultBack').onclick=e=>{e.preventDefault();back()};
+  document.getElementById('resultHome').onclick=back;
+}
+function openStudentResult(courseId,simId){SV.result={courseId,simId};renderStudentResult()}
+function wireStudentView() {
+  const search = document.getElementById('studentSearch');
+  if (search) { search.value = SV.q; search.oninput = () => { SV.q = search.value; SV.page = 1; applyStudentView(); }; }
+  app.querySelectorAll('[data-student-filter]').forEach(b => b.onclick = () => { SV.filter = b.dataset.studentFilter; SV.page = 1; applyStudentView(); });
+  applyStudentView();
+}
+async function draw() {
+  let d;
+  try { d = await api('/api/student', { action:'overview' }); FAILED = 0; }
+  catch (e) {
+    // A blank page and a page that failed to load look identical, and the
+    // second one leaves somebody staring at nothing with no way forward.
+    FAILED++;
+    if (FAILED === 1) return;   // one blip during polling is not worth a banner
+    app.innerHTML = `<div class="note" style="margin-top:30px">
+      <b>Could not reach the server.</b> Your courses are still there — this page just could not load them.
+      <div style="margin-top:10px"><button class="btn" id="retry">Try again</button></div>
+    </div>`;
+    const r = document.getElementById('retry');
+    if (r) r.onclick = () => { LAST = ''; FAILED = 0; r.textContent = 'Trying…'; draw(); };
+    return;
+  }
+
+  // Repaint only when something changed, so polling cannot interrupt a click.
+  const print = JSON.stringify(d.courses.map(c => [c.id, c.paid])) +
+                JSON.stringify(d.sims.map(x => [x.id, x.played, x.completed_at]));
+  if (print === LAST) return;
+  LAST = print;
+
+  CURRENT=d;
+  if(SV.result){renderStudentResult();return;}
+  const { courses, sims } = d;
+  const finishedCount = sims.filter(x => x.completed_at).length;
+  const inProgressCount = sims.filter(x => !x.completed_at && Number(x.played) > 0).length;
+
+  app.innerHTML = courses.length ? `
+    <div class="student-page-kicker">Student dashboard</div>
+    <h1 class="student-page-title">My courses and simulations</h1>
+    <p class="student-page-lede">Your courses are shown first. Each course contains the RapidSims assigned by your facilitator, along with your progress and latest result.</p>
+    <div class="student-summary">
+      <div class="cell"><div class="n">${courses.length}</div><div class="l">Enrolled courses</div></div>
+      <div class="cell"><div class="n">${sims.length}</div><div class="l">Assigned simulations</div></div>
+      <div class="cell"><div class="n">${finishedCount}</div><div class="l">Completed</div></div>
+      <div class="cell"><div class="n">${inProgressCount}</div><div class="l">Need attention</div></div>
+    </div>
+    <div class="student-tools">
+      <div class="search"><input id="studentSearch" type="text" placeholder="Search courses or simulations" value="${esc(SV.q)}"></div>
+      <div class="student-filter">${['All','To do','Finished'].map(x => `<button data-student-filter="${x}" class="${SV.filter===x?'on':''}">${x}</button>`).join('')}</div>
+    </div>
+    <div id="studentEmpty" class="panel" style="display:none;margin-bottom:18px"><div class="empty">Nothing matches that search or filter.</div></div>
+    <div class="student-section-head"><h2>My courses</h2><span>${courses.length} course${courses.length===1?'':'s'}</span></div>
+    <div id="studentCourseList">
+    ${courses.map(c => {
+    const mine = sims.filter(x => x.course_id === c.id);
+    return `
+      <div class="student-course">
+        <div class="student-course-head">
+          <div><div class="student-course-label">${esc(c.term || 'Course')}</div><div class="student-course-title">${esc(c.title)}</div><div class="student-course-meta">Facilitator: ${esc(c.faculty_name)}</div></div>
+          <div class="student-course-status">${c.paid ? dot('ok','access open') : dot('warn','waiting on instructor')}<div class="progress-text">${mine.filter(x=>x.completed_at).length} of ${mine.length} simulation${mine.length===1?'':'s'} completed</div></div>
+        </div>
+        ${!c.paid ? `<div class="note" style="margin:14px 20px 0">You are enrolled. ${esc(c.faculty_name)} opens this up once your registration is settled. Nothing for you to do — this page will change on its own.</div>` : ''}
+        <div class="student-course-body">
+        ${mine.length ? mine.map(x => {
+          const done = !!x.completed_at;
+          const m = x.metrics || {};
+          const status = done ? 'Finished' : Number(x.played) > 0 ? 'In progress' : 'To do';
+          const searchText = [c.title, c.term, c.faculty_name, x.title, x.description, x.tagline, status].filter(Boolean).join(' ').toLowerCase();
+          const so=summaryObject(x), result=so.result||{};
+          const resultText=result.overall||bandCopy(so.year3Band||m.year3Band)||'Your completed run is recorded.';
+          return `<div class="student-sim-row" data-student-card data-status="${esc(status)}" data-search="${esc(searchText)}">
+            <div class="student-sim-no">${RapidSimsIdentity.number(x)}</div>
+            <div><div class="student-sim-title">${esc(x.title)}</div><div class="student-sim-tag">${esc(x.description || x.tagline || '')}</div>
+              <div class="facts" style="margin-top:8px">${x.minutes ? `<span>about <b>${x.minutes} min</b></span>` : ''}<span><b>not marked</b></span></div>
+              ${done?`<div class="student-result-preview"><div class="mini">Latest result · ${when(x.completed_at)}</div><p>${esc(resultText)}</p></div>`:''}
+            </div>
+            <div class="student-sim-side"><div>${done ? dot('ok','finished') : Number(x.played)>0 ? dot('warn','in progress') : c.paid ? dot('off','not started') : dot('off','not open')}</div>
+              ${done?`<button class="btn" data-view-result="${esc(c.id)}:${esc(x.id)}">View result</button>`:''}
+              ${c.paid?`<a class="btn pri" href="/api/launch?sim=${encodeURIComponent(x.id)}&course=${encodeURIComponent(c.id)}">${done?'Play again':Number(x.played)>0?'Carry on':'Start'}</a>`:`<button class="btn" disabled>Not open yet</button>`}
+            </div>
+          </div>`;
+        }).join('') : `<div class="panel"><div class="empty">${esc(c.faculty_name)} has not added any simulations to this course yet.</div></div>`}
+        </div>
+      </div>`;
+  }).join('')}
+    </div>
+    <div id="studentPager" class="student-pager"></div>
+    <div class="before">
+      <b>Before you start.</b> Twenty minutes, no pause, so pick your moment. Use a laptop or tablet, not a phone.
+      Download the transcript at the end — nothing is kept once you close the tab.
+    </div>`
+  : `<div style="margin-top:30px">
+      <h1 style="font-size:26px;font-weight:400;letter-spacing:-.02em">You are not in any courses yet</h1>
+      <p class="hint" style="margin-top:10px">If your instructor sent you a link, open it. Otherwise enter the course code they gave you.</p>
+      <div class="panel" style="padding:16px 18px;margin-top:14px">
+        <div class="field" style="margin:0">
+          <div style="flex:0 0 180px;min-width:180px"><label class="f">Course code</label>
+            <input id="cc" type="text" placeholder="ABC123" style="text-transform:uppercase;font-family:var(--mono);letter-spacing:.1em"></div>
+          <div style="flex:0 0 auto;align-self:flex-end"><button class="btn pri" id="join">Join</button></div>
+        </div>
+        <div id="err" class="hint" style="color:var(--rose);margin-bottom:0"></div>
+      </div>
+    </div>`;
+
+  if (courses.length) { wireStudentView(); app.querySelectorAll('[data-view-result]').forEach(b=>b.onclick=()=>{const [courseId,simId]=b.dataset.viewResult.split(':');openStudentResult(courseId,simId)}); }
+
+  const j = document.getElementById('join');
+  if (j) j.onclick = async () => {
+    const was = j.textContent;
+    j.disabled = true; j.textContent = 'Joining…';
+    try { await api('/api/student', { action:'enrol', joinCode: document.getElementById('cc').value });
+      j.textContent = 'Joined'; LAST = ''; draw(); }
+    catch (e) { document.getElementById('err').textContent = e.message; j.disabled = false; j.textContent = was; }
+  };
+}
+
+(async () => {
+  try {
+    const me = await api('/api/auth', { action:'me' });
+    if (!me.user) { location.href = '/signin.html'; return; }
+    if (me.user.role !== 'student') { location.href = me.user.role === 'admin' ? '/admin.html' : '/faculty.html'; return; }
+    document.getElementById('who').textContent = me.user.name;
+  } catch (e) { location.href = '/signin.html'; return; }
+  await draw();
+  // An instructor releases access while a student is already looking at this.
+  setInterval(draw, 12000);
+})();
+</script>
+</body>
+</html>

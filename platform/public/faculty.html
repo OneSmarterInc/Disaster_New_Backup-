@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your courses — Flexee RapidSims</title>
+<link rel="stylesheet" href="/sim-detail.css">
+<link rel="stylesheet" href="/app.css">
+<script src="/sim-identity.js"></script>
+<script src="/sim-detail.js"></script>
+<script src="/render-transcript.js?v=2"></script>
+</head>
+<body class="console">
+<div class="top">
+  <div class="brand">Flexee <span>RapidSims</span></div>
+  <div class="sep"></div>
+  <div class="role" id="who"></div>
+  <div class="right">
+    <a class="btn sm" id="adminlink" href="/admin.html" style="display:none">Admin console</a>
+    <a class="btn sm" href="/account.html">Account</a>
+    <button class="btn sm" id="out">Sign out</button>
+  </div>
+</div>
+<div class="wrap" id="app"></div>
+
+<div class="wrap"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const F = {
+  view:'home', tab:'crs', data:null, simsOverview:null, course:null, progress:null, studentResults:null,
+  me:null, err:null, q:{}, filter:{}, sel:new Set(),
+  page:{crs:1,sim:1,ros:1,studentResults:1,played:1},
+  newCourse:false, editCourse:false, addSim:false, help:null, looking:null
+};
+
+const PAGE_SIZE = 10;
+function paginate(rows, key) {
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(F.page[key] || 1)), pages);
+  F.page[key] = page;
+  const start = (page - 1) * PAGE_SIZE;
+  return { rows: rows.slice(start, start + PAGE_SIZE), page, pages, total: rows.length };
+}
+function pagerControls(key, page, pages) {
+  return `<span class="faculty-pager">
+    <button class="btn sm" data-page-key="${esc(key)}" data-page="${page-1}" ${page<=1?'disabled':''}>Previous</button>
+    <span class="info">Page ${page} of ${pages}</span>
+    <button class="btn sm" data-page-key="${esc(key)}" data-page="${page+1}" ${page>=pages?'disabled':''}>Next</button>
+  </span>`;
+}
+function wirePager() {
+  app.querySelectorAll('[data-page-key]').forEach(b => b.onclick = () => {
+    const key = b.dataset.pageKey;
+    F.page[key] = Number(b.dataset.page || 1);
+    render();
+  });
+}
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+const when = (t) => {
+  if (!t) return '—';
+  const d = new Date(t);
+  const o = d.getFullYear() === new Date().getFullYear()
+    ? { day:'numeric', month:'short' } : { day:'numeric', month:'short', year:'2-digit' };
+  return d.toLocaleDateString(undefined, o);
+};
+const daysLeft = t => Math.max(0, Math.ceil((new Date(t) - Date.now()) / 86400000));
+const simLabel = x => RapidSimsIdentity.label(x) + ' · ' + x.title;
+const dot = (k, l) => `<span class="st ${k}">${esc(l)}</span>`;
+
+// Look at what a simulation is before deciding anything about it — the same page
+// a colleague would see on the public catalogue.
+const eye = (id) => `<button class="eye" data-look="${esc(id)}" title="What is this simulation?" aria-label="What is this simulation?">
+  <svg viewBox="0 0 24 24"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3.2"/></svg>
+</button>`;
+
+// Explanations behind a question mark: there when you want them, gone when you
+// don't. A facilitator runs this twice a term and forgets in between.
+const helpBtn = (key) => `<button class="qmark ${F.help===key?'on':''}" data-help="${key}" title="What happens next?">?</button>`;
+const explain = (key, title, body) => F.help === key
+  ? `<div class="explain"><h4>${esc(title)}</h4>${body}</div>` : '';
+const matches = (k, f) => { const q = (F.q[k]||'').toLowerCase().trim(); return !q || f.filter(Boolean).join(' ').toLowerCase().includes(q); };
+
+function flash(btn, msg, kind) {
+  if (!btn) return;
+  const was = btn.textContent;
+  btn.textContent = msg;
+  btn.style.color = kind === 'bad' ? 'var(--rose)' : 'var(--green)';
+  btn.style.borderColor = kind === 'bad' ? 'var(--rose)' : 'var(--green)';
+  setTimeout(() => { btn.textContent = was; btn.style.color=''; btn.style.borderColor=''; }, 1700);
+}
+function acting(btn, working) {
+  if (!btn) return () => {};
+  const was = btn.textContent;
+  btn.disabled = true; btn.textContent = working || 'Working…';
+  return (msg, kind) => { btn.disabled = false; btn.textContent = was; if (msg) flash(btn, msg, kind); };
+}
+
+document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
+
+async function loadHome() {
+  try { F.data = await api('/api/faculty', { action:'overview' }); F.err = null; }
+  catch (e) { F.err = e.message; }
+  F.view = 'home'; F.course = null; F.sel.clear(); render();
+}
+async function openCourse(id) {
+  try { F.course = await api('/api/faculty', { action:'course_detail', courseId:id }); F.view = 'course'; F.sel.clear(); F.page.ros = 1; F.err = null; }
+  catch (e) { F.err = e.message; }
+  render();
+}
+// Catalogue publication may change while a faculty member keeps a course open.
+// Fetch again when adding, including when every previously visible sim is attached.
+async function refreshSimulationChoices(button) {
+  const courseId = F.course.course.id;
+  const done = acting(button, 'Loading…');
+  try {
+    const fresh = await api('/api/faculty', { action:'course_detail', courseId });
+    if (F.view !== 'course' || F.course?.course.id !== courseId) return;
+    F.course = fresh;
+    F.data.catalogue = fresh.catalogue;
+    F.addSim = true;
+    F.err = null;
+  } catch (e) {
+    if (F.view !== 'course' || F.course?.course.id !== courseId) return;
+    F.err = 'Unable to refresh simulations: ' + e.message;
+    F.addSim = false;
+  } finally { done(); }
+  render();
+}
+
+async function openProgress(courseId, simId) {
+  try { F.progress = await api('/api/faculty', { action:'sim_progress', courseId, simId }); F.view = 'played'; F.page.played = 1; F.err = null; }
+  catch (e) { F.err = e.message; }
+  render();
+}
+async function openStudentResults(courseId, studentId) {
+  try { F.studentResults = await api('/api/faculty', { action:'student_results', courseId, studentId }); F.view = 'student-results'; F.page.studentResults = 1; F.err = null; }
+  catch (e) { F.err = e.message; }
+  render();
+}
+
+function render() {
+  if (!F.data) { app.innerHTML = F.err
+    ? `<div class="crumb" style="margin-top:34px">Teaching</div><div class="head"><div><h1>Something went wrong</h1><p class="hint">${esc(F.err)}</p></div></div>`
+    : '<div class="empty" style="margin-top:40px">Loading…</div>'; return; }
+  if (F.view === 'played' && F.progress) return renderPlayed();
+  if (F.view === 'student-results' && F.studentResults) return renderStudentResults();
+  if (F.view === 'course' && F.course) return renderCourse();
+  renderHome();
+}
+
+/* ── home ───────────────────────────────────────────────────────────────── */
+function renderHome() {
+  const { courses } = F.data;
+  const students = courses.reduce((n,c) => n + Number(c.enrolled||0), 0);
+  const released = courses.reduce((n,c) => n + Number(c.paid||0), 0);
+  const finished = (F.simsOverview||[]).reduce((n,x) => n + Number(x.finished_runs||0), 0);
+  app.innerHTML = `
+    ${F.me && F.me.role === 'admin' ? `<div class="note" style="margin-top:16px">
+      You are signed in as an administrator, so this shows only courses <b>you</b> run — probably none.
+      For everyone's, use the <a href="/admin.html">admin console</a>.
+    </div>` : ''}
+    <div class="strip">
+      <div class="cell"><div class="n">${courses.length}</div><div class="l">Courses</div></div>
+      <div class="cell"><div class="n">${students}</div><div class="l">Students</div></div>
+      <div class="cell"><div class="n">${released}</div><div class="l">Released</div></div>
+      <div class="cell"><div class="n">${finished}</div><div class="l">Runs finished</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${F.tab==='crs'?'on':''}" data-tab="crs">Courses <span class="count">${courses.length}</span></button>
+      <button class="tab ${F.tab==='sim'?'on':''}" data-tab="sim">Simulations <span class="count">${F.data.catalogue.length}</span></button>
+    </div>
+    <div id="body"></div>`;
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { F.tab = b.dataset.tab; render(); });
+  wireHelp();
+  const body = document.getElementById('body');
+  body.innerHTML = F.tab === 'crs' ? coursesTab() : simsTab();
+  if (F.tab === 'crs') wireCourses(); else wireSims();
+  wireCommon();
+}
+
+function coursesTab() {
+  const matching = F.data.courses.filter(c => matches('crs', [c.title, c.term, c.join_code]));
+  const pg = paginate(matching, 'crs');
+  const rows = pg.rows;
+  return `
+    <div class="toolbar">
+      <div class="search"><input data-q="crs" type="text" placeholder="Search your courses" value="${esc(F.q.crs||'')}"></div>
+      <button class="btn ${F.newCourse?'':'pri'}" id="nc">${F.newCourse?'Cancel':'New course'}</button>
+    </div>
+    ${F.newCourse ? `<div class="panel" style="padding:15px 16px;margin-bottom:12px">
+      <div class="field">
+        <div><label class="f">Course title</label><input id="c_t" placeholder="Operations Management"></div>
+        <div style="flex:0 0 180px;min-width:180px"><label class="f">Term</label><input id="c_m" placeholder="Fall 2026"></div>
+        <div style="flex:0 0 auto;align-self:flex-end"><button class="btn pri" id="ncgo">Create course</button></div>
+      </div>
+    </div>` : ''}
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr><th style="width:36%">Course</th><th class="num">Simulations</th><th class="num">Enrolled</th><th class="num">Released</th><th class="act"></th></tr></thead>
+      <tbody>
+      ${rows.length ? rows.map(c => `<tr>
+        <td data-l="Course"><div class="nm">${esc(c.title)}</div>
+          <div class="sub">${esc(c.term || 'no term')} · join code ${esc(c.join_code)}</div></td>
+        <td data-l="Simulations" class="num">${c.sims}</td>
+        <td data-l="Enrolled" class="num">${c.enrolled}</td>
+        <td data-l="Released" class="num"><span class="ratio ${Number(c.paid) < Number(c.enrolled) ? 'part' : ''}">${c.paid} <span class="of">of ${c.enrolled}</span></span></td>
+        <td data-l="" class="act"><button class="btn pri sm" data-open="${esc(c.id)}">Open</button></td>
+      </tr>`).join('') : `<tr><td colspan="5" class="empty">${F.data.courses.length ? 'Nothing matches that.' : 'No courses yet. Create one, then add a simulation to it.'}</td></tr>`}
+      </tbody></table></div>
+      <div class="foot"><span class="info">${pg.total} course${pg.total===1?'':'s'}</span>${pagerControls('crs', pg.page, pg.pages)}</div>
+    </div>`;
+}
+function wireCourses() {
+  const nc = document.getElementById('nc');
+  if (nc) nc.onclick = () => { F.newCourse = !F.newCourse; render();
+    const t = document.getElementById('c_t'); if (t) t.focus(); };
+  const go = document.getElementById('ncgo');
+  if (go) go.onclick = async () => {
+    const t = document.getElementById('c_t').value.trim();
+    if (!t) { flash(go, 'Needs a title', 'bad'); return; }
+    const done = acting(go, 'Creating…');
+    try { await api('/api/faculty', { action:'create_course', title:t, term: document.getElementById('c_m').value });
+      done(); F.newCourse = false; loadHome(); }
+    catch (e) { done('Failed','bad'); }
+  };
+  app.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openCourse(b.dataset.open));
+}
+
+function simsTab() {
+  if (F.simsOverview === null) {
+    api('/api/faculty', { action:'sims_overview' })
+      .then(d => { F.simsOverview = d.sims || []; F.simsFailed = null; render(); })
+      // An empty list and a list that failed to arrive are different things, and
+      // showing the first when it was the second is how somebody concludes a
+      // simulation has vanished.
+      .catch(e => { F.simsOverview = []; F.simsFailed = e.message; render(); });
+    return '<div class="panel"><div class="empty">Loading…</div></div>';
+  }
+  const inUse = F.simsOverview;
+  const prevOf = id => (F.data.previews||[]).find(p => p.sim_id === id);
+  const rows = F.data.catalogue.map(si => {
+    const u = inUse.find(x => x.id === si.id);
+    return Object.assign({}, si, u || {}, { inUse: !!u });
+  });
+  const f0 = F.filter.sim || 'All';
+  const matching = rows
+    .filter(x => f0 === 'All' || (f0 === 'In use') === x.inUse)
+    .filter(x => matches('sim', [x.title, x.tagline, String(x.number||'')]));
+  const rapid = matching.filter(x => (Number(x.minutes) || 0) < 60);
+  const rapidPlus = matching.filter(x => (Number(x.minutes) || 0) >= 60);
+  const allShown = rapid.concat(rapidPlus);
+  const pg = paginate(allShown, 'sim');
+  const shown = pg.rows;
+  return `
+    <div class="toolbar">
+      <div class="search"><input data-q="sim" type="text" placeholder="Search simulations" value="${esc(F.q.sim||'')}"></div>
+      ${helpBtn('preview')}
+      <div class="seg">${['All','In use','Available'].map(x =>
+        `<button data-f="sim:${x}" class="${f0===x?'on':''}">${x}</button>`).join('')}</div>
+    </div>
+    ${explain('preview', 'Trying one before you teach with it', `<ol>
+      <li>Anything published is here, plus any draft an administrator has given you early sight of.</li>
+      <li><b>Preview for 7 days</b> lets you play it as a student would. Nothing to install, no code to type.</li>
+      <li>Add it to a course when you have decided. The preview is about you seeing it, not your students.</li>
+      <li>A preview that has ended does not stop a course using it — add it to one and it keeps working.</li>
+    </ol>`)}
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr><th style="width:40%">Simulation</th><th class="num">Courses</th><th class="num">Started</th><th class="num">Finished</th><th class="act"></th></tr></thead>
+      <tbody>
+      ${F.simsFailed ? `<tr><td colspan="5" class="empty">
+        <b style="color:var(--rose)">Could not load your simulations.</b>
+        <div class="hint" style="margin:6px 0 10px">${esc(F.simsFailed)}</div>
+        <button class="btn sm" id="simretry">Try again</button></td></tr>`
+      : shown.length ? shown.map((x, index) => {
+        const p = prevOf(x.id), live = p && daysLeft(p.expires_at) > 0;
+        const plus = (Number(x.minutes) || 0) >= 60;
+        const prev = index > 0 ? shown[index-1] : null;
+        const prevPlus = prev ? (Number(prev.minutes) || 0) >= 60 : null;
+        const beginsLine = index === 0 || prevPlus !== plus;
+        const lineHead = beginsLine ? `<tr><td colspan="5" style="background:var(--sunk);padding:13px 16px;border-top:${index ? '1px solid var(--line2)' : '0'}">
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline">
+            <b>${plus ? 'RapidSims+' : 'RapidSims'}</b>
+            <span class="sub">${plus ? 'Longer investigations' : 'Twenty-minute decisions'} · ${plus ? rapidPlus.length : rapid.length}</span>
+          </div></td></tr>` : '';
+        return lineHead + `<tr>
+          <td data-l="Simulation"><div class="nm">${esc(simLabel(x))}${eye(x.id)}</div>
+            <div class="meta dim">${plus ? 'RapidSim+' : 'RapidSim'} · ${esc(x.tagline || '')}${x.minutes ? ' · about ' + x.minutes + ' minutes' : ''}</div></td>
+          <td data-l="Courses" class="num">${x.inUse ? x.courses : '—'}</td>
+          <td data-l="Started" class="num">${x.inUse ? x.started : '—'}</td>
+          <td data-l="Finished" class="num">${x.inUse ? `<span class="ratio ${Number(x.finished)<Number(x.started)?'part':''}">${x.finished}</span>` : '—'}</td>
+          <td data-l="" class="act">
+            ${x.inUse ? dot('ok','In use')
+              : live ? `${dot('warn','Preview · ' + daysLeft(p.expires_at) + 'd')}<a class="btn sm" style="margin-left:8px" href="/api/launch?sim=${encodeURIComponent(x.id)}">Play it</a>`
+              : p ? dot('off','Preview ended')
+              : `<button class="btn sm" data-prev="${esc(x.id)}">Preview for 7 days</button>`}
+          </td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="5" class="empty">Nothing available to you yet. Simulations appear once they are published, or when an administrator gives you early access to review one.</td></tr>`}
+      </tbody></table></div>
+      <div class="foot"><span class="info">${pg.total} simulation${pg.total===1?'':'s'}</span>${pagerControls('sim', pg.page, pg.pages)}</div>
+    </div>`;
+}
+function wireSims() {
+  const sr = document.getElementById('simretry');
+  if (sr) sr.onclick = () => { F.simsOverview = null; F.simsFailed = null; render(); };
+  app.querySelectorAll('[data-prev]').forEach(b => b.onclick = async () => {
+    const done = acting(b, 'Starting…');
+    try { await api('/api/faculty', { action:'start_preview', simId:b.dataset.prev }); done(); F.simsOverview = null; loadHome(); }
+    catch (e) { done('Failed','bad'); }
+  });
+}
+
+/* ── one course ─────────────────────────────────────────────────────────── */
+function renderCourse() {
+  const { course, sims, roster, catalogue, enrolUrl } = F.course;
+  const active = roster.filter(r => !r.dropped);
+  const waiting = active.filter(r => !r.paid);
+  const q = (F.q.ros||'').toLowerCase().trim();
+  const filteredRoster = roster.filter(r => !q || [r.name, r.email].join(' ').toLowerCase().includes(q));
+  const rosterPg = paginate(filteredRoster, 'ros');
+  const shown = rosterPg.rows;
+  const notAdded = catalogue.filter(si => !sims.find(x => x.sim_id === si.id));
+  const runStarts = sims.reduce((n,x) => n + Number(x.started_runs || 0), 0);
+  const runFinishes = sims.reduce((n,x) => n + Number(x.finished_runs || 0), 0);
+
+  app.innerHTML = `
+    <div class="crumb"><a id="back">← Your courses</a></div>
+    <div class="head">
+      <div>
+        <h1>${esc(course.title)}</h1>
+        <div class="sub" style="font-size:12px;margin-top:5px">${esc(course.term || 'no term')} · join code ${esc(course.join_code)}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" id="ce">${F.editCourse?'Close':'Rename'}</button>
+        <button class="btn sm" id="ca">Archive</button>
+        <button class="btn sm danger" id="cd">Delete</button>
+      </div>
+    </div>
+    <div class="faculty-course-summary" aria-label="Course activity summary">
+      <div class="faculty-summary-cell"><div class="faculty-summary-n">${active.length}</div><div class="faculty-summary-l">Enrolled</div></div>
+      <div class="faculty-summary-cell"><div class="faculty-summary-n">${active.filter(r=>r.paid).length}</div><div class="faculty-summary-l">Released</div></div>
+      <div class="faculty-summary-cell"><div class="faculty-summary-n">${runStarts}</div><div class="faculty-summary-l">Run starts</div></div>
+      <div class="faculty-summary-cell"><div class="faculty-summary-n">${runFinishes}</div><div class="faculty-summary-l">Runs finished</div></div>
+    </div>
+    ${F.editCourse ? `<div class="panel" style="padding:15px 16px;margin-bottom:14px">
+      <div class="field">
+        <div><label class="f">Course title</label><input id="e_t" value="${esc(course.title)}"></div>
+        <div style="flex:0 0 180px;min-width:180px"><label class="f">Term</label><input id="e_m" value="${esc(course.term||'')}"></div>
+        <div style="flex:0 0 auto;align-self:flex-end"><button class="btn pri" id="e_go">Save</button></div>
+      </div>
+    </div>` : ''}
+
+    <div class="section"><span>Simulations in this course ${helpBtn('sims')}</span>
+      <button class="btn sm" id="as">${F.addSim?'Cancel':'Add a simulation'}</button></div>
+
+    ${explain('sims', 'Playing it, and running it with a class', `<ol>
+      <li><b>Play it yourself</b> takes you into the simulation as a student sees it. Worth doing once before you teach with it.</li>
+      <li><b>Run a session</b> opens the console for a live class: it gives you a five-character code, puts people into groups, and holds a clock you can freeze.</li>
+      <li>Students in this course reach it from their own page — they do not need the session code unless you are running one.</li>
+      <li><b>Who has played</b> shows who finished, how long they took, and a short summary the simulation reports back. Not a transcript; students keep their own.</li>
+      <li>The expected number is a forecast, not a limit. Nobody is turned away.</li>
+    </ol>`)}
+    ${F.addSim ? `<div class="panel" style="padding:15px 16px;margin-bottom:12px">
+      ${notAdded.length ? `
+      <div class="field">
+        <div><label class="f">Simulation</label>
+          <select id="a_sim">${notAdded.map(si => `<option value="${esc(si.id)}">${esc(simLabel(si))}</option>`).join('')}</select></div>
+        <div style="flex:0 0 170px;min-width:170px"><label class="f">Students expected</label><input id="a_seats" type="number" min="1" placeholder="24"></div>
+        <div style="flex:0 0 auto;align-self:flex-end"><button class="btn pri" id="a_go">Add</button></div>
+      </div>
+      <div class="hint" style="margin:0">The number is a forecast, not a limit — nobody is turned away if more enrol.</div>
+      ` : '<p class="hint">Every simulation currently available to you is already in this course.</p>'}
+      <button class="btn sm" id="refresh-sims" style="margin-top:10px">Refresh list</button>
+    </div>` : ''}
+
+    <div class="panel" style="margin-bottom:26px">
+      ${sims.length ? sims.map(x => {
+        const runPct = Number(x.started_runs) ? Math.min(100, Math.round(Number(x.finished_runs)/Number(x.started_runs)*100)) : 0;
+        return `<div class="sim faculty-sim-card">
+          <div class="no">${RapidSimsIdentity.number(x)}</div>
+          <div class="body">
+            <div class="faculty-sim-title-row"><div class="t">${esc(x.title)}${eye(x.sim_id)}</div></div>
+            <div class="faculty-sim-kpis">
+              <div class="faculty-sim-kpi"><b>${x.started||0}</b><span>Students started</span></div>
+              <div class="faculty-sim-kpi"><b>${x.finished||0}</b><span>Students finished</span></div>
+              <div class="faculty-sim-kpi"><b>${x.started_runs||0}</b><span>Run starts</span></div>
+              <div class="faculty-sim-kpi"><b>${x.finished_runs||0}</b><span>Runs finished</span></div>
+              ${x.expected_seats ? `<div class="faculty-sim-kpi"><b>${x.expected_seats}</b><span>Expected</span></div>` : ''}
+            </div>
+            <div class="faculty-run-progress" title="${x.finished_runs||0} of ${x.started_runs||0} started runs completed"><i style="width:${runPct}%"></i></div>
+          </div>
+          <div class="side faculty-sim-side">
+            <div class="faculty-sim-actions">
+              ${['rapid-03-midland','rapid-05-approve'].includes(x.sim_id)
+                ? `<a class="btn pri sm" href="/api/launch?sim=${encodeURIComponent(x.sim_id)}&course=${encodeURIComponent(course.id)}&mode=session&play=team">Run groups</a>
+                   <a class="btn sm" href="/api/launch?sim=${encodeURIComponent(x.sim_id)}&course=${encodeURIComponent(course.id)}&mode=session&play=individual">Run individual</a>`
+                : `<a class="btn pri sm" href="/api/launch?sim=${encodeURIComponent(x.sim_id)}&course=${encodeURIComponent(course.id)}&mode=session">Run a session</a>`}
+              <a class="btn sm" href="/api/launch?sim=${encodeURIComponent(x.sim_id)}&course=${encodeURIComponent(course.id)}">Play it yourself</a>
+              <button class="btn sm faculty-result-btn" data-prog="${esc(x.sim_id)}">Who has played</button>
+              <button class="btn sm" data-seats="${esc(x.sim_id)}" data-cur="${x.expected_seats||''}">Expected number</button>
+              <button class="btn sm danger" data-rmsim="${esc(x.sim_id)}">Remove</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('') : '<div class="empty">None yet. Add one above, then share the join link with your students.</div>'}
+    </div>
+
+    <div class="section"><span>Students ${helpBtn('access')}</span>
+      <span style="font-family:var(--serif);text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink3)">
+        ${waiting.length ? `${waiting.length} waiting for access` : (active.length ? 'Everyone enrolled has access' : '')}</span></div>
+
+    ${explain('access', 'Enrolling and releasing', `<ol>
+      <li>Send the link below. Anyone with it can enrol — one link per course, covering every simulation in it, so nobody joins twice.</li>
+      <li>They appear here as <b>waiting</b>. They can see what is coming but cannot open anything.</li>
+      <li>Give them access once their registration is settled. Payment happens outside this system, so this switch is yours.</li>
+      <li>Their page changes by itself within a few seconds — they do not need to reload or be told.</li>
+      <li>The note is for you: it appears beside them so a term later you can see why they were released.</li>
+      <li><b>Take access away</b> stops them starting anything new; it does not undo a run already played.</li>
+    </ol>`)}
+    <div class="note faculty-share">
+      <div class="faculty-share-copy"><b>Students join this course with one link.</b> Send it once; it covers every simulation in the course. <span class="faculty-join-code">${esc(course.join_code)}</span></div>
+      <div class="copyrow"><input id="eurl" readonly value="${esc(enrolUrl)}"><button class="btn" id="ecopy">Copy</button></div>
+    </div>
+
+    <div class="toolbar faculty-roster-toolbar">
+      <div class="search"><input data-q="ros" type="text" placeholder="Search this course's students" value="${esc(F.q.ros||'')}"></div>
+      <input id="p_note" class="faculty-note-input" placeholder="note, e.g. dept PO 4471">
+      <button class="btn" id="p_sel" ${F.sel.size?'':'disabled'}>Give access to ${F.sel.size||''} selected</button>
+      <button class="btn pri" id="p_all" ${waiting.length?'':'disabled'}>${waiting.length?`Give access to all ${waiting.length}`:'Nobody waiting'}</button>
+    </div>
+
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr><th style="width:30px"></th><th style="width:26%">Student</th><th style="width:1%">Access</th><th>Note</th>
+        <th class="num">Joined</th><th>Run activity</th><th class="act"></th></tr></thead>
+      <tbody>
+      ${shown.length ? shown.map(r => `<tr style="${r.dropped?'opacity:.5':''}">
+        <td data-l="" style="width:1%">${r.dropped ? '' : `<input type="checkbox" data-en="${esc(r.enrolment_id)}" ${F.sel.has(r.enrolment_id)?'checked':''}>`}</td>
+        <td data-l="Student"><div class="nm">${esc(r.name)}</div><div class="sub">${esc(r.email)}</div></td>
+        <td data-l="Access">${r.dropped ? dot('off','removed') : dot(r.paid?'ok':'warn', r.paid?'released':'waiting')}</td>
+        <td data-l="Note" class="meta">${r.paid_note ? esc(r.paid_note) : '<span class="dim">—</span>'}</td>
+        <td data-l="Joined" class="num">${when(r.created_at)}</td>
+        <td data-l="Run activity"><div class="faculty-run-activity"><div><b>${r.started || 0}</b><span>Started</span></div><div><b>${r.finished || 0}</b><span>Finished</span></div></div></td>
+        <td data-l="" class="act">
+          <button class="btn sm faculty-result-btn" data-student-results="${esc(r.student_id)}">Results</button>
+          ${r.dropped ? `<button class="btn sm" data-drop="${esc(r.enrolment_id)}" data-now="1">Put back</button>`
+            : `${r.paid ? `<button class="btn sm" data-revoke="${esc(r.enrolment_id)}">Take access</button>`
+                        : `<button class="btn sm" data-give="${esc(r.enrolment_id)}">Give access</button>`}
+               <button class="btn sm" data-drop="${esc(r.enrolment_id)}" data-now="0">Remove</button>`}
+        </td>
+      </tr>`).join('') : `<tr><td colspan="7" class="empty">${roster.length ? 'Nobody matches that.' : 'Nobody has joined yet. Share the link above.'}</td></tr>`}
+      </tbody></table></div>
+      <div class="foot">
+        <span class="info">${rosterPg.total} shown · ${active.length} enrolled · ${active.filter(r=>r.paid).length} released</span>
+        ${pagerControls('ros', rosterPg.page, rosterPg.pages)}
+      </div>
+    </div>
+    ${F.err ? `<div class="hint" style="color:var(--rose)">${esc(F.err)}</div>` : ''}`;
+
+  document.getElementById('back').onclick = loadHome;
+  document.getElementById('ce').onclick = () => { F.editCourse = !F.editCourse; render(); };
+  const eg = document.getElementById('e_go');
+  if (eg) eg.onclick = async () => {
+    const done = acting(eg, 'Saving…');
+    try { await api('/api/faculty', { action:'update_course', courseId:course.id,
+        title: document.getElementById('e_t').value, term: document.getElementById('e_m').value });
+      done(); F.editCourse = false; openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  };
+  document.getElementById('ca').onclick = async () => {
+    if (!confirm('Archive this course?\n\nIt disappears from your list and nobody new can join, but nothing is deleted and the record of who played what survives.')) return;
+    const b = document.getElementById('ca'); const done = acting(b, 'Archiving…');
+    try { await api('/api/faculty', { action:'update_course', courseId:course.id, archived:true }); done(); loadHome(); }
+    catch (e) { done('Failed','bad'); }
+  };
+  document.getElementById('cd').onclick = async () => {
+    if (!confirm('Delete this course?\n\nEveryone enrolled loses it. If students have already played, archive it instead — that keeps the record.')) return;
+    const b = document.getElementById('cd'); const done = acting(b, 'Deleting…');
+    try { await api('/api/faculty', { action:'delete_course', courseId:course.id }); done(); loadHome(); }
+    catch (e) {
+      if (confirm(e.message + '\n\nDelete it anyway?')) {
+        await api('/api/faculty', { action:'delete_course', courseId:course.id, force:true }); done(); loadHome();
+      } else done('Kept','bad');
+    }
+  };
+  const as = document.getElementById('as');
+  if (as) as.onclick = () => {
+    if (F.addSim) { F.addSim = false; render(); return; }
+    return refreshSimulationChoices(as);
+  };
+  const refreshSims = document.getElementById('refresh-sims');
+  if (refreshSims) refreshSims.onclick = () => refreshSimulationChoices(refreshSims);
+  const ag = document.getElementById('a_go');
+  if (ag) ag.onclick = async () => {
+    const done = acting(ag, 'Adding…');
+    try { await api('/api/faculty', { action:'add_sim', courseId:course.id,
+        simId: document.getElementById('a_sim').value, expectedSeats: document.getElementById('a_seats').value });
+      done(); F.addSim = false; openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  };
+  document.getElementById('ecopy').onclick = () => {
+    const f = document.getElementById('eurl'); f.select(); navigator.clipboard.writeText(f.value);
+    flash(document.getElementById('ecopy'), 'Copied');
+  };
+  app.querySelectorAll('[data-prog]').forEach(b => b.onclick = () => openProgress(course.id, b.dataset.prog));
+  app.querySelectorAll('[data-student-results]').forEach(b => b.onclick = () => openStudentResults(course.id, b.dataset.studentResults));
+  app.querySelectorAll('[data-seats]').forEach(b => b.onclick = async () => {
+    const v = prompt('How many students do you expect for this simulation?\n\nA forecast, not a limit — nobody is turned away if more enrol.', b.dataset.cur || '');
+    if (v === null) return;
+    const done = acting(b, 'Saving…');
+    try { await api('/api/faculty', { action:'add_sim', courseId:course.id, simId:b.dataset.seats, expectedSeats:v });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  });
+  app.querySelectorAll('[data-rmsim]').forEach(b => b.onclick = async () => {
+    if (!confirm('Remove this simulation from the course?\n\nStudents lose access to it; nothing they have already done is deleted.')) return;
+    const done = acting(b, 'Removing…');
+    try { await api('/api/faculty', { action:'remove_sim', courseId:course.id, simId:b.dataset.rmsim });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  });
+  app.querySelectorAll('[data-en]').forEach(cb => cb.onchange = () => {
+    cb.checked ? F.sel.add(cb.dataset.en) : F.sel.delete(cb.dataset.en); render(); });
+  const pAll = document.getElementById('p_all');
+  if (pAll) pAll.onclick = async () => {
+    const done = acting(pAll, 'Giving access…');
+    try { await api('/api/faculty', { action:'set_paid', courseId:course.id, all:true, paid:true,
+        note: document.getElementById('p_note').value });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  };
+  const pSel = document.getElementById('p_sel');
+  if (pSel) pSel.onclick = async () => {
+    const done = acting(pSel, 'Giving access…');
+    try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:true,
+        enrolmentIds:[...F.sel], note: document.getElementById('p_note').value });
+      done(); F.sel.clear(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  };
+  app.querySelectorAll('[data-give]').forEach(b => b.onclick = async () => {
+    const done = acting(b, 'Giving…');
+    try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:true,
+        enrolmentIds:[b.dataset.give], note: document.getElementById('p_note').value });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  });
+  app.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
+    if (!confirm('Take access away? If they have already played, that does not undo it.')) return;
+    const done = acting(b, 'Removing…');
+    try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:false, enrolmentIds:[b.dataset.revoke] });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  });
+  app.querySelectorAll('[data-drop]').forEach(b => b.onclick = async () => {
+    const done = acting(b, 'Saving…');
+    try { await api('/api/faculty', { action:'set_dropped', courseId:course.id,
+        enrolmentId:b.dataset.drop, dropped: b.dataset.now !== '1' });
+      done(); openCourse(course.id); }
+    catch (e) { done('Failed','bad'); }
+  });
+  wireCommon();
+}
+
+function renderTranscript(env, recordedAt) {
+  const events = Array.isArray(env.events) ? env.events : [];
+  const transitions = Array.isArray(env.transitions) ? env.transitions : [];
+  const reachability = Array.isArray(env.reachability) ? env.reachability : [];
+  return `<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700;color:var(--ink)">Instructor transcript · ${events.length} questions</summary>
+    <div class="sub" style="margin:7px 0 10px">Recorded ${esc(when(recordedAt))}. Answers remain in the simulation; this view stores questions, classifications and state changes.</div>
+    ${events.length ? `<div class="metrics">${events.map(e => `<div style="display:block"><span>#${esc(e.ordinal)} · ${esc(e.actorLabel)} · ${esc(e.classificationLabel || e.classification)}</span><b style="display:block;margin-top:3px;white-space:normal">${esc(e.input)}</b><span>${esc(e.cost && e.cost.amount)} seconds · ${esc(e.cost && e.cost.remaining)} remaining</span></div>`).join('')}</div>` : '<div class="dim">No interview events were recorded.</div>'}
+    ${transitions.length ? `<div style="margin-top:10px"><b>State changes</b><div class="metrics">${transitions.map(t => `<div><span>${esc(t.kind)}</span><b>${esc(t.label)}</b></div>`).join('')}</div></div>` : ''}
+    ${reachability.length ? `<div style="margin-top:10px"><b>Evidence reached</b><div class="metrics">${reachability.map(x => `<div><span>${esc(x.actorLabel)}</span><b>${esc(x.label)} — ${x.held ? 'held' : esc(x.blockedBy || 'missed')}</b></div>`).join('')}</div></div>` : ''}</details>`;
+}
+
+/* ── one student's progress/results across the course ───────────────────── */
+function completionHistory(r) {
+  const h = Array.isArray(r.completion_history) ? r.completion_history : [];
+  if (h.length <= 1) return '';
+  const cards = h.map((x,i) => {
+    const m = x.metrics && typeof x.metrics === 'object' ? x.metrics : {};
+    let sum = '';
+    if (x.summary) {
+      try { const p = JSON.parse(x.summary); sum = p && typeof p === 'object' ? `<pre style="white-space:pre-wrap;font:12px/1.5 var(--mono);margin-top:7px">${esc(JSON.stringify(p,null,2))}</pre>` : `<div class="sub" style="margin-top:7px;white-space:pre-wrap">${esc(x.summary)}</div>`; }
+      catch { sum = `<div class="sub" style="margin-top:7px;white-space:pre-wrap">${esc(x.summary)}</div>`; }
+    }
+    return `<div style="border-top:1px solid var(--line);padding:10px 0"><div class="sub"><b>Run ${h.length-i}</b> · ${esc(new Date(x.completed_at).toLocaleString())}${x.duration_seconds?' · '+Math.round(x.duration_seconds/60)+' min':''}</div>${Object.keys(m).length?`<div class="metrics" style="margin-top:7px">${Object.entries(m).map(([k,v])=>`<div><span>${esc(k)}</span><b>${esc(typeof v==='object'?JSON.stringify(v):v)}</b></div>`).join('')}</div>`:''}${sum}</div>`;
+  }).join('');
+  return `<details style="margin-top:12px"><summary>All ${h.length} completed runs</summary>${cards}</details>`;
+}
+function renderStudentResults() {
+  const { course, student, rows } = F.studentResults;
+  const started = rows.reduce((n,r) => n + Number(r.starts||0), 0);
+  const finished = rows.reduce((n,r) => n + Number(r.completions||0), 0);
+  const filtered = rows.filter(r => matches('studentResults', [simLabel(r), r.completed_at ? 'finished' : Number(r.starts)>0 ? 'started' : 'not started']));
+  const pg = paginate(filtered, 'studentResults');
+  const shown = pg.rows;
+  const mins = s => s ? Math.round(s/60) + ' min' : '—';
+  app.innerHTML = `
+    <div class="crumb"><a id="backCourse">← ${esc(course.title)}</a></div>
+    <div class="head"><div><h1>${esc(student.name)}</h1><div class="sub" style="font-size:12px;margin-top:5px">${esc(student.email)}</div></div></div>
+    <div class="strip">
+      <div class="cell"><div class="n">${rows.length}</div><div class="l">Simulations</div></div>
+      <div class="cell"><div class="n">${started}</div><div class="l">Runs started</div></div>
+      <div class="cell"><div class="n">${finished}</div><div class="l">Runs finished</div></div>
+    </div>
+    <div class="section"><span>Results</span><span style="font-family:var(--serif);text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink3)">Latest result from each simulation · every completed run is retained</span></div>
+    <div class="toolbar faculty-internal-toolbar"><div class="search"><input data-q="studentResults" type="text" placeholder="Filter simulations or status" value="${esc(F.q.studentResults||'')}"></div></div>
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr><th style="width:27%">Simulation</th><th style="width:13%">Status</th><th>What came back</th></tr></thead>
+      <tbody>${shown.length ? shown.map(r => {
+        const m = r.metrics || {};
+        const status = r.completed_at ? dot('ok', Number(r.completions)>1 ? `finished ×${r.completions}` : 'finished') : Number(r.starts) > 0 ? dot('warn','started') : dot('off','not started');
+        let summary = '';
+        if (r.summary) {
+          const raw = String(r.summary);
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') summary = `<details style="margin-top:10px"><summary>Simulation summary</summary><pre style="white-space:pre-wrap;font:12px/1.5 var(--mono);margin-top:8px">${esc(JSON.stringify(parsed,null,2))}</pre></details>`;
+            else summary = `<div class="sub" style="margin-top:8px;white-space:pre-wrap">${esc(raw)}</div>`;
+          } catch { summary = `<div class="sub" style="margin-top:8px;white-space:pre-wrap">${esc(raw)}</div>`; }
+        }
+        return `<tr>
+          <td data-l="Simulation" style="vertical-align:top"><div class="nm">${esc(simLabel(r))}</div><div class="sub">${Number(r.starts)||0} launch${Number(r.starts)===1?'':'es'} · ${Number(r.completions)||0} completion${Number(r.completions)===1?'':'s'}</div></td>
+          <td data-l="Status" style="vertical-align:top">${status}${r.completed_at?`<div class="sub" style="margin-top:5px">${when(r.completed_at)} · ${mins(r.duration_seconds)}</div>`:''}</td>
+          <td data-l="What came back" style="vertical-align:top">
+            ${Object.keys(m).length ? `<div class="metrics">${Object.entries(m).map(([k,v]) => `<div><span>${esc(k)}</span><b>${esc(typeof v==='object'?JSON.stringify(v):v)}</b></div>`).join('')}</div>` : ''}
+            ${summary}
+            ${completionHistory(r)}
+            ${r.transcript ? renderTranscript(r.transcript, r.transcript_recorded_at) : ''}
+            ${!Object.keys(m).length && !r.summary && !r.transcript ? `<span class="dim" style="font-size:13.5px">${r.completed_at ? 'Finished, but this simulation reported no result detail.' : Number(r.starts)>0 ? 'Started but has not reached the end yet.' : 'Not started.'}</span>` : ''}
+          </td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="3" class="empty">${rows.length ? 'Nothing matches that filter.' : 'No simulations are attached to this course.'}</td></tr>`}</tbody>
+    </table></div><div class="foot"><span class="info">${pg.total} simulation${pg.total===1?'':'s'} shown</span>${pagerControls('studentResults', pg.page, pg.pages)}</div></div>`;
+  document.getElementById('backCourse').onclick = () => openCourse(course.id);
+  wireCommon();
+}
+
+/* ── who has played ─────────────────────────────────────────────────────── */
+function renderPlayed() {
+  const { sim, course, rows } = F.progress;
+  const active = rows.filter(r => !r.dropped);
+  const done = active.filter(r => r.completed_at);
+  const started = active.filter(r => Number(r.starts) > 0 && !r.completed_at);
+  const runStarts = active.reduce((n,r) => n + Number(r.starts||0), 0);
+  const runFinishes = active.reduce((n,r) => n + Number(r.completions||0), 0);
+  const filtered = rows.filter(r => matches('played', [r.name, r.email, r.completed_at ? 'finished' : Number(r.starts)>0 ? 'started' : !r.paid ? 'not released' : 'not started']));
+  const pg = paginate(filtered, 'played');
+  const shown = pg.rows;
+  const mins = s => s ? Math.round(s/60) + ' min' : '—';
+  app.innerHTML = `
+    <div class="crumb"><a id="back">← ${esc(course.title)}</a></div>
+    <div class="head"><div>
+      <h1>${esc(sim ? sim.title : 'Simulation')}</h1>
+      <div class="sub" style="font-size:12px;margin-top:5px">${esc(course.title)}</div>
+    </div></div>
+    <div class="strip" style="border-top:1px solid var(--line);margin-bottom:22px">
+      <div class="cell"><div class="n">${done.length}</div><div class="l">Students finished</div></div>
+      <div class="cell"><div class="n">${started.length}</div><div class="l">Students in progress</div></div>
+      <div class="cell"><div class="n">${active.length - done.length - started.length}</div><div class="l">Not started</div></div>
+      <div class="cell"><div class="n">${runStarts}</div><div class="l">Run starts</div></div>
+      <div class="cell"><div class="n">${runFinishes}</div><div class="l">Runs finished</div></div>
+    </div>
+    <div class="toolbar faculty-internal-toolbar"><div class="search"><input data-q="played" type="text" placeholder="Filter students or status" value="${esc(F.q.played||'')}"></div></div>
+    <div class="panel"><div class="tablewrap"><table>
+      <thead><tr>
+        <th style="width:30%">Student</th>
+        <th>What came back</th>
+      </tr></thead>
+      <tbody>
+      ${shown.length ? shown.map(r => {
+        const m = r.metrics || {};
+        const st = r.dropped ? ['off','removed']
+          : r.completed_at ? ['ok','finished']
+          : Number(r.starts) > 0 ? ['warn','started']
+          : !r.paid ? ['off','not released'] : ['off','not started'];
+        return `<tr style="${r.dropped?'opacity:.5':''}">
+          <td data-l="Student" style="vertical-align:top">
+            <div class="nm">${esc(r.name)}</div>
+            <div class="sub">${esc(r.email)}</div>
+            <div class="sub" style="margin-top:4px">${Number(r.starts)||0} run start${Number(r.starts)===1?'':'s'} · ${Number(r.completions)||0} finish${Number(r.completions)===1?'':'es'}</div>
+            <div style="margin-top:7px">${dot(st[0], st[1])}</div>
+            ${r.completed_at ? `<div class="sub" style="margin-top:4px">${when(r.completed_at)}${mins(r.duration_seconds) ? ' · ' + mins(r.duration_seconds) : ''}</div>` : ''}
+          </td>
+          <td data-l="What came back" style="vertical-align:top">
+            ${Object.keys(m).length
+              ? `<div class="metrics">${Object.entries(m).map(([k,v]) =>
+                  `<div><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}</div>`
+              : `<span class="dim" style="font-size:13.5px">${r.completed_at ? 'Finished, but reported nothing.'
+                  : Number(r.starts) > 0 ? 'Started but has not reached the end yet.'
+                  : !r.paid ? 'Waiting for you to give them access.'
+                  : 'Has not opened it yet.'}</span>`}
+            ${r.transcript ? renderTranscript(r.transcript, r.transcript_recorded_at) : ''}
+          </td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="2" class="empty">${rows.length ? 'Nothing matches that filter.' : 'Nobody enrolled yet.'}</td></tr>`}
+      </tbody></table></div>
+      <div class="foot"><span class="info">${pg.total} shown · ${done.length} of ${active.length} students finished</span>${pagerControls('played', pg.page, pg.pages)}</div>
+    </div>
+    <div class="hint" style="margin-top:12px">Completion summaries appear for every simulation. Simulations that support instructor transcripts also show questions, classifications, timing, state changes and evidence reached.</div>`;
+  document.getElementById('back').onclick = () => openCourse(course.id);
+  wireCommon();
+}
+
+// Opened over whatever the facilitator was doing, so closing it puts them back
+// exactly where they were rather than on a page they have to navigate out of.
+function wireLook() {
+  app.querySelectorAll('[data-look]').forEach(b => b.onclick = () => {
+    F.looking = b.dataset.look; drawLook();
+  });
+}
+function drawLook() {
+  const old = document.getElementById('lookSheet');
+  if (old) old.remove();
+  document.body.classList.remove('sheet-open');
+  if (!F.looking) return;
+
+  const sim = (F.data.catalogue || []).find(x => x.id === F.looking);
+  const sheet = document.createElement('div');
+  sheet.className = 'sheet';
+  sheet.id = 'lookSheet';
+  sheet.setAttribute('role', 'dialog');
+  sheet.setAttribute('aria-modal', 'true');
+  sheet.setAttribute('aria-label', sim ? sim.title : 'Simulation preview');
+  sheet.innerHTML = `<div class="inner">
+    <div class="close"><button class="btn sm" id="lookClose">Close</button></div>
+    ${sim ? simDetailHTML(sim, { forFaculty: true })
+          : '<div class="empty">That simulation is not in your list any more.</div>'}
+  </div>`;
+  document.body.appendChild(sheet);
+  document.body.classList.add('sheet-open');
+
+  const shut = () => {
+    F.looking = null;
+    document.removeEventListener('keydown', onKey);
+    document.body.classList.remove('sheet-open');
+    sheet.remove();
+  };
+  const onKey = (e) => { if (e.key === 'Escape') shut(); };
+  document.getElementById('lookClose').onclick = shut;
+  sheet.onclick = (e) => { if (e.target === sheet) shut(); };
+  document.addEventListener('keydown', onKey);
+  document.getElementById('lookClose').focus();
+}
+
+function wireHelp() {
+  app.querySelectorAll('[data-help]').forEach(b => b.onclick = () => {
+    F.help = F.help === b.dataset.help ? null : b.dataset.help; render(); });
+}
+function wireCommon() {
+  wireHelp();
+  wireLook();
+  app.querySelectorAll('[data-q]').forEach(i => i.oninput = () => {
+    const k = i.dataset.q; F.q[k] = i.value; F.page[k] = 1; render();
+    const again = app.querySelector(`[data-q="${k}"]`);
+    if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+  });
+  app.querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+    const [k,v] = b.dataset.f.split(':'); F.filter[k] = v; F.page[k] = 1; render(); });
+  wirePager();
+}
+
+(async () => {
+  try {
+    const me = await api('/api/auth', { action:'me' });
+    if (!me.user) { location.href = '/signin.html'; return; }
+    if (me.user.role === 'student') { location.href = '/student.html'; return; }
+    F.me = me.user;
+    document.getElementById('who').textContent = me.user.name +
+      (me.user.role === 'admin' ? ' · administrator, teaching view' : ' · facilitator');
+    if (me.user.role === 'admin') document.getElementById('adminlink').style.display = '';
+  } catch (e) { location.href = '/signin.html'; return; }
+  const requestedCourse = new URLSearchParams(location.search).get('course');
+  // render() needs the overview before it can display any course.
+  await loadHome();
+  if (requestedCourse && F.data) await openCourse(requestedCourse);
+})();
+</script>
+</body>
+</html>
+

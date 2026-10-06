@@ -1,0 +1,40 @@
+const assert=require('node:assert/strict');const {createHmac}=require('node:crypto');
+const store=require('../lib/store.js'),handler=require('../api/session.js');
+const copy=v=>v==null?v:structuredClone(v),sessions=new Map(),participants=new Map(),runs=new Map();
+const originals={...store},nativeFetch=global.fetch,oldSecret=process.env.LAUNCH_SECRET;
+store.configured=()=>true;store.putSession=async(c,v)=>sessions.set(c,copy(v));store.getSession=async c=>copy(sessions.get(c));
+store.getParticipants=async c=>copy(participants.get(c)||{});store.getRuns=async c=>copy(runs.get(c)||{});
+require('./roster-fixture.js').installRosterTransactions(store,sessions,participants);
+process.env.LAUNCH_SECRET='roster-test-secret-not-production';
+const token=(sub='faculty',role='faculty',course='course-a')=>{const body=Buffer.from(JSON.stringify({sub,role,name:sub,course,sim:'rapid-03-midland',mode:'session',exp:Date.now()+60000})).toString('base64url');return body+'.'+createHmac('sha256',process.env.LAUNCH_SECRET).update(body).digest('base64url');};
+let students=[{participantId:'platform:a',name:'Same Name',accessReleased:true},{participantId:'platform:b',name:'Same Name',accessReleased:true},{participantId:'platform:c',name:'Unapproved Student',accessReleased:false}];
+let offline=false;
+global.fetch=async()=>{if(offline)throw Object.assign(new Error('Course temporarily unavailable'),{status:503});return new Response(JSON.stringify({students}),{status:200,headers:{'Content-Type':'application/json'}});};
+let checks=0;const eq=(a,b,m)=>{assert.deepEqual(a,b,m);checks++;};
+async function call(body,auth=token()){const req={method:'POST',headers:{'x-launch-token':auth},body};const res={statusCode:200,status(n){this.statusCode=n;return this;},json(d){this.data=d;return this;},end(){return this;}};await handler(req,res);return {status:res.statusCode,body:res.data};}
+(async()=>{try{
+ let r=await call({action:'create',mode:'team'});const code=r.body.session.code;
+ r=await call({action:'faculty_enrolments',code});eq(r.status,200);eq(r.body.added,2,'approved users imported before student launch');
+ eq(Object.keys(participants.get(code)),['platform:a','platform:b']);eq(participants.get(code)['platform:a'].joinedAt,null,'approval must not claim attendance');
+ r=await call({action:'faculty_enrolments',code});eq(r.body.added,0,'repeat polling does not duplicate students');
+ r=await call({action:'group',code,assign:{'platform:a':'Team 1','platform:b':'Team 1'}});eq(r.status,200,'groups can be prepared before anyone joins');
+ const assigned=copy(participants.get(code));runs.set(code,{'team:team-1':{runId:'team:team-1',strategicView:'Saved view',done:false}});
+ r=await call({action:'faculty_enrolments',code});eq(participants.get(code),assigned,'sync preserves all existing team and lead assignments');eq(runs.get(code)['team:team-1'].strategicView,'Saved view');
+ r=await call({action:'group',code,assign:{'platform:invented':'Team 1'}});eq(r.status,404,'posted IDs cannot manufacture roster entries');
+ r=await call({action:'control',code,set:'start'});eq(r.status,200,'start does not require student attendance');
+ r=await call({action:'join',code},token('a','student'));eq(r.status,200);eq(r.body.me.groupId,'team:team-1','late launch loads existing group');eq(r.body.me.isCaptain,true);eq(r.body.me.joinedAt>0,true,'actual attendance begins at join');
+ const joined=copy(participants.get(code)['platform:a']);r=await call({action:'join',code},token('a','student'));eq(r.body.me,joined,'reload preserves first attendance and assignment');
+ r=await call({action:'control',code,set:'start'});eq(r.status,409,'double start cannot restart an existing session');
+ students[2].accessReleased=true;r=await call({action:'faculty_enrolments',code});eq(r.body.added,1,'late approval appears automatically');eq(participants.get(code)['platform:c'].groupId,null,'late arrivals never reshuffle existing groups');eq(participants.get(code)['platform:a'],joined);
+ r=await call({action:'faculty_enrolments',code},token('a','student'));eq(r.status,401,'student cannot import/read the faculty roster');
+ r=await call({action:'faculty_enrolments',code},token('faculty','faculty','other-course'));eq(r.status,403,'course boundaries retained');
+ r=await call({action:'faculty_enrolments',code},token('other-teacher'));eq(r.status,403,'owner boundaries retained');
+ offline=true;r=await call({action:'faculty_enrolments',code});eq(r.status,503);r=await call({action:'faculty_state',code});eq(r.status,200,'roster outage does not interrupt saved results');offline=false;
+ const closed=sessions.get(code);closed.state='closed';students.push({participantId:'platform:d',name:'Later student',accessReleased:true});
+ r=await call({action:'faculty_enrolments',code});eq(!!participants.get(code)['platform:d'],false,'closed session is a preserved result, not a new roster');
+ // Race: import/assignment between a join read and commit must make join retry.
+ closed.state='running';const realCAS=store.compareAndSetParticipant;let raced=false;
+ store.compareAndSetParticipant=async(...args)=>{if(!raced){raced=true;participants.get(code)['platform:c'].groupId='team:team-1';participants.get(code)['platform:c'].teamLabel='Team 1';}return realCAS(...args);};
+ r=await call({action:'join',code},token('c','student'));eq(r.status,200);eq(r.body.me.groupId,'team:team-1','concurrent assignment survives first launch');
+ console.log(`Course-roster checks passed (${checks} assertions: pre-launch grouping, idempotency, attendance, identity, access, late approval, outage and join race).`);
+}finally{Object.assign(store,originals);global.fetch=nativeFetch;if(oldSecret===undefined)delete process.env.LAUNCH_SECRET;else process.env.LAUNCH_SECRET=oldSecret;}})().catch(e=>{console.error(e);process.exitCode=1;});

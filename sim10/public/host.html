@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!--BASE-->
+<script>
+// The browser path is authoritative: a platform rewrite may serve this page
+// with a server-injected base for the sim's own domain, while the visible URL
+// still lives under /sim10/.
+const mount = /^\/sim10(?:\/|$)/.test(location.pathname) ? '/sim10/' : '/';
+let base = document.querySelector('base');
+if (!base) { base = document.createElement('base'); document.head.appendChild(base); }
+base.href = mount;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set up a session</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap narrow">
+  <h1>Set up a session</h1>
+  <form id="denied" class="panel" hidden>
+    <p>Open this sim from RapidSims as faculty to set up a session, or enter your facilitator code.</p>
+    <div class="field"><label for="fcode">Facilitator code</label><input id="fcode" type="text" autocomplete="off"></div>
+    <p class="error" id="ferr" role="alert"></p>
+    <button class="btn" type="submit">Continue</button>
+  </form>
+  <form id="setup" hidden>
+    <fieldset class="field" style="border:0;padding:0;margin:0 0 22px">
+      <legend>How will students work?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="mode" value="individual"><span>Individually<br><span class="muted">Each student makes and explains one call.</span></span></label>
+        <label class="choice"><input type="radio" name="mode" value="team"><span>In teams<br><span class="muted">Each member makes a private call, then the team agrees one.</span></span></label>
+      </div>
+    </fieldset>
+    <div class="field" id="teams-field" hidden>
+      <label for="teams">Number of teams</label>
+      <input type="number" id="teams" min="2" max="30" value="">
+    </div>
+    <fieldset class="field" style="border:0;padding:0;margin:0 0 22px">
+      <legend>How many companies?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="cases" value="A"><span>One company<br><span class="muted">Longer reading time; one reveal.</span></span></label>
+        <label class="choice"><input type="radio" name="cases" value="A,B"><span>Two companies, one after the other<br><span class="muted">The second starts only after the first reveal ends.</span></span></label>
+      </div>
+    </fieldset>
+    <p class="error" id="err" role="alert"></p>
+    <button class="btn" type="submit">Create session</button>
+  </form>
+</main>
+<script src="common.js"></script>
+<script>
+(async () => {
+  const { faculty } = await api('GET', 'api/whoami').catch(() => ({ faculty: false }));
+  if (!faculty) {
+    const d = $('#denied'); d.hidden = false;
+    d.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      sessionStorage.setItem('s10-faculty', $('#fcode').value.trim());
+      const r = await api('GET', 'api/whoami').catch(() => ({ faculty: false }));
+      if (r.faculty) location.reload(); else { sessionStorage.removeItem('s10-faculty'); $('#ferr').textContent = 'That code is not on the facilitator list.'; }
+    });
+    return;
+  }
+  const form = $('#setup'); form.hidden = false;
+  form.addEventListener('change', () => { $('#teams-field').hidden = form.mode.value !== 'team'; });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); $('#err').textContent = '';
+    if (!form.mode.value) { $('#err').textContent = 'Choose how students will work.'; return; }
+    if (!form.cases.value) { $('#err').textContent = 'Choose one company or two.'; return; }
+    try {
+      const s = await api('POST', 'api/session', { mode: form.mode.value, cases: form.cases.value.split(','), teams: form.mode.value === 'team' ? Number($('#teams').value) : undefined });
+      localStorage.setItem(`s10host:${s.code}`, s.hostKey);
+      rememberLaunch(s.code);
+      location.href = `console?code=${s.code}`;
+    } catch (e2) { $('#err').textContent = e2.message; }
+  });
+})();
+</script>
+</body>
+</html>

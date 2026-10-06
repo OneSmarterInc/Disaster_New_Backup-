@@ -1,0 +1,40 @@
+name: simplus02-checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'simplus02/**'
+      - '.github/workflows/simplus02-checks.yml'
+  pull_request:
+    paths:
+      - 'simplus02/**'
+      - '.github/workflows/simplus02-checks.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: simplus02
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm run build
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install disposable browser dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/simplus02-browser" --no-audit --no-fund playwright@1
+          "$RUNNER_TEMP/simplus02-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Verify the complete class flow in Chromium
+        run: NODE_PATH="$RUNNER_TEMP/simplus02-browser/node_modules" node simplus02/tools/browser-check.js

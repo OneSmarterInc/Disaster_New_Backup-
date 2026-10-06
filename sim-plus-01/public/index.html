@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapidsimplus-01' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RapidSim+ — Why Don't They Have Any Patience?</title>
+  <script>
+    window.SIM_BASE = (location.pathname.match(/^\/(?:rapidsims\d+|simplus\d+|sim\d+)/) || [''])[0];
+    document.write('<link rel="stylesheet" href="' + window.SIM_BASE + '/app.css">');
+    document.write('<link rel="stylesheet" href="' + window.SIM_BASE + '/flow.css">');
+  </script>
+</head>
+<body>
+  <div id="app"><div class="boot">Opening the simulation…</div></div>
+  <!-- Participant state is restored by the server-backed client, not browser observation storage. -->
+  <script>document.write('<script src="' + window.SIM_BASE + '/client.js"><\/script>');</script>
+</body>
+</html>

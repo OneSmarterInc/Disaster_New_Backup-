@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapid-08-later' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eighteen Months Later</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524;--panel:#161E2E;--raise:#1D2637;--line:#2B3548;--line2:#3A4659;
+  --bone:#E8E4DA;--soft:#C9C6BE;--dim:#8C95A8;--dimmer:#616B7E;
+  --amber:#F0A63C;--amberDeep:#8A6427;--rose:#CE7C8D;
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--night);color:var(--bone)}
+body{font-family:var(--serif);font-size:17px;line-height:1.6}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.hidden{display:none!important}
+
+header{display:flex;align-items:center;gap:24px;padding:16px 28px;border-bottom:1px solid var(--line)}
+.brand{margin-right:auto;font-size:18px;font-weight:500}
+.brand small{display:block;font:12px var(--mono);color:var(--dimmer);font-weight:400}
+.track{display:flex;gap:4px;align-items:center}
+.track span{width:34px;height:6px;background:var(--line)}
+.track span.now{background:var(--amber)}
+.track span.ship{background:var(--soft)}
+.track span.decl{background:transparent;border:1px solid var(--soft)}
+.clock{font:600 26px var(--mono);color:var(--amber);min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
+.clock small{display:block;font:400 11px var(--mono);color:var(--dimmer);text-align:right}
+
+main{width:min(1120px,calc(100% - 40px));margin:0 auto;padding:44px 0 80px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:44px;align-items:start}
+.lead{max-width:62ch}
+.kicker{font:13px var(--mono);color:var(--amber);margin-bottom:12px}
+h1.request{font-size:clamp(28px,3.4vw,40px);font-weight:400;line-height:1.18;letter-spacing:-.01em;margin-bottom:22px}
+h2{font-size:30px;font-weight:400;line-height:1.2;margin-bottom:18px}
+p.body{color:var(--soft);margin-bottom:14px}
+.facts{margin:26px 0 30px;border-top:1px solid var(--line)}
+.facts div{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.facts dt{font:13px var(--mono);color:var(--dim);padding-top:3px}
+.facts dd{color:var(--bone)}
+
+.decide{display:flex;gap:12px;flex-wrap:wrap}
+.btn{border:1px solid var(--line2);padding:13px 26px;font:500 15px var(--mono);color:var(--bone);transition:background .12s,border-color .12s}
+.btn:hover{border-color:var(--soft)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206}
+.btn.pri:hover{background:#FFB94E}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.confirm{border:1px solid var(--amberDeep);background:rgba(240,166,60,.07);padding:18px 20px;max-width:560px}
+.confirm p{margin-bottom:14px}
+.note{border-left:2px solid var(--line2);padding:12px 16px;color:var(--soft);margin:18px 0;max-width:62ch}
+.note.warn{border-left-color:var(--amber)}
+.note.bad{border-left-color:var(--rose);color:#E3B9C2}
+
+.outcome{font-size:24px;margin-bottom:6px}
+.outcome small{display:block;font:13px var(--mono);color:var(--dim);margin-top:4px}
+.cost{border:1px solid var(--line2);padding:18px 20px;margin-top:22px;max-width:62ch}
+.cost h3{font:500 13px var(--mono);color:var(--dim);margin-bottom:8px}
+
+
+.track span.done{background:var(--soft)}
+table.short{width:100%;border-collapse:collapse;margin:14px 0 26px;font-size:15.5px}
+table.short th,table.short td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.short th{font:500 12px var(--mono);color:var(--dim)}
+table.short td.num{font:14px var(--mono);white-space:nowrap}
+table.short .nm{font-size:17px;color:var(--bone)}
+table.short .rep{display:block;font:12px var(--mono);color:var(--dimmer)}
+.wide{overflow-x:auto}
+.demo{border-left:2px solid var(--line2);padding:10px 16px;margin:12px 0;color:var(--soft);max-width:70ch}
+.demo b{display:block;font:500 12px var(--mono);color:var(--dim);margin-bottom:4px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:40px;align-items:start}
+.menu{list-style:none;border-top:1px solid var(--line)}
+.menu li{border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.menu li span{color:var(--soft);font-size:16px}
+.menu li.spent span{color:var(--dimmer);text-decoration:line-through}
+.menu .btn{padding:6px 12px;font-size:12.5px;flex:none}
+.left{font:500 14px var(--mono);color:var(--amber);margin:6px 0 14px}
+.qa{border:1px solid var(--line2);background:var(--panel);margin-bottom:16px}
+.qa h3{font-size:17px;font-weight:500;padding:12px 16px;border-bottom:1px solid var(--line)}
+.qa h3 small{display:block;font:12px var(--mono);color:var(--dimmer);font-weight:400}
+.qa div{padding:10px 16px;border-bottom:1px solid var(--line);color:var(--soft);font-size:15.5px}
+.qa div:last-child{border-bottom:0}
+.qa div b{display:block;font:500 12px var(--mono);color:var(--dim)}
+.pick{display:grid;gap:10px;max-width:640px;margin:18px 0}
+.pick button{border:1px solid var(--line2);padding:14px 16px;text-align:left;font-size:17px}
+.pick button:hover{border-color:var(--soft)}
+.pick button.mine{border-color:var(--amber);background:rgba(240,166,60,.07)}
+.pick button:disabled{cursor:default}
+.report p{font-size:19px;line-height:1.65;max-width:64ch;margin-bottom:16px}
+.recap{margin-top:30px;border-top:1px solid var(--line);max-width:64ch}
+.recap h3{font:500 13px var(--mono);color:var(--amber);margin:18px 0 8px}
+.recap li{color:var(--soft);margin:0 0 6px 20px}
+.join{max-width:460px}
+.field{margin-top:18px}
+.field label{display:block;font:13px var(--mono);color:var(--dim);margin-bottom:6px}
+.field input{width:100%;background:var(--night);border:1px solid var(--line2);padding:12px 13px}
+@media(max-width:860px){.cols{grid-template-columns:1fr}header{flex-wrap:wrap;padding:14px 18px}.track span{width:22px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Eighteen Months Later<small id="sub">Brookfield Veterinary</small></div>
+  <div class="track" id="track" aria-hidden="true"></div>
+  <div class="clock" id="clock" aria-live="off"></div>
+</header>
+<main id="app" aria-live="polite"></main>
+<script src="platform-launch.js"></script>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(_,k)=>k in v?v[k]:'');
+
+function entryParam(k){return new URLSearchParams(location.hash.slice(1)).get(k)||new URLSearchParams(location.search).get(k)}
+let ACCESS_CODE=entryParam('code')||sessionStorage.getItem('m08-access')||null;
+if(ACCESS_CODE)sessionStorage.setItem('m08-access',ACCESS_CODE);
+const INITIAL_SESSION=(new URLSearchParams(location.search).get('session')||'').trim().toUpperCase();
+const tokenKey='m08-lt:'+(INITIAL_SESSION||'solo');
+const LAUNCH_TOKEN=entryParam('lt')||sessionStorage.getItem(tokenKey)||null;
+if(LAUNCH_TOKEN)sessionStorage.setItem(tokenKey,LAUNCH_TOKEN);
+let LAUNCH=null;
+if(LAUNCH_TOKEN){try{LAUNCH=JSON.parse(atob(LAUNCH_TOKEN.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')))}catch{}}
+if(LAUNCH_TOKEN||entryParam('code')){
+  const keep=new URLSearchParams(location.search);keep.delete('lt');keep.delete('code');
+  history.replaceState(null,'',location.pathname+(keep.toString()?'?'+keep.toString():''));
+}
+
+let CFG=null;
+const S={code:INITIAL_SESSION,pid:'',session:null,view:null,shown:'',confirming:null,busy:false,error:'',
+  syncedAt:0,remaining:0,poll:null,tick:null,reported:false,solo:false};
+
+function friendly(code){return({
+  session_not_running:CFG?.copy.waitingForStart,session_paused:CFG?.copy.paused,
+  phase_closed:'That part of the session has closed.',already_asked:'That question has already been asked.',
+  budget_spent:CFG?.copy.remainingNone,already_voted:'Your vote is already in.',team_not_assigned:CFG?.copy.waitingForTeam,
+  teams_locked:'This team session has already started. Ask your instructor to add you to the next one.',
+  session_closed:CFG?.copy.sessionClosed,no_such_session:'That session code was not found. Check it with your instructor.',
+  name_required:'Enter your name to join.',platform_signin_required:'Open this session from RapidSims to join it.'
+})[code]||''}
+
+async function request(path,payload,method='POST'){
+  const headers={'Content-Type':'application/json'};
+  if(LAUNCH_TOKEN)headers['x-launch-token']=LAUNCH_TOKEN;
+  else if(ACCESS_CODE)headers['x-access-code']=ACCESS_CODE;
+  const opt={method,headers};if(method!=='GET')opt.body=JSON.stringify(payload||{});
+  const r=await fetch(BASE+path,opt);let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||friendly(d.error)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+const sessionApi=p=>request('/api/session',p);
+
+async function init(){
+  if(!LAUNCH_TOKEN&&BASE==='/sim08'&&new URLSearchParams(location.search).get('guest')!=='1'){
+    const entry=await platformLaunch('rapid-08-later');
+    if(entry.status==='launched')return;
+    if(entry.status==='not_entitled'){
+      app.innerHTML=`<div class="note bad">${esc(entry.message)}</div><p><a href="/student.html">Back to your courses</a></p>`;
+      return;
+    }
+  }
+  try{CFG=await request('/api/config'+(INITIAL_SESSION?'?session='+encodeURIComponent(INITIAL_SESSION):''),null,'GET')}
+  catch(e){
+    if(INITIAL_SESSION&&['platform_signin_required','launch_token_invalid'].includes(e.code)){
+      sessionStorage.removeItem(tokenKey);
+      location.replace(BASE+'/api/join?session='+encodeURIComponent(INITIAL_SESSION));return;
+    }
+    if(e.code==='access_code_required'&&!LAUNCH_TOKEN){
+      sessionStorage.removeItem('m08-access');
+      app.innerHTML=`<div class="note bad">An access code is required to open this simulation.</div><button class="btn pri" id="acc">Enter access code</button>`;
+      document.getElementById('acc').onclick=()=>location.assign(BASE+'/launch.html');return;
+    }
+    app.innerHTML=`<div class="note bad">${esc(e.message)}</div><button class="btn" onclick="location.reload()">Try again</button>`;return;
+  }
+  if(S.code){
+    if(LAUNCH?.sub){
+      try{const d=await sessionApi({action:'join',code:S.code});S.pid=d.participantId;localStorage.setItem('m08-pid:'+S.code,S.pid)}
+      catch(e){S.error=e.message;return renderJoin()}
+    }else{
+      S.pid=localStorage.getItem('m08-pid:'+S.code)||'';
+      if(!S.pid)return renderJoin();
+    }
+    try{await poll()}catch{S.pid='';localStorage.removeItem('m08-pid:'+S.code);return renderJoin()}
+  }else{
+    // Direct launch: one private run with its own clock, resumed on refresh.
+    const soloKey='m08-solo'+(LAUNCH?.sub?':'+LAUNCH.sub+':'+(LAUNCH.course||''):'');
+    let saved=null;try{saved=JSON.parse(sessionStorage.getItem(soloKey)||'null')}catch{}
+    S.solo=true;
+    if(saved){S.code=saved.code;S.pid=saved.pid;try{await poll()}catch{saved=null}}
+    if(!saved){
+      try{const d=await sessionApi({action:'solo'});S.code=d.code;S.pid=d.participantId;sessionStorage.setItem(soloKey,JSON.stringify({code:S.code,pid:S.pid}));await poll()}
+      catch(e){app.innerHTML=`<div class="note bad">${esc(e.message)}</div>`;return}
+    }
+  }
+  S.poll=setInterval(()=>poll().catch(()=>{}),2000);
+  S.tick=setInterval(tickClock,250);
+}
+
+function renderJoin(){
+  app.innerHTML=`<section class="join"><h2>Join the session</h2>
+  <p class="body">${INITIAL_SESSION?'Enter your name to join your class.':'Enter your name and the code on your instructor\'s screen.'}</p>
+  ${S.error?`<div class="note bad">${esc(S.error)}</div>`:''}
+  <div class="field"><label for="jn">Name</label><input id="jn" autocomplete="name" value="${esc(LAUNCH?.name||'')}" ${LAUNCH?.sub?'readonly':''}></div>
+  ${INITIAL_SESSION?`<input id="jc" type="hidden" value="${esc(S.code)}">`:`<div class="field"><label for="jc">Session code</label><input id="jc" maxlength="5" autocomplete="off" value="${esc(S.code)}"></div>`}
+  <div class="decide" style="margin-top:20px"><button class="btn pri" id="jb">Join session</button></div></section>`;
+  document.getElementById('jb').onclick=join;
+}
+async function join(){
+  const name=document.getElementById('jn').value.trim(),code=document.getElementById('jc').value.trim().toUpperCase();
+  try{
+    const d=await sessionApi({action:'join',code,name,participantId:localStorage.getItem('m08-pid:'+code)||undefined});
+    S.code=code;S.pid=d.participantId;localStorage.setItem('m08-pid:'+code,S.pid);S.error='';
+    const q=new URLSearchParams(location.search);q.set('session',code);history.replaceState(null,'',location.pathname+'?'+q);
+    await poll();clearInterval(S.poll);S.poll=setInterval(()=>poll().catch(()=>{}),2000);clearInterval(S.tick);S.tick=setInterval(tickClock,250);
+  }catch(e){S.error=e.message;renderJoin()}
+}
+
+async function poll(){
+  const d=await sessionApi({action:'state',code:S.code,participantId:S.pid});
+  S.session=d.session;S.view=d.view;S.syncedAt=performance.now();S.remaining=d.view.clock.remaining;
+  const v=d.view,key=JSON.stringify([d.session.state,d.session.paused,v.clock.phase,v.clock.closed,v.asked,v.canAsk,v.myVendorVote,v.canVoteVendor,v.vendor,v.myPlanVote,v.canVotePlan,v.report,v.team]);
+  if(key!==S.shown){S.shown=key;if(!(v.canAsk||v.canVoteVendor||v.canVotePlan))S.confirming=null;render()}
+  if(v.report&&LAUNCH_TOKEN&&!S.reported&&!S.reporting){
+    S.reporting=true;
+    request('/api/finish',{code:S.code,participantId:S.pid}).then(d=>{S.reported=!!d.reported||!!d.reason}).catch(()=>{}).finally(()=>{S.reporting=false});
+  }
+}
+window.addEventListener('pagehide',()=>{clearInterval(S.poll);clearInterval(S.tick)});
+
+function tickClock(){
+  const v=S.view,el=document.getElementById('clock');if(!v){el.innerHTML='';return}
+  const c=v.clock;
+  if(['lobby','report'].includes(c.phase)||c.closed){el.innerHTML='';return}
+  const left=c.paused?S.remaining:Math.max(0,S.remaining-(performance.now()-S.syncedAt)/1000);
+  const m=Math.floor(left/60),s=Math.floor(left%60);
+  el.innerHTML=`${m}:${String(s).padStart(2,'0')}<small>${esc(c.paused?'Paused':CFG.copy.phaseLabels[c.phase]||'')}</small>`;
+}
+const PHASES=['briefing','demos','questions','commit','plan','report'];
+function track(){
+  const v=S.view,at=PHASES.indexOf(v.clock.phase);
+  document.getElementById('track').innerHTML=PHASES.map((p,i)=>`<span class="${i<at?'done':i===at?'now':''}"></span>`).join('');
+  document.getElementById('sub').textContent=v.team?`${CFG.practice.name} · ${v.team.label||'Your team'}`:CFG.practice.name;
+}
+const money=n=>'$'+Number(n).toLocaleString('en-US');
+const vname=k=>(S.view.vendors||[]).find(v=>v.key===k)?.name||'';
+function shortlist(){
+  const rows=(S.view.vendors||[]).map(v=>`<tr><td><span class="nm">${esc(v.name)}</span><span class="rep">${esc(v.rep)}</span></td><td>${esc(v.pitch)}</td><td>${esc(v.implementation)}</td><td class="num">${money(v.fee)}<br>+ ${money(v.monthly)}/mo</td><td class="num">${money(v.threeYear)}</td></tr>`).join('');
+  return `<div class="wide"><table class="short"><thead><tr><th>Vendor</th><th>Proposal</th><th>Implementation</th><th>Price</th><th>Three-year quote</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function demos(){return (S.view.demos||[]).map(d=>`<div class="demo"><b>${esc(vname(d.vendor))}</b>${esc(d.text)}</div>`).join('')}
+function answersBlock(){
+  const a=S.view.asked||[];
+  if(!a.length)return `<p class="body">${esc(CFG.copy.answersEmpty)}</p>`;
+  return a.slice().reverse().map(q=>`<section class="qa"><h3>${esc(q.text)}${q.by?`<small>${esc(fill(CFG.copy.askedBy,{name:q.by}))}</small>`:''}</h3>${q.answers.map(x=>`<div><b>${esc(vname(x.vendor))}</b>${esc(x.text)}</div>`).join('')}</section>`).join('');
+}
+
+function render(){
+  const v=S.view,c=v.clock;track();tickClock();
+  const paused=c.paused?`<div class="note warn">${esc(CFG.copy.paused)}</div>`:'';
+  const err=S.error?`<div class="note bad">${esc(S.error)}</div>`:'';
+  if(c.closed&&c.phase!=='report'){app.innerHTML=`<div class="note">${esc(CFG.copy.sessionClosed)}</div>`;return}
+  if(c.phase==='lobby'){
+    const wait=S.session.mode==='team'&&!v.team?.label?CFG.copy.waitingForTeam:CFG.copy.waitingForStart;
+    app.innerHTML=`<div class="lead"><div class="kicker">Session ${esc(S.session.code)}</div><h2>You're in.</h2><p class="body">${esc(wait)}</p></div>`;return;
+  }
+  if(v.team&&!v.team.assigned&&c.phase!=='briefing'){app.innerHTML=`<div class="note">${esc(CFG.copy.waitingForTeam)}</div>`;return}
+  if(c.phase==='briefing'){
+    const extra=S.session.mode==='team'?CFG.briefing.teamExtra:CFG.briefing.individualExtra;
+    app.innerHTML=`${paused}<div class="lead"><div class="kicker">${esc(CFG.practice.name)}</div><h2>${esc(CFG.briefing.heading)}</h2>${CFG.briefing.paragraphs.map(p=>`<p class="body">${esc(p)}</p>`).join('')}<p class="body">${esc(extra)}</p></div><h3 class="kicker" style="margin-top:28px">${esc(CFG.copy.proposalsHeading)}</h3>${shortlist()}`;return;
+  }
+  if(c.phase==='demos'){
+    app.innerHTML=`${paused}<div class="kicker">${esc(CFG.copy.demosHeading)}</div><h2>${esc(CFG.copy.demosLead)}</h2>${demos()}<h3 class="kicker" style="margin-top:28px">${esc(CFG.copy.proposalsHeading)}</h3>${shortlist()}`;return;
+  }
+  if(c.phase==='questions')return renderQuestions(paused,err);
+  if(c.phase==='commit')return renderCommit(paused,err);
+  if(c.phase==='plan')return renderPlan(paused,err);
+  renderReport(paused);
+}
+
+function renderQuestions(paused,err){
+  const v=S.view,team=S.session.mode==='team';
+  const left=v.left>0?fill(CFG.copy.remaining,{n:v.left,of:v.budget}):CFG.copy.remainingNone;
+  const items=v.menu.map(q=>{
+    if(S.confirming&&S.confirming.q===q.id)return `<li><div class="confirm" role="group" aria-label="Confirm question"><p>${esc(q.text)}</p><p>${esc(CFG.copy.confirmAsk)}${team?' '+esc(CFG.copy.confirmTeam):''}</p><div class="decide"><button class="btn pri" id="yes">${esc(CFG.copy.go)}</button><button class="btn" id="no">${esc(CFG.copy.back)}</button></div></div></li>`;
+    return `<li class="${q.asked?'spent':''}"><span>${esc(q.text)}</span>${q.asked?'':`<button class="btn" data-q="${esc(q.id)}" ${v.canAsk&&!S.busy?'':'disabled'}>Ask</button>`}</li>`;
+  }).join('');
+  app.innerHTML=`${paused}<div class="cols"><section><div class="kicker">${esc(CFG.copy.menuHeading)}</div><p class="body">${esc(CFG.copy.menuLead)}</p><div class="left">${esc(left)}</div>${err}<ul class="menu">${items}</ul></section>
+  <section><div class="kicker">${esc(CFG.copy.answersHeading)}</div>${answersBlock()}<h3 class="kicker" style="margin-top:22px">${esc(CFG.copy.proposalsHeading)}</h3>${shortlist()}</section></div>`;
+  app.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{S.confirming={q:b.dataset.q};S.error='';render();document.getElementById('yes')?.focus()});
+  const yes=document.getElementById('yes'),no=document.getElementById('no');
+  if(no)no.onclick=()=>{S.confirming=null;render()};
+  if(yes)yes.onclick=()=>act({action:'ask',question:S.confirming.q});
+}
+function choiceBlock(kind,options,mine,can,confirmText,votedText){
+  const conf=S.confirming&&S.confirming.kind===kind?S.confirming:null;
+  if(mine)return `<div class="pick">${options.map(o=>`<button class="${o.key===mine?'mine':''}" disabled>${esc(o.text)}</button>`).join('')}</div><div class="note">${esc(votedText)}</div>`;
+  if(conf){const o=options.find(x=>x.key===conf.choice);return `<div class="confirm" role="group" aria-label="Confirm your choice"><p>${esc(o.text)}</p><p>${esc(fill(confirmText,{vendor:o.text}))}</p><div class="decide"><button class="btn pri" id="yes">${esc(CFG.copy.go)}</button><button class="btn" id="no">${esc(CFG.copy.back)}</button></div></div>`}
+  return `<div class="pick">${options.map(o=>`<button data-k="${esc(o.key)}" ${can&&!S.busy?'':'disabled'}>${esc(o.text)}</button>`).join('')}</div>`;
+}
+function wireChoice(kind){
+  app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{S.confirming={kind,choice:b.dataset.k};S.error='';render();document.getElementById('yes')?.focus()});
+  const yes=document.getElementById('yes'),no=document.getElementById('no');
+  if(no)no.onclick=()=>{S.confirming=null;render()};
+  if(yes)yes.onclick=()=>act({action:'vote',kind,choice:S.confirming.choice});
+}
+function renderCommit(paused,err){
+  const v=S.view,team=S.session.mode==='team';
+  const opts=v.vendors.map(x=>({key:x.key,text:x.name}));
+  app.innerHTML=`${paused}<div class="cols"><section><div class="kicker">${esc(CFG.copy.commitHeading)}</div><p class="body">${esc(CFG.copy.commitLead)}${team?' '+esc(CFG.copy.commitTeam):''}</p>${err}
+  ${choiceBlock('vendor',opts,v.myVendorVote,v.canVoteVendor,CFG.copy.confirmVendor,CFG.copy.votedVendor)}${shortlist()}</section>
+  <section><div class="kicker">${esc(CFG.copy.answersHeading)}</div>${answersBlock()}</section></div>`;
+  wireChoice('vendor');
+}
+function renderPlan(paused,err){
+  const v=S.view,team=S.session.mode==='team';
+  app.innerHTML=`${paused}<div class="cols"><section><div class="kicker">${esc(CFG.copy.planHeading)}</div><h2>${esc(fill(CFG.copy.planLead,{vendor:v.vendor.name}))}</h2>${team?`<p class="body">${esc(CFG.copy.commitTeam)}</p>`:''}${err}
+  ${choiceBlock('plan',v.plans,v.myPlanVote,v.canVotePlan,CFG.copy.confirmPlan,CFG.copy.votedPlan)}</section>
+  <section><div class="kicker">${esc(CFG.copy.answersHeading)}</div>${answersBlock()}</section></div>`;
+  wireChoice('plan');
+}
+async function act(payload){
+  if(S.busy)return;S.busy=true;
+  try{const d=await sessionApi({...payload,code:S.code,participantId:S.pid});S.view=d.view;S.error=''}
+  catch(e){S.error=e.message}
+  finally{S.busy=false;S.confirming=null;S.shown='';render()}
+}
+function renderReport(paused){
+  const v=S.view,r=v.report;
+  if(!r){app.innerHTML=`<div class="note">${esc(CFG.copy.waitingForTeam)}</div>`;return}
+  const qs=(v.asked||[]).length?`<ol>${v.asked.map(q=>`<li>${esc(q.text)}</li>`).join('')}</ol>`:`<p class="body">${esc(CFG.copy.noneSpent)}</p>`;
+  app.innerHTML=`${paused}<div class="report"><div class="kicker">${esc(CFG.copy.reportKicker)}</div><h2>${esc(fill(CFG.copy.reportChose,{vendor:r.vendor}))}</h2><p>${esc(r.text)}</p></div>
+  <div class="recap"><h3>${esc(CFG.copy.youAsked)}</h3>${qs}<h3>${esc(CFG.copy.yourPlan)}</h3><p class="body">${esc(r.plan||CFG.copy.noPlanChosen)}</p></div>`;
+}
+
+init();
+</script>
+</body>
+</html>

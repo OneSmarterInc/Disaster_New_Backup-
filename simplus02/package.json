@@ -1,0 +1,7 @@
+{
+  "name": "rapidsimplus-02-wire",
+  "private": true,
+  "description": "Who Pays for the Wire? RapidSim+ 02",
+  "engines": { "node": ">=20" },
+  "scripts": { "build": "node tools/build-gate.js", "test": "node tools/build-gate.js" }
+}

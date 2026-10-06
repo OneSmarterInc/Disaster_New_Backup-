@@ -1,0 +1,13 @@
+{
+  "name": "rapidsimplus-claims-interview",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node test/run.js && node test/engine.test.js && node test/report.test.js && node test/api.test.js && node test/client-contract.test.js && node test/identity.test.js && node guard.js",
+    "playtest": "node playtest.js",
+    "check": "npm test && npm run playtest"
+  }
+}

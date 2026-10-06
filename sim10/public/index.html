@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapid-10-bubble' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+<meta charset="utf-8">
+<!--BASE-->
+<script>
+// The browser path is authoritative: a platform rewrite may serve this page
+// with a server-injected base for the sim's own domain, while the visible URL
+// still lives under /sim10/.
+const mount = /^\/sim10(?:\/|$)/.test(location.pathname) ? '/sim10/' : '/';
+let base = document.querySelector('base');
+if (!base) { base = document.createElement('base'); document.head.appendChild(base); }
+base.href = mount;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infrastructure or Bubble?</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="wrap narrow">
+  <h1>Infrastructure or Bubble?</h1>
+  <form id="access-gate" autocomplete="off" hidden>
+    <p>Enter the access code supplied by your instructor or administrator.</p>
+    <div class="field"><label for="entry-code">Access code</label><input id="entry-code" type="password" autocomplete="off" required></div>
+    <p class="error" id="entry-error" role="alert"></p>
+    <button class="btn" id="entry-open" type="submit">Open simulation</button>
+  </form>
+  <div id="entry-options" hidden>
+  <section id="solo" hidden>
+    <h2>Play on your own</h2>
+    <p>Read the figures, make your call, then explore what happened. Your reading and decision timers start when you begin.</p>
+    <form id="solo-form">
+      <div class="field"><label for="solo-cases">How many companies?</label>
+        <select id="solo-cases" required><option value="">Choose one or two</option><option value="A">One company</option><option value="A,B">Two companies, one after the other</option></select>
+      </div>
+      <div class="field" id="solo-access-field" hidden><label for="solo-access">Access code</label><input id="solo-access" type="text" autocomplete="off"></div>
+      <p class="error" id="solo-error" role="alert"></p>
+      <button class="btn" id="solo-start" type="submit">Start a new run</button>
+      <button class="btn" id="solo-resume" type="button" hidden>Resume your run</button>
+    </form>
+    <p><a href="host" id="host-link" hidden>Run a class session</a></p>
+    <hr>
+  </section>
+  <h2>Join a class session</h2>
+  <p class="muted">Enter the code your host shows on screen.</p>
+  <form id="join" autocomplete="off">
+    <div class="field">
+      <label for="code">Session code</label>
+      <input id="code" class="code-input" type="text" maxlength="5" inputmode="text" required>
+    </div>
+    <div class="field" id="access-field" hidden>
+      <label for="access">Class access code</label>
+      <input id="access" type="text" autocomplete="off">
+    </div>
+    <div class="field" id="team-field" hidden>
+      <label for="team">Your team</label>
+      <select id="team"></select>
+    </div>
+    <p class="error" id="err" role="alert"></p>
+    <button class="btn" id="go" type="submit">Join</button>
+  </form>
+  </div>
+  <p class="error" id="entry-status" role="status" hidden></p>
+  <p id="account-link" hidden><a href="/student.html">Back to your courses</a></p>
+  <p><button class="btn" id="manual-access" type="button" hidden>Use a standalone access code</button></p>
+</main>
+<script src="common.js"></script>
+<script>
+const form = $('#join'), codeEl = $('#code'), teamField = $('#team-field'), teamEl = $('#team'), err = $('#err');
+let who = launchInfo(), entryAllowed = false;
+const preset = new URLSearchParams(location.search).get('session');
+if (preset) codeEl.value = preset.toUpperCase();
+const soloResume = $('#solo-resume');
+let savedSolo = null;
+function showEntry() {
+  entryAllowed = true;
+  $('#access-gate').hidden = true;
+  $('#entry-options').hidden = false;
+  $('#solo').hidden = !!preset || who?.mode === 'session';
+  $('#host-link').hidden = !who || !['faculty', 'faculty_preview'].includes(who.role);
+  savedSolo = null;
+  try { savedSolo = JSON.parse(sessionStorage.getItem(soloKey()) || 'null'); } catch {}
+  soloResume.hidden = !savedSolo?.code || !savedSolo?.pid;
+}
+async function verifyEntry() {
+  const button = $('#entry-open'); button.disabled = true;
+  $('#entry-error').textContent = '';
+  try {
+    await api('GET', 'api/access');
+    if (who && ['faculty', 'faculty_preview'].includes(who.role) && who.mode === 'session') { location.replace('host'); return; }
+    showEntry();
+    if (preset && launchToken()) await go();
+  } catch (e) {
+    entryAllowed = false;
+    $('#entry-options').hidden = true;
+    $('#access-gate').hidden = false;
+    if (e.code === 'unauthorized') sessionStorage.removeItem('s10-access');
+    $('#entry-error').textContent = e.code === 'unauthorized' ? 'Enter a valid access code.' : e.message;
+  } finally { button.disabled = false; }
+}
+$('#access-gate').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if ($('#entry-open').disabled) return;
+  const code = $('#entry-code').value.trim();
+  if (!code) { $('#entry-error').textContent = 'Enter your access code.'; return; }
+  // An explicit code entry chooses standalone access, including after an old
+  // platform launch has expired. Verification still happens on the server.
+  sessionStorage.removeItem(launchKey); who = null;
+  sessionStorage.setItem('s10-access', code);
+  await verifyEntry();
+});
+function openRun(run) {
+  if (!entryAllowed) return;
+  sessionStorage.setItem(participantKey(run.code), run.pid);
+  rememberLaunch(run.code);
+  location.href = `play?code=${encodeURIComponent(run.code)}`;
+}
+soloResume.addEventListener('click', () => openRun(savedSolo));
+$('#solo-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!entryAllowed) return;
+  const btn = $('#solo-start'), error = $('#solo-error');
+  if (btn.disabled) return;
+  error.textContent = '';
+  if (!$('#solo-cases').value) { error.textContent = 'Choose one company or two.'; return; }
+  btn.disabled = true;
+  if ($('#solo-access').value.trim()) sessionStorage.setItem('s10-access', $('#solo-access').value.trim());
+  try {
+    const run = await api('POST', 'api/solo', { cases: $('#solo-cases').value.split(',') });
+    sessionStorage.setItem(soloKey(), JSON.stringify(run));
+    openRun(run);
+  } catch (err) {
+    if (err.code === 'unauthorized' && !launchToken()) $('#solo-access-field').hidden = false;
+    error.textContent = err.message;
+  } finally { btn.disabled = false; }
+});
+let info = null;
+codeEl.addEventListener('input', () => { info = null; teamField.hidden = true; err.textContent = ''; });
+async function go() {
+  if (!entryAllowed) return;
+  if ($('#go').disabled) return;
+  $('#go').disabled = true;
+  err.textContent = '';
+  const code = codeEl.value.trim().toUpperCase();
+  if ($('#access').value.trim()) sessionStorage.setItem('s10-access', $('#access').value.trim());
+  try {
+    if (!info) {
+      info = await api('GET', `api/session?code=${encodeURIComponent(code)}`);
+      if (info.platform && !launchToken()) { location.href = info.joinUrl; return; }
+      if (info.mode === 'team' && (launchToken() || !sessionStorage.getItem(participantKey(code)))) {
+        teamEl.innerHTML = '<option value="">Choose your team</option>' + Array.from({ length: info.teams }, (_, i) => `<option value="${i + 1}">Team ${i + 1}</option>`).join('');
+        teamField.hidden = false; teamEl.focus();
+        return;
+      }
+    }
+    if (info.solo) {
+      sessionStorage.setItem(participantKey(code), info.pid);
+      rememberLaunch(code);
+      location.replace(`play?code=${encodeURIComponent(code)}`);
+      return;
+    }
+    if (info.mode === 'team' && !teamField.hidden && !teamEl.value) { err.textContent = 'Choose your team to join.'; return; }
+    if (launchToken() || !sessionStorage.getItem(participantKey(code))) {
+      const j = await api('POST', 'api/join', { code, team: info.mode === 'team' ? Number(teamEl.value) : undefined });
+      sessionStorage.setItem(participantKey(code), j.pid);
+    }
+    rememberLaunch(code);
+    location.href = `play?code=${encodeURIComponent(code)}`;
+  } catch (e2) {
+    if (e2.code === 'unauthorized' && !launchToken()) { $('#access-field').hidden = false; sessionStorage.removeItem('s10-access'); }
+    err.textContent = e2.message;
+  } finally { $('#go').disabled = false; }
+}
+form.addEventListener('submit', (e) => { e.preventDefault(); go(); });
+$('#manual-access').addEventListener('click', () => {
+  const query = new URLSearchParams(location.search); query.set('manual', '1');
+  history.replaceState(null, '', location.pathname + '?' + query.toString());
+  $('#entry-status').hidden = true; $('#account-link').hidden = true; $('#manual-access').hidden = true;
+  $('#access-gate').hidden = false; $('#entry-error').textContent = '';
+});
+async function initEntry() {
+  // A platform invitation goes through account sign-in, not a standalone code.
+  if (preset && !launchToken()) {
+    try {
+      const session = await api('GET', `api/session?code=${encodeURIComponent(preset)}`);
+      if (session.platform) { location.replace(session.joinUrl); return; }
+    } catch (e) {
+      if (e.code === 'forbidden' && /private run/i.test(e.message)) {
+        $('#access-gate').hidden = true;
+        $('#entry-status').hidden = false;
+        $('#entry-status').textContent = 'Checking whether your RapidSims account can resume this private run…';
+        const entry = await platformLaunch('rapid-10-bubble', preset);
+        if (entry.status === 'launched') return;
+        $('#entry-status').hidden = false;
+        $('#entry-status').textContent = entry.status === 'signed_out'
+          ? 'Sign in to RapidSims with the account that started this private run, then reopen this link.'
+          : entry.message || e.message;
+        $('#account-link').hidden = false;
+        return;
+      }
+      $('#entry-status').hidden = false; $('#entry-status').textContent = e.message;
+      $('#access-gate').hidden = true;
+      return;
+    }
+  }
+  const manual = new URLSearchParams(location.search).get('guest') === '1';
+  if (manual && !sessionStorage.getItem('s10-access')) {
+    $('#access-gate').hidden = false;
+    $('#entry-options').hidden = true;
+    $('#entry-status').hidden = true;
+    return;
+  }
+  if (!preset && !launchToken() && !manual && /^\/sim10(?:\/|$)/.test(location.pathname)) {
+    $('#access-gate').hidden = true;
+    $('#entry-status').hidden = false;
+    $('#entry-status').textContent = 'Checking your RapidSims sign-in…';
+    const entry = await platformLaunch('rapid-10-bubble');
+    if (entry.status === 'launched') return;
+    $('#entry-status').hidden = true;
+    if (entry.status === 'not_entitled') {
+      $('#entry-status').hidden = false; $('#entry-status').textContent = entry.message;
+      $('#account-link').hidden = false;
+      return;
+    }
+  }
+  await verifyEntry();
+}
+initEntry();
+</script>
+</body>
+</html>

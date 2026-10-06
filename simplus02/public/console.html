@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+  if (!['localhost', '127.0.0.1'].includes(location.hostname) && q.get('guest') !== '1' && !h.get('lt') && !q.get('lt')) {
+    const entry = new URLSearchParams({ sim: 'rapidsimplus-02' });
+    if (q.get('session') || q.get('code')) entry.set('session', q.get('session') || q.get('code'));
+    if (q.get('course')) entry.set('course', q.get('course'));
+    entry.set('mode', 'session');
+    location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+  }
+})();
+</script>
+<script>
+(() => {
+  const base = document.createElement('base');
+  base.href = /^\/simplus02(?:\/|$)/.test(location.pathname) ? '/simplus02/' : '/';
+  document.head.appendChild(base);
+})();
+</script>
+<script src="common.js"></script>
+<title>Who Pays for the Wire? Instructor console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head>
+<body><main id="app"></main>
+<script>
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const qs = new URLSearchParams(location.search), hs = new URLSearchParams(location.hash.slice(1));
+const launchToken = wireLaunchToken();
+let code = (qs.get('session') || qs.get('code') || '').toUpperCase(), fac = sessionStorage.getItem('wire:fac') || '', c = null, err = '', picked = [], timer = null, skew = 0, revealDetailsOpen = false;
+const LABEL = { top: 'Take-or-pay', term: 'Term', exit: 'Exit fee', coll: 'Collateral', threshold: 'Threshold' };
+const UNIT = { top: '%', term: ' yr', exit: ' yr', coll: ' mo', threshold: ' MW' };
+const WHO = { advocate: 'Hammonds', manufacturers: 'Petrakis', developer: 'Reyes', utility: 'Okafor' };
+
+async function api(action, extra = {}) {
+  const h = { 'content-type': 'application/json' };
+  if (fac) h['x-faculty-code'] = fac; if (launchToken) h['x-launch-token'] = launchToken;
+  const r = await fetch('api/session', { method: 'POST', headers: h, body: JSON.stringify({ action, code, ...extra }) });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'request_failed'); return j;
+}
+const clock = () => { if (!c || !c.phaseEndsAt) return ''; const s = Math.max(0, Math.round((c.phaseEndsAt - (Date.now() + skew)) / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+function start() {
+  app.innerHTML = `<h1>Instructor console</h1><div class="panel" style="max-width:420px">
+  ${launchToken ? '' : `<label for="f">Faculty code</label><input id="f" type="password" value="${esc(fac)}">`}
+  <p style="margin-top:14px"><button class="primary" id="new">Start a new session</button></p>
+  <label for="c">Or reopen a session</label><input id="c" value="${esc(code)}" maxlength="5"><p style="margin-top:10px"><button id="open">Open session</button></p>
+  <p class="err">${esc(err)}</p></div>`;
+  const keep = () => { if ($('#f')) { fac = $('#f').value.trim(); sessionStorage.setItem('wire:fac', fac); } };
+  $('#new').onclick = async () => { keep(); try { code = (await api('create')).code; wireRememberLaunch(code); wireSetRunUrl(code); poll(); } catch (e) { err = e.message === 'faculty_only' ? 'That faculty code was not recognised.' : e.message; start(); } };
+  $('#open').onclick = () => { keep(); code = $('#c').value.trim().toUpperCase(); wireRememberLaunch(code); wireSetRunUrl(code); poll(); };
+}
+
+function controls() {
+  const b = (id, text, primary, disabled = false) => `<button id="${id}" ${primary ? 'class="primary"' : ''} ${disabled ? 'disabled' : ''}>${text}</button> `;
+  switch (c.phase) {
+    case 'lobby': {
+      const waiting = !!(c.walkthrough && c.walkthrough.pending.length);
+      return c.tables.length ? b('next', 'Start briefing', 1, waiting) + (waiting ? b('brief-anyway', 'Start briefing anyway') : '') : b('seat', `Seat the room (${c.joined} joined)`, 1);
+    }
+    case 'briefing': return b('next', 'Start opening statements', 1);
+    case 'openings': return b('next', 'Open negotiation', 1);
+    case 'negotiation': return (c.extended ? '' : b('extend', 'Add 10 minutes')) + b('close', 'Close the sheet now');
+    case 'closed': return b('next', 'Start debrief', 1);
+    case 'debrief': return c.reveal ? b('hide', 'Hide the reveal') : b('reveal', 'Reveal what happened', 1);
+  }
+  return '';
+}
+const NEXT = { lobby: 'briefing', briefing: 'openings', openings: 'negotiation', closed: 'debrief' };
+
+function live() {
+  const invitation = new URL('./', document.baseURI); invitation.searchParams.set('session', code);
+  const claims = wireLaunchClaims(launchToken);
+  if (claims && claims.course) invitation.searchParams.set('course', claims.course);
+  if (!launchToken) invitation.searchParams.set('guest', '1');
+  return `<p>Student invitation: <a href="${esc(invitation.href)}">${esc(invitation.href)}</a></p>
+  ${c.phase === 'lobby' && c.walkthrough ? `<div class="panel"><p class="mono">Walkthrough complete: ${c.walkthrough.finished} of ${c.joined}</p><p class="dim">${c.walkthrough.pending.length ? 'Still reading: ' + esc(c.walkthrough.pending.join(', ')) + '. Wait for them, or choose Start briefing anyway to send them straight to their brief.' : 'Everyone who has joined is ready for the briefing.'}</p></div>` : ''}
+  <div class="wrap"><table><tr><th>Table</th><th>Seats</th><th>Money</th><th>Threshold</th><th>Moves</th><th>Quiet for</th><th>Staff notice</th></tr>
+  ${c.tables.map(t => `<tr><td class="mono">${t.id}</td><td>${t.members.length}</td><td>${t.locked.money ? 'Locked' : 'Open'}</td><td>${t.locked.threshold ? 'Locked' : 'Open'}</td>
+  <td class="mono">${t.moves}</td><td class="mono ${t.stalled ? 'stall' : ''}">${t.minutesSinceActivity} min${t.stalled ? ', stalled' : ''}</td>
+  <td>${c.phase === 'negotiation' ? `<select data-t="${t.id}" aria-label="Notice for ${t.id}"><option value="">Send…</option>${c.staffNotices.map(n => `<option value="${n.id}">${esc(n.label)}</option>`).join('')}</select>` : ''} <span class="dim mono">${t.notices ? t.notices + ' sent' : ''}</span></td></tr>`).join('')}
+  </table></div>${c.unseated.length && c.phase === 'lobby' && c.tables.length ? '' : ''}`;
+}
+
+function projection() {
+  const rows = c.results.map(r => {
+    const settled = r.settled.length === 2 ? 'Both' : r.settled.length ? (r.settled[0] === 'money' ? 'Money' : 'Threshold') : 'Neither';
+    return `<tr class="row ${picked.includes(r.id) ? 'pick' : ''}" data-r="${r.id}"><td class="mono">${r.id}</td>
+    ${Object.keys(LABEL).map(d => `<td>${r.imposed.includes(d) ? `<span class="imposed">${r.terms[d]}${UNIT[d]}</span>` : `<span class="mono">${r.terms[d]}${UNIT[d]}</span>`}</td>`).join('')}
+    <td>${settled}</td><td class="mono">${r.freezeMonths ? r.freezeMonths + ' mo' : ''}</td></tr>`; }).join('');
+  const pf = picked.map(id => c.results.find(r => r.id === id)).filter(Boolean);
+  const side = (title, key) => `<h3>${title}</h3><div class="scen">${pf.map(r => `<div class="panel"><p class="mono dim">${r.id}</p>${Object.keys(WHO).map(k => `<p>${esc(r.playForward[key][k])}</p>`).join('')}</div>`).join('')}</div>`;
+  return `<div class="wrap"><table><tr><th>Table</th>${Object.values(LABEL).map(l => `<th>${l}</th>`).join('')}<th>Settled</th><th>Freeze</th></tr>${rows}</table></div>
+  <p class="dim" style="margin-top:8px">Shaded terms were set by the Commission. Select two tables to play them forward side by side.</p>
+  ${pf.length ? side('If the demand does not arrive', 'misses') + side('If it arrives', 'arrives') : ''}
+  ${c.revealContent ? `<div class="panel" style="margin-top:24px"><h2 style="margin-top:0">${esc(c.revealContent.heading)}</h2>
+  <div class="reveal-summary">${(c.revealContent.projectorParagraphs || c.revealContent.paragraphs).map(p => `<p>${esc(p)}</p>`).join('')}</div>
+  <details id="reveal-details" ${revealDetailsOpen ? 'open' : ''}><summary>Details</summary>
+  ${c.revealContent.paragraphs.map(p => `<p>${esc(p)}</p>`).join('')}<p class="dim">${esc(c.revealContent.facilitatorNote)}</p>
+  <h3>Sources</h3>${(c.revealContent.sources || []).map(s => `<p><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.label)}</a><br><span class="dim">${esc(s.locator)}</span></p>`).join('')}</details></div>` : ''}`;
+}
+
+function render() {
+  if (!c) return start();
+  revealDetailsOpen = c.revealContent ? (document.getElementById('reveal-details')?.open ?? revealDetailsOpen) : false;
+  const projecting = ['closed', 'debrief'].includes(c.phase);
+  app.innerHTML = `<div class="bar"><div><span class="dim mono">Session code</span><div class="big">${esc(c.code)}</div></div>
+  <div style="text-align:right"><div class="mono dim">${esc(c.phase)}</div><div class="clock" id="clock">${clock()}</div></div></div>
+  <p>${controls()}</p><p class="err">${esc(err)}</p>${projecting ? projection() : live()}`;
+  const on = (id, f) => { const el = document.getElementById(id); if (el) el.onclick = f; };
+  on('seat', () => run('seat')); on('next', () => run('phase', { to: NEXT[c.phase] })); on('extend', () => run('extend'));
+  on('brief-anyway', () => {
+    const names = c.walkthrough.pending.join(', ');
+    if (confirm('These students have not finished the walkthrough: ' + names + '.\n\nStart the briefing timer now? They will go straight to their private brief.')) run('phase', { to: 'briefing', skipWalkthrough: true });
+  });
+  on('close', () => { if (confirm('Close the sheet for every table now? Open terms will be set by the Commission.')) run('close'); });
+  on('reveal', () => run('reveal', { on: true })); on('hide', () => run('reveal', { on: false }));
+  app.querySelectorAll('select[data-t]').forEach(el => el.onchange = () => el.value && run('notice', { tableId: el.dataset.t, noticeId: el.value }));
+  app.querySelectorAll('tr[data-r]').forEach(el => el.onclick = () => { const id = el.dataset.r; picked = picked.includes(id) ? picked.filter(x => x !== id) : [...picked, id].slice(-2); render(); });
+}
+async function run(action, extra) { try { await api(action, extra); err = ''; } catch (e) { err = e.message === 'walkthrough_incomplete' ? 'Some students are still reading the walkthrough. The briefing timer has not started.' : e.message; } render(); poll(); }
+async function poll() {
+  clearTimeout(timer);
+  try { const v = await api('console'); skew = v.now - Date.now(); const changed = JSON.stringify(v) !== JSON.stringify(c); c = v; if (changed && document.activeElement.tagName !== 'SELECT') render(); }
+  catch (e) { err = e.message === 'faculty_only' ? 'That faculty code was not recognised.' : e.message === 'no_such_session' ? 'No session with that code.' : e.message; c = null; render(); return; }
+  timer = setTimeout(poll, 3000);
+}
+setInterval(() => { const k = document.getElementById('clock'); if (k) k.textContent = clock(); }, 1000);
+if (code && (fac || launchToken)) poll(); else render();
+</script></body></html>

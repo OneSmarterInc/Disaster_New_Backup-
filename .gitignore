@@ -1,0 +1,13 @@
+# Vercel
+.vercel
+
+# Secrets — never commit these
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules
+npm-debug.log*
+.DS_Store
+desktop.ini

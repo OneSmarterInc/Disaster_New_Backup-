@@ -1,0 +1,84 @@
+name: sim03-browser-checks
+
+on:
+  pull_request:
+    paths:
+      - 'sim03/**'
+      - 'platform/**'
+      - '.github/workflows/sim03-browser-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'sim03/**'
+      - 'platform/**'
+      - '.github/workflows/sim03-browser-checks.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  browser-redis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check a clean sim-only archive with no sibling platform or dependencies
+        run: |
+          mkdir -p "$RUNNER_TEMP/midland-standalone"
+          git archive HEAD sim03 | tar -x -C "$RUNNER_TEMP/midland-standalone"
+          mv "$RUNNER_TEMP/midland-standalone/sim03" "$RUNNER_TEMP/midland-standalone/sim-03"
+          cd "$RUNNER_TEMP/midland-standalone/sim-03"
+          env -u NODE_PATH npm test
+          env -u NODE_PATH -u AGENT_BROWSER_BIN node tools/team-runner-browser-check.js > optional-browser.log 2>&1
+          cat optional-browser.log
+          grep -q 'SKIP:.*NOT RUN' optional-browser.log
+          if env -u NODE_PATH -u AGENT_BROWSER_BIN node tools/team-runner-browser-check.js --required > required-browser.log 2>&1; then
+            echo 'Required browser checks incorrectly passed without prerequisites'; exit 1
+          fi
+          cat required-browser.log
+          grep -q 'FAIL:.*NOT RUN' required-browser.log
+      - name: Install isolated browser-test dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/sim03-browser" --no-audit --no-fund playwright@1 redis@5 agent-browser
+          "$RUNNER_TEMP/sim03-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Full simulation build and regression checks
+        working-directory: sim03
+        run: npm run build
+      - name: Three student browsers, instructor, and real Redis
+        env:
+          TEST_REDIS_URL: redis://127.0.0.1:6379
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          export NODE_PATH="$RUNNER_TEMP/sim03-browser/node_modules"
+          export AGENT_BROWSER_BIN="$RUNNER_TEMP/sim03-browser/node_modules/.bin/agent-browser"
+          node "$RUNNER_TEMP/midland-standalone/sim-03/tools/team-runner-browser-check.js" --required
+      - name: Account sign-in and sign-up session entry
+        run: |
+          export NODE_PATH="$RUNNER_TEMP/sim03-browser/node_modules"
+          export AGENT_BROWSER_BIN="$RUNNER_TEMP/sim03-browser/node_modules/.bin/agent-browser"
+          node platform/tools/sim03-account-entry-browser-check.js
+      - name: Faculty session authorization recovery and form persistence
+        run: |
+          export NODE_PATH="$RUNNER_TEMP/sim03-browser/node_modules"
+          node platform/tools/sim03-faculty-auth-browser-check.js
+      - name: Upload screenshots, browser traces, and test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim03-browser-results
+          path: browser-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Do We Switch? — Instructor</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{--n:#0E1524;--p:#161E2E;--p2:#1D2637;--l:#2B3548;--l2:#3A4659;--b:#E8E4DA;--d:#8C95A8;--dd:#616B7E;--a:#F0A63C;--g:#75A98C;--r:#CE7C8D;--x:#6FA8D6;--s:'Newsreader',Georgia,serif;--m:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--n);color:var(--b);font-family:var(--s);line-height:1.5}
+button,input{font:inherit;color:inherit}button{cursor:pointer;background:none}
+header{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--l)}header h1{font-size:18px;font-weight:500;margin:0 auto 0 0}
+.m{font:10px var(--m);letter-spacing:.13em;text-transform:uppercase;color:var(--dd)}.ey{font:10px var(--m);letter-spacing:.14em;text-transform:uppercase;color:var(--a);margin-bottom:8px}
+.page{width:min(1200px,calc(100% - 32px));margin:auto;padding:30px 0 70px}
+.card{border:1px solid var(--l);background:var(--p);padding:18px;margin-bottom:14px}
+h2{font-size:32px;font-weight:400;margin:0 0 10px}.muted{color:var(--d)}
+.btn{border:1px solid var(--l2);padding:10px 14px;font:11px var(--m);letter-spacing:.1em;text-transform:uppercase;color:var(--d)}
+.btn:hover{border-color:var(--b);color:var(--b)}.pri{background:var(--a);border-color:var(--a);color:#191206;font-weight:600}.danger{border-color:#7d4553;color:#d9a1ae}
+.btn:disabled{opacity:.35;cursor:not-allowed}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mode{border:1px solid var(--l2);padding:14px;text-align:left}.mode.on{border-color:var(--a);background:rgba(240,166,60,.07)}.mode b{display:block;font-weight:500;font-size:17px}.mode span{font-size:13px;color:var(--d)}
+.field{margin-top:12px}.field label{display:block;font:10px var(--m);letter-spacing:.11em;text-transform:uppercase;color:var(--dd);margin-bottom:6px}.field input{width:100%;background:var(--n);border:1px solid var(--l2);padding:9px}
+.code{font:600 52px var(--m);color:var(--a);letter-spacing:.08em}
+.notice{border-left:2px solid var(--a);background:rgba(240,166,60,.06);padding:10px 13px;margin:10px 0;color:#cbc8c0}.bad{border-left-color:var(--r);color:#e1afba}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi{border:1px solid var(--l);background:var(--p2);padding:14px}.kpi b{display:block;font:600 40px var(--m);color:var(--a)}.kpi span{font:10px var(--m);letter-spacing:.09em;text-transform:uppercase;color:var(--dd)}
+.bars{display:flex;gap:6px;align-items:flex-end;height:180px;margin:26px 0 30px}.col{flex:1;display:flex;flex-direction:column-reverse;position:relative;height:100%}
+.seg{width:100%}.sw{background:rgba(206,124,141,.55)}.st{background:rgba(111,168,214,.55)}.col i{position:absolute;top:100%;left:50%;transform:translateX(-50%);font:10px var(--m);color:var(--dd);font-style:normal;margin-top:5px}
+.legend{display:flex;gap:16px;font:10px var(--m);letter-spacing:.08em;text-transform:uppercase;color:var(--d)}.legend span:before{content:'';display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}.lsw:before{background:rgba(206,124,141,.7)}.lst:before{background:rgba(111,168,214,.7)}
+.kv{display:flex;justify-content:space-between;border-bottom:1px solid var(--l);padding:8px 0}.kv b{font:600 20px var(--m);color:var(--a)}
+.join-big{text-align:center;padding-top:8vh}.join-big .code{font-size:14vw}.join-big p{font-size:28px}
+.deb{border-left:2px solid var(--x);padding:6px 0 6px 14px;margin:12px 0}.deb b{display:block;font:10px var(--m);letter-spacing:.12em;text-transform:uppercase;color:var(--x);margin-bottom:4px}
+.present{position:fixed;inset:0;z-index:30;background:var(--n);padding:5vh 6vw;overflow:auto}.present .kpi b{font-size:72px}.present h2{font-size:52px}.present .bars{height:40vh}
+</style>
+</head>
+<body>
+<header><h1>Do We Switch?</h1><span class="m">Instructor view · RapidSim 06</span></header>
+<main class="page" id="app"></main>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const app=document.getElementById('app');
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML}
+const incoming=new URLSearchParams(location.hash.slice(1)).get('lt');
+if(incoming){sessionStorage.setItem('m06-faculty-lt',incoming);history.replaceState(null,'',location.pathname+location.search)}
+const LT=sessionStorage.getItem('m06-faculty-lt')||null;
+let facultyCode=sessionStorage.getItem('m06-fc')||'';
+let mode=['team','individual'].includes(new URLSearchParams(location.search).get('play'))?new URLSearchParams(location.search).get('play'):'';
+let code=localStorage.getItem('m06-faculty-session')||'',st=null,poll=null,err='',present=false;
+async function api(action,extra={}){
+  const h={'Content-Type':'application/json'};if(LT)h['x-launch-token']=LT;
+  const r=await fetch(BASE+'/api/session',{method:'POST',headers:h,body:JSON.stringify({action,code,facultyCode,launchToken:LT,...extra})});
+  let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||d.error||'Request failed');e.data=d;throw e}
+  return d;
+}
+const MSG={faculty_authorization_required:'Your faculty access has expired or is missing. Relaunch this session from your RapidSims faculty dashboard.',not_your_session:'That session belongs to someone else.',no_such_session:'No session with that code. It may have expired after 48 hours.',play_mode_required:'Choose individual or team before creating the session.'};
+function renderSetup(){
+  app.innerHTML=`<div class="card" style="max-width:720px"><div class="ey">New session</div><h2>How will the room play?</h2>
+  <p class="muted">There is no default. Individual suits this sim best: one person decides under a clock. In team mode, whoever presses Switch or Stay first decides for the team.</p>
+  <div class="modes"><button class="mode ${mode==='individual'?'on':''}" data-m="individual"><b>Individual</b><span>Each student decides alone.</span></button>
+  <button class="mode ${mode==='team'?'on':''}" data-m="team"><b>Team</b><span>Students join a named team. First press decides.</span></button></div>
+  ${LT?'':`<div class="field"><label>Facilitator code</label><input id="fc" type="password" value="${esc(facultyCode)}"></div>`}
+  <div class="row"><button class="btn pri" id="create" ${mode?'':'disabled'}>Create session</button></div>
+  ${code?`<div class="row"><span class="muted">Or return to session ${esc(code)}</span><button class="btn" id="resume">Open</button></div>`:''}
+  ${err?`<div class="notice bad">${esc(err)}</div>`:''}</div>`;
+  app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;renderSetup()});
+  const fc=()=>{const el=document.getElementById('fc');if(el){facultyCode=el.value.trim();sessionStorage.setItem('m06-fc',facultyCode)}};
+  document.getElementById('create').onclick=async()=>{fc();try{const d=await api('create',{mode});code=d.session.code;localStorage.setItem('m06-faculty-session',code);err='';watch()}catch(e){err=MSG[e.data?.error]||e.message;renderSetup()}};
+  const rs=document.getElementById('resume');if(rs)rs.onclick=()=>{fc();watch()};
+}
+function watch(){clearInterval(poll);refresh();poll=setInterval(refresh,2000)}
+async function refresh(){
+  try{st=await api('faculty_state');err=''}catch(e){err=MSG[e.data?.error]||e.message;clearInterval(poll);if(e.data?.error==='no_such_session'){localStorage.removeItem('m06-faculty-session');code=''}return renderSetup()}
+  render();
+}
+function clockText(s){if(s.phase==='lobby')return 'Not started';const left=Math.max(0,s.playMs-(s.serverNow-s.startedAt));const m=Math.floor(left/60000),sec=Math.floor(left%60000/1000);return s.phase==='ended'?'Clock ended':`${m}:${String(sec).padStart(2,'0')} left`}
+function pct(v){return v==null?'—':v+'%'}
+function projectorHtml(p){
+  const max=Math.max(1,...p.byReport.map(r=>r.switch+r.stay));
+  const cols=p.byReport.map(r=>`<div class="col"><i>${r.n}</i><div class="seg sw" style="height:${100*r.switch/max}%"></div><div class="seg st" style="height:${100*r.stay/max}%"></div></div>`).join('');
+  const c=p.counts;
+  return `<div class="kpis"><div class="kpi"><b>${c.switched}</b><span>Switched</span></div><div class="kpi"><b>${c.stayed}</b><span>Committed to hold</span></div><div class="kpi"><b>${c.noDecision+c.stillDeciding}</b><span>${c.stillDeciding?'Not yet decided':'No decision'}</span></div></div>
+  <div class="card" style="margin-top:14px"><div class="ey">Decisions by report</div><div class="legend"><span class="lsw">Switched</span><span class="lst">Held</span></div><div class="bars">${cols}</div></div>
+  <div class="card"><div class="ey">Opened both documents before deciding</div>
+  <div class="kv"><span>Everyone who has decided or timed out</span><b>${pct(p.openedBothPct.overall)}</b></div>
+  <div class="kv"><span>Switched</span><b>${pct(p.openedBothPct.switched)}</b></div>
+  <div class="kv"><span>Committed to hold</span><b>${pct(p.openedBothPct.stayed)}</b></div>
+  <div class="kv"><span>No decision</span><b>${pct(p.openedBothPct.noDecision)}</b></div>
+  <p class="muted" style="margin-top:8px">A dash means fewer than three people in that group, hidden so no one can be identified.</p></div>`;
+}
+function render(){
+  const s=st.session;
+  if(present&&!st.projector){app.innerHTML=`<div class="present"><div class="row" style="justify-content:flex-end;margin:0"><button class="btn" id="exit">Exit</button></div><div class="join-big"><div class="ey">Session code</div><div class="code">${esc(s.code)}</div>${s.joinUrl?`<p>${esc(s.joinUrl)}</p>`:'<p>Open the simulation and enter this code.</p>'}<p class="muted">${esc(st.joined)} joined</p></div></div>`;document.getElementById('exit').onclick=()=>{present=false;render()};return}
+  if(present&&st.projector){app.innerHTML=`<div class="present"><div class="row" style="justify-content:space-between;margin:0 0 20px"><h2>${esc(clockText(s))}</h2><button class="btn" id="exit">Exit</button></div>${projectorHtml(st.projector)}</div>`;document.getElementById('exit').onclick=()=>{present=false;render()};return}
+  const join=s.joinUrl?`<p>Students join at <b>${esc(s.joinUrl)}</b></p>`:`<p class="muted">Students open this simulation, enter the access code, then the session code.</p>`;
+  const who=`${st.joined} joined${st.teams!=null?` · ${st.teams} team${st.teams===1?'':'s'}`:''}`;
+  app.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between;margin:0"><div><div class="ey">Session · ${esc(s.mode)} mode</div><div class="code">${esc(s.code)}</div></div><div style="text-align:right"><h2 style="margin:0">${esc(clockText(s))}</h2><div class="m">${esc(who)}</div></div></div>${join}
+  <div class="row">${s.phase==='lobby'?'<button class="btn pri" id="start">Start the clock for the room</button>':''}<button class="btn" id="pres">${st.projector?'Project results':'Project the join code'}</button>${s.state!=='closed'?'<button class="btn danger" id="close">Close to new joiners</button>':'<span class="m">Closed to new joiners</span>'}<button class="btn" id="new">New session</button></div>
+  ${s.phase==='lobby'?'<div class="notice">Let students read the briefing and the two documents first. Starting the clock releases report 1 to everyone at once, and the clock runs ten minutes without pausing.</div>':''}
+  ${err?`<div class="notice bad">${esc(err)}</div>`:''}</div>
+  ${st.debrief?`<div class="card"><div class="ey">Debrief, in this order</div><p class="muted">Keep the map and the carrier's name back until the disagreement has been heard.</p>${st.debrief.map(d=>`<div class="deb"><b>${esc(d.step)}</b>${esc(d.prompt)}</div>`).join('')}</div>`:''}
+  ${st.projector?projectorHtml(st.projector):''}`;
+  const q=id=>document.getElementById(id);
+  if(q('start'))q('start').onclick=async()=>{if(!confirm('Start the ten-minute clock for everyone?'))return;try{await api('control',{set:'start'});refresh()}catch(e){err=e.message;render()}};
+  q('pres').onclick=()=>{present=true;render()};
+  if(q('close'))q('close').onclick=async()=>{try{await api('control',{set:'close'});refresh()}catch(e){err=e.message;render()}};
+  q('new').onclick=()=>{clearInterval(poll);code='';localStorage.removeItem('m06-faculty-session');mode='';renderSetup()};
+}
+if(code&&(LT||facultyCode))watch();else renderSetup();
+</script>
+</body>
+</html>

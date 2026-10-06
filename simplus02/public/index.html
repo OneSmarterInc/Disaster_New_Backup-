@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+  if (!['localhost', '127.0.0.1'].includes(location.hostname) && q.get('guest') !== '1' && !h.get('lt') && !q.get('lt')) {
+    const entry = new URLSearchParams({ sim: 'rapidsimplus-02' });
+    if (q.get('session') || q.get('code')) entry.set('session', q.get('session') || q.get('code'));
+    if (q.get('course')) entry.set('course', q.get('course'));
+    location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+  }
+})();
+</script>
+<script>
+(() => {
+  const base = document.createElement('base');
+  base.href = /^\/simplus02(?:\/|$)/.test(location.pathname) ? '/simplus02/' : '/';
+  document.head.appendChild(base);
+})();
+</script>
+<script src="common.js"></script>
+<title>Who Pays for the Wire?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head>
+<body><main id="app"><p class="dim">Loading…</p></main>
+<script>
+const SEAT = { utility: 'Crestline Power', developer: 'Halvorsen Digital', manufacturers: 'Industrial Energy Users', advocate: 'Consumer Advocate' };
+const INIT = { utility: 'C', developer: 'H', manufacturers: 'I', advocate: 'A' };
+const GROUP = { money: 'Money terms', threshold: 'Size threshold' };
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const qs = new URLSearchParams(location.search), hs = new URLSearchParams(location.hash.slice(1));
+const launchToken = wireLaunchToken();
+let code = (qs.get('session') || qs.get('code') || '').toUpperCase(), me = null, view = null, err = '', reported = false, finishPending = false, timer = null, skew = 0, walkthroughPage = null;
+if (code) try { me = JSON.parse(localStorage.getItem('wire:' + code)); } catch (e) {}
+
+async function api(action, extra = {}, path = 'api/session') {
+  const h = { 'content-type': 'application/json' };
+  if (launchToken) h['x-launch-token'] = launchToken;
+  const ac = sessionStorage.getItem('wire:access'); if (ac) h['x-access-code'] = ac;
+  if (me) h['x-participant-key'] = me.participantKey;
+  const r = await fetch(path, { method: 'POST', headers: h, body: JSON.stringify({ action, code, participantId: me && me.participantId, ...extra }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'request_failed');
+  return j;
+}
+const MESSAGES = { no_such_session: 'That session code was not found. Check it with your instructor.', seating_closed: 'Seating for this session has closed. Ask your instructor to add you.',
+  access_code_required: 'Enter the access code your instructor gave you.', wrong_course: 'This session belongs to another course.', not_negotiating: 'The term sheet is not open right now.', busy_retry: 'Someone else changed the sheet at the same moment. Try again.' };
+const say = e => { err = MESSAGES[e.message] || e.message; render(); };
+
+function joinScreen() {
+  app.innerHTML = `<h1>Who Pays for the Wire?</h1><p class="dim">Four seats, one docket, and terms nobody wants imposed on them.</p>
+  <div class="panel" style="max-width:420px"><label for="c">Session code</label><input id="c" value="${esc(code)}" autocomplete="off" maxlength="5">
+  <label for="n">Your name</label><input id="n" autocomplete="name" maxlength="40">
+  ${launchToken ? '' : '<label for="a">Access code</label><input id="a" autocomplete="off">'}
+  <p style="margin-top:14px"><button class="primary" id="go">Join session</button></p><p class="err">${esc(err)}</p></div>`;
+  $('#go').onclick = async () => {
+    code = $('#c').value.trim().toUpperCase(); const name = $('#n').value.trim();
+    if (!code) { err = 'Enter the session code.'; return render(); }
+    if (!name && !launchToken) { err = 'Enter your name.'; return render(); }
+    if ($('#a')) sessionStorage.setItem('wire:access', $('#a').value.trim());
+    try { me = await api('join', { name }); localStorage.setItem('wire:' + code, JSON.stringify(me)); wireRememberLaunch(code); wireSetRunUrl(code); err = ''; poll(); }
+    catch (e) { me = null; say(e); }
+  };
+}
+
+const clock = () => { if (!view.phaseEndsAt) return ''; const s = Math.max(0, Math.round((view.phaseEndsAt - (Date.now() + skew)) / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const PHASE = { lobby: 'Waiting to be seated', briefing: 'Briefing', openings: 'Opening statements', negotiation: 'Negotiation', closed: 'Outcome', debrief: 'Debrief' };
+const values = d => { const out = []; for (let v = d.min; v <= d.max + 1e-9; v += d.step) out.push(Math.round(v * 100) / 100); return out; };
+
+function header() {
+  return `<div class="bar"><div><h1 style="font-size:26px">${esc(SEAT[view.seat] || 'Who Pays for the Wire?')}</h1>
+  <span class="dim mono">${esc(PHASE[view.phase])}${view.table ? ' · Table ' + esc(view.table) : ''}${view.coCounsel && view.coCounsel.length ? ' · with ' + esc(view.coCounsel.join(', ')) : ''}</span></div>
+  <div class="clock" id="clock">${clock()}</div></div>`;
+}
+
+function briefs() {
+  const b = view.brief, p = view.publicBrief;
+  return `<div class="panel"><h2 style="margin-top:0">Your seat</h2><h3>${esc(b.person)}, ${esc(b.role)}</h3><p>${esc(b.story)}</p>
+  <p><strong>What you cannot trade:</strong> ${esc(b.constraint)}</p><p><strong>Your floor:</strong> ${esc(b.floor)}</p><p class="dim">${esc(b.tension)}</p></div>
+  <details ${view.phase === 'briefing' ? 'open' : ''}><summary class="mono dim">The public brief everyone has</summary>
+  ${p.paragraphs.map(x => `<p>${esc(x)}</p>`).join('')}<h3>What the Commission will impose</h3>${p.commissionFallback.map(x => `<p class="mono">${esc(x)}</p>`).join('')}</details>`;
+}
+
+function sheet() {
+  const s = view.sheet, ed = view.editable;
+  let html = '';
+  for (const [g, dials] of Object.entries(s.groups)) {
+    html += `<div class="group ${s.locked[g] ? 'locked' : ''}"><h3>${GROUP[g]} ${s.locked[g] ? '<span class="imposed">Locked</span>' : ''}
+      ${s.locked[g] && ed ? `<button data-unlock="${g}" style="margin-left:8px">Unlock</button>` : ''}</h3><div class="wrap"><table>`;
+    for (const d of dials) {
+      const info = view.dialsInfo[d], sigs = s.signatures[d], mine = sigs.includes(view.seat);
+      const ctl = ed && !s.locked[g]
+        ? `<select data-dial="${d}" aria-label="${esc(info.label)}">${values(info).map(v => `<option ${v === s.dials[d] ? 'selected' : ''}>${v}</option>`).join('')}</select>`
+        : `<span class="mono">${s.dials[d]}</span>`;
+      html += `<tr><td title="${esc(info.label)}">${esc(info.short)}</td><td>${ctl}</td><td style="white-space:nowrap">${Object.keys(SEAT).map(k =>
+        `<span class="sig ${sigs.includes(k) ? 'on' : ''} ${k === view.seat ? 'me' : ''}" title="${esc(SEAT[k])}">${INIT[k]}</span>`).join('')}</td>
+        <td>${ed && !s.locked[g] ? `<button data-${mine ? 'unsign' : 'sign'}="${d}">${mine ? 'Withdraw' : 'Sign'}</button>` : ''}</td></tr>`;
+    }
+    html += '</table></div></div>';
+  }
+  return html;
+}
+
+function logLine(e) {
+  const t = new Date(e.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), who = SEAT[e.seat] || 'Commission', lab = d => view.dialsInfo[d].short;
+  if (e.action === 'move') return `${t} ${who} moved ${lab(e.dial)} from ${e.from} to ${e.to}`;
+  if (e.action === 'sign') return `${t} ${who} signed ${lab(e.dial)} at ${e.value}`;
+  if (e.action === 'unsign') return `${t} ${who} withdrew from ${lab(e.dial)}`;
+  if (e.action === 'lock') return `${t} ${GROUP[e.group]} locked`;
+  if (e.action === 'unlock') return `${t} ${who} unlocked ${GROUP[e.group]}`;
+  if (e.action === 'deadline') return `${t} Deadline. The Commission set ${e.imposed.length} term${e.imposed.length === 1 ? '' : 's'}.`;
+  return '';
+}
+
+function negotiation() {
+  return `${view.notices.map(n => `<div class="notice"><p style="margin:0">${esc(n.text)}</p></div>`).join('')}
+  <div class="grid2"><div><h2 style="margin-top:0">Term sheet</h2>${view.editable ? '' : '<p class="dim">The sheet is read-only until negotiation opens.</p>'}${sheet()}<p class="err">${esc(err)}</p></div>
+  <div><div class="panel"><h3 style="margin-top:0">Your numbers</h3>${view.myNumbers.map(n => `<p><span class="dim">${esc(n.label)}</span><br><span class="mono" style="font-size:18px">${esc(n.value)}</span></p>`).join('')}
+  <p class="dim" style="font-size:14px">For the sheet as it stands now. Compare with your floor.</p></div>
+  <div class="panel"><h3 style="margin-top:0">What has happened at this table</h3><div class="log">${view.log.slice().reverse().map(logLine).join('<br>') || 'Nothing yet.'}</div></div>
+  <details class="panel"><summary class="mono dim">Your brief</summary>${briefs()}</details></div></div>`;
+}
+
+function outcome() {
+  const o = view.outcome, who = { advocate: 'Walt and Joyce Hammond', manufacturers: 'Linda Petrakis', developer: 'Marcus Reyes', utility: 'Dana Okafor' };
+  const terms = Object.entries(o.terms).map(([d, v]) => `<tr><td>${esc(view.dialsInfo[d].short)}</td><td>${o.imposed.includes(d) ? `<span class="imposed">${v}, set by the Commission</span>` : `<span class="mono">${v}, signed</span>`}</td></tr>`).join('');
+  const col = (title, sc) => `<div class="panel"><h3 style="margin-top:0">${title}</h3>${Object.keys(who).map(k => `<p>${esc(sc[k])}</p>`).join('')}</div>`;
+  return `<h2 style="margin-top:0">The terms your table ends with</h2><div class="wrap"><table>${terms}</table></div>
+  ${o.freezeMonths ? `<p style="margin-top:12px">The connection freeze runs ${o.freezeMonths} more months while the Commission decides.</p>` : '<p style="margin-top:12px">Nothing was imposed, so connections reopen now.</p>'}
+  <h2>What happens next</h2><p class="dim">Nobody could know which of these would happen. Both are shown.</p>
+  <div class="scen">${col('If the forecast demand arrives', o.arrives)}${col('If it does not', o.misses)}</div>`;
+}
+
+function orientation() {
+  const w = view.walkthrough, page = Math.min(walkthroughPage ?? w.step, w.screens.length - 1), screen = w.screens[page];
+  app.innerHTML = `<h1>Who Pays for the Wire?</h1><div class="panel" style="max-width:680px" aria-live="polite">
+  <p class="dim mono">Walkthrough ${page + 1} of ${w.screens.length} · No timer</p><h2 style="margin-top:0">${esc(screen.heading)}</h2>
+  ${screen.paragraphs.map(p => `<p>${esc(p)}</p>`).join('')}<p>
+  ${page ? '<button id="walk-back">Back</button> ' : ''}<button class="primary" id="walk-next">${page === w.screens.length - 1 ? 'Finish walkthrough' : 'Next'}</button></p>
+  <p class="err">${esc(err)}</p></div>`;
+  if ($('#walk-back')) $('#walk-back').onclick = () => { walkthroughPage = page - 1; render(); };
+  $('#walk-next').onclick = () => {
+    if (page < w.step) { walkthroughPage = page + 1; return render(); }
+    walkthroughPage = null; $('#walk-next').disabled = true; act('walkthrough', { step: page + 1 });
+  };
+}
+
+function render() {
+  if (!me || !view) return joinScreen();
+  if (view.walkthrough && !view.walkthrough.complete) return orientation();
+  if (view.phase === 'lobby' && view.walkthrough) {
+    app.innerHTML = `<h1>Who Pays for the Wire?</h1><p>You're ready, ${esc(view.name)}. Walkthrough complete.</p><p class="dim">${view.seated ? 'Your table is assigned. Your instructor will start the briefing once everyone is ready.' : 'Your instructor will seat the room shortly.'}</p>`;
+    return;
+  }
+  if (!view.seated) { app.innerHTML = `<h1>Who Pays for the Wire?</h1><p>You're in, ${esc(view.name)}. Your instructor will seat the room shortly.</p>`; return; }
+  let body = '';
+  if (view.phase === 'briefing') body = briefs();
+  else if (['openings', 'negotiation'].includes(view.phase)) body = negotiation();
+  else if (view.outcome) body = outcome();
+  else body = briefs();
+  app.innerHTML = header() + body;
+  app.querySelectorAll('select[data-dial]').forEach(el => el.onchange = () => act('move', { dial: el.dataset.dial, value: Number(el.value) }));
+  app.querySelectorAll('[data-sign]').forEach(el => el.onclick = () => act('sign', { dial: el.dataset.sign }));
+  app.querySelectorAll('[data-unsign]').forEach(el => el.onclick = () => act('unsign', { dial: el.dataset.unsign }));
+  app.querySelectorAll('[data-unlock]').forEach(el => el.onclick = () => act('unlock', { group: el.dataset.unlock }));
+}
+
+async function act(action, extra) { try { view = await api(action, extra); err = ''; } catch (e) { return say(e); } render(); }
+
+async function poll() {
+  clearTimeout(timer);
+  try {
+    const v = await api('view'); skew = v.now - Date.now();
+    const busy = document.activeElement && document.activeElement.tagName === 'SELECT';
+    const changed = JSON.stringify(v) !== JSON.stringify(view); view = v;
+    if (changed && !busy) render();
+    if (view.outcome && launchToken && !reported && !finishPending) {
+      finishPending = true;
+      api('finish', {}, 'api/finish').then(r => { reported = !!(r.reported || r.already); }).catch(() => {}).finally(() => { finishPending = false; });
+    }
+  } catch (e) { if (e.message === 'not_joined') { localStorage.removeItem('wire:' + code); me = null; view = null; render(); return; } }
+  timer = setTimeout(poll, 3000);
+}
+setInterval(() => { const c = document.getElementById('clock'); if (c && view) c.textContent = clock(); }, 1000);
+async function initEntry() {
+  const claims = wireLaunchClaims(launchToken);
+  if (claims && ['faculty', 'faculty_preview'].includes(claims.role) && claims.mode === 'session') {
+    const invite = new URLSearchParams(); if (code) invite.set('code', code);
+    location.replace('console.html' + (invite.size ? '?' + invite.toString() : '') + '#lt=' + encodeURIComponent(launchToken));
+    return;
+  }
+  if (launchToken) {
+    try {
+      if (!code) code = (await api('entry')).code || '';
+      if (code) {
+        me = await api('join'); wireRememberLaunch(code); wireSetRunUrl(code);
+        localStorage.setItem('wire:' + code, JSON.stringify(me)); poll(); return;
+      }
+      err = 'Your instructor has not opened a class session yet. Join an invitation when it is ready.';
+    } catch (e) { me = null; err = MESSAGES[e.message] || 'Your sign-in could not join this session. Open it again from RapidSims.'; }
+  }
+  if (me) poll(); else render();
+}
+initEntry();
+</script></body></html>

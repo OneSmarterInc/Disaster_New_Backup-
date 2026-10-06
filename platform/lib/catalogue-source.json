@@ -1,0 +1,843 @@
+{
+  "rapid-01-disaster": {
+    "tagline": "Twenty minutes in a room where nobody knows what is wrong yet.",
+    "description": "You lead operations at a company that runs customer IT systems. Several systems fail overnight. You must question four advisers, review new reports, and decide what to do before the cause is clear.",
+    "detail": {
+      "world": "IT services and incident response",
+      "seat": "Head of operations",
+      "clock": "An overnight incident through Day 3",
+      "teaches": "Weigh conflicting advice, explain a decision, and change course when new evidence appears.",
+      "tangle": "Customers need service restored quickly, but you also need time to understand the problem. Each adviser sees a different part of it.",
+      "turn": "You have to act before you have a complete answer. Later reports let you check whether your original reasons still hold.",
+      "cast": [
+        {
+          "name": "Kate Sullivan",
+          "role": "Director, Infrastructure & Architecture",
+          "stake": "Responsible for infrastructure and system maintenance."
+        },
+        {
+          "name": "Sophia Kim",
+          "role": "Head of Security",
+          "stake": "Responsible for investigating security concerns."
+        },
+        {
+          "name": "Tom Reyes",
+          "role": "Account Director, storage vendor",
+          "stake": "Represents the supplier of the storage equipment."
+        },
+        {
+          "name": "Ben Carter",
+          "role": "SVP, Client Operations",
+          "stake": "Represents the customers affected by the outage."
+        }
+      ],
+      "beats": [
+        {
+          "at": "Ask",
+          "what": "Read the opening report and question the advisers."
+        },
+        {
+          "at": "Decide",
+          "what": "Record your judgment at each of three points as new reports arrive."
+        },
+        {
+          "at": "Review",
+          "what": "Compare your decisions with the feedback and discuss your reasoning."
+        }
+      ],
+      "after": "Review your three written decisions and the feedback on your reasoning.",
+      "activity": "Ask the four advisers questions in the shared room or in private. At three points, record what you think is happening, what you will do, and what would change your mind.",
+      "discussion": "Compare which reports students trusted and when they changed their minds.",
+      "sessionShape": "Allow about 20 minutes for play. A suggested 60-minute class adds 5 minutes to begin, 10 minutes to review feedback, and 25 minutes for discussion.",
+      "suitableFor": "IT management, cybersecurity, and decision-making classes.",
+      "preparation": "No advance reading. The situation and advisers are introduced in the simulation.",
+      "output": "Three written decisions, with reasons and evidence that could change your mind.",
+      "durationNote": "About 20 minutes of play; allow about 60 minutes with discussion.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Written feedback"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Three written decisions"
+        },
+        {
+          "label": "Numbers",
+          "value": "No calculations required"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual"
+        }
+      ],
+      "tryIt": "Try the complete simulation before assigning it to students.",
+      "momentsIntro": "",
+      "roomIntro": "These are the people whose views you will consider during the simulation."
+    }
+  },
+  "rapid-02-relay": {
+    "tagline": "Twenty minutes after an AI told a customer the wrong thing.",
+    "description": "You lead customer operations at a manufacturer. A customer has acted on incorrect advice from its AI assistant. You question the people responsible, review new information, and decide how the company should respond.",
+    "detail": {
+      "world": "Manufacturing and AI customer support",
+      "seat": "Head of customer operations",
+      "clock": "One working day and the following morning",
+      "teaches": "Check an AI-supported service, weigh responsibility, and explain decisions under pressure.",
+      "tangle": "Each team has a different explanation. You need to address the customer problem while finding out how the advice was produced.",
+      "turn": "You make decisions before seeing the full story, then revisit your reasoning when new information arrives.",
+      "cast": [
+        {
+          "name": "Joanna Petrell",
+          "role": "Director, Technical Publications",
+          "stake": "Responsible for the product document library."
+        },
+        {
+          "name": "Devin Oyelaran",
+          "role": "Head of Customer Platforms",
+          "stake": "Responsible for the customer support platform."
+        },
+        {
+          "name": "Grant Mercer",
+          "role": "Client Director, the AI vendor",
+          "stake": "Represents the AI system supplier."
+        },
+        {
+          "name": "Nadia Renko",
+          "role": "Applications Support Engineer",
+          "stake": "Handles customer application questions."
+        }
+      ],
+      "beats": [
+        {
+          "at": "Ask",
+          "what": "Read the customer report and question the four advisers."
+        },
+        {
+          "at": "Decide",
+          "what": "Record your response as new information arrives."
+        },
+        {
+          "at": "Review",
+          "what": "Examine the consequences and compare your reasoning with the class."
+        }
+      ],
+      "after": "Review your decisions and a written discussion of their consequences.",
+      "activity": "Question four advisers in the shared room or in private. Record three decisions as the situation develops, including what evidence could change your view.",
+      "discussion": "Compare the questions students asked, the evidence they used, and the actions they chose.",
+      "sessionShape": "Allow about 20 minutes for play. A suggested 60-minute class adds 5 minutes to begin, 10 minutes to review feedback, and 25 minutes for discussion.",
+      "suitableFor": "AI management, information systems, and customer operations classes.",
+      "preparation": "No advance reading. The case and advisers are introduced during play.",
+      "output": "Three written decisions, with reasons and evidence that could change your mind.",
+      "durationNote": "About 20 minutes of play; allow about 60 minutes with discussion.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Written feedback"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Three written decisions"
+        },
+        {
+          "label": "Numbers",
+          "value": "No calculations required"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual"
+        }
+      ],
+      "tryIt": "Try the complete simulation before assigning it to students.",
+      "momentsIntro": "",
+      "roomIntro": "These are the people whose views you will consider during the simulation."
+    }
+  },
+  "rapid-03-midland": {
+    "tagline": "Two years to choose. The third year tells you what those choices bought.",
+    "description": "You lead technology at a heating and cooling equipment company. Divide a $9 million annual budget among five areas for two years. Then see how those choices affect the business in a third year, when you can no longer change them.",
+    "detail": {
+      "world": "Technology planning at an equipment company",
+      "seat": "Technology leader at Midland Equipment",
+      "clock": "Three business years",
+      "teaches": "Balance daily operations with future needs and understand why technology spending takes time to pay off.",
+      "tangle": "The same budget must keep existing systems running and prepare the company for future needs. Spending more in one area leaves less for another.",
+      "turn": "You see the later effects of choices that looked reasonable when you made them.",
+      "roomIntro": "Four people want different things from the same $9 million budget. Each represents a different business need.",
+      "momentsIntro": "",
+      "after": "Review your starting view and allocations, then answer two reflection questions. There is no score or ranking.",
+      "discussion": "The instructor can compare anonymous budgets and outcomes to discuss the trade-offs.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow about 30 minutes for play and the rest of a class hour for discussion. Students should read the briefing packet before the session.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual or team"
+        },
+        {
+          "label": "Before play",
+          "value": "Read the briefing packet"
+        },
+        {
+          "label": "Feedback",
+          "value": "Reflection; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Two annual budgets"
+        },
+        {
+          "label": "Numbers",
+          "value": "Divide $9 million across five areas"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual or team"
+        }
+      ],
+      "cast": [
+        {
+          "name": "Dale Brenner",
+          "role": "Chief Financial Officer",
+          "stake": "Wants to control the cost of running existing systems.",
+          "line": "Run",
+          "shortWant": "Get the Run cost down without breaking the systems Midland still depends on.",
+          "quote": "Six million dollars a year keeps the lights on and produces nothing new. Every conversation we have should start with getting that number down."
+        },
+        {
+          "name": "Renata Oyelaran",
+          "role": "VP, Service",
+          "stake": "Wants dependable service operations.",
+          "line": "Uptime",
+          "shortWant": "Keep dispatch dependable; every system dollar is competing with trucks and technicians.",
+          "quote": "I do not need software. I need eight more technicians. Every dollar you spend on a system is a dollar that did not go to a truck."
+        },
+        {
+          "name": "Tom Vasquez",
+          "role": "Chief Executive",
+          "stake": "Wants visible progress to show the board.",
+          "line": "Features",
+          "shortWant": "Have something real to show the board inside eighteen months.",
+          "quote": "In eighteen months I have to stand in front of the board and show them something. I do not care what it is. I care that it is real."
+        },
+        {
+          "name": "Sam Achterberg",
+          "role": "Field technician, 22 years",
+          "stake": "Wants information that helps technicians avoid unnecessary visits.",
+          "line": "Connect",
+          "shortWant": "Hear the machines before a $290 truck roll has to go find out in person.",
+          "quote": "Nineteen percent of our visits find nothing wrong. At $290 a truck roll, I would rather hear the machine before I drive there. Those machines have been telling us they were about to fail for years."
+        }
+      ],
+      "beats": [
+        {
+          "at": "Year 1",
+          "what": "State your starting view and choose your first budget."
+        },
+        {
+          "at": "Year 2",
+          "what": "Review what happened and choose the next budget."
+        },
+        {
+          "at": "Year 3",
+          "what": "See the later effects and reflect on your choices."
+        }
+      ],
+      "activity": "Read the briefing, write your starting view, and divide the budget for Year 1. Review the results, set the Year 2 budget, and reflect on what happens in Year 3.",
+      "suitableFor": "IT strategy, budgeting, and operations management classes.",
+      "preparation": "Read the briefing packet before the session.",
+      "output": "A starting view, two annual budgets, and two final reflections.",
+      "durationNote": "About 30 minutes of play, plus discussion."
+    }
+  },
+  "rapid-04-whose-number": {
+    "tagline": "Twenty-five minutes to give the board one number.",
+    "description": "Ridgeway Dispatch sells scheduling and invoicing software to plumbers, HVAC contractors and landscapers. The quarter has closed, and the board chair wants one figure before the next meeting: customer retention. Each team gets the account records, the support tickets and a definition sheet, and has to commit a number.",
+    "detail": {
+      "world": "Customer retention at a software company for trade businesses",
+      "seat": "A team asked to report retention to the board",
+      "clock": "A 25-minute decision window",
+      "teaches": "Students defend a number and then watch another team defend a different one with equal care. That does work a lecture on measurement cannot.",
+      "tangle": "The records are real enough to argue about. Accounts cancel and come back, fall behind on payment, and drop to cheaper plans, and the definition sheet settles each case in one line.",
+      "turn": "Teams cannot see anyone else’s work, and a committed number cannot be changed.",
+      "after": "The debrief starts with an argument between two teams and ends with each student writing down the definition behind a number they are judged by. There is no score.",
+      "discussion": "Open with two teams defending their numbers, before any explanation.",
+      "sessionShape": "Students join with their email. You set the group size, divide the room at random and adjust, then start the clock. Any number of groups can play, even one. Allow 25 minutes to calculate and time to discuss.",
+      "activity": "Read the account records, the support tickets and the definition sheet. Commit a retention percentage and a confidence from 1 to 5.",
+      "suitableFor": "Marketing, accounting, operations and information systems classes, without changes.",
+      "preparation": "No advance reading; the data pack is included.",
+      "output": "One locked percentage and a confidence rating for each group.",
+      "durationNote": "25 minutes of play, plus discussion.",
+      "tryIt": "Preview the activity before assigning it to students.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Groups of any size, set by the instructor"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Discussion; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Report one customer-retention figure"
+        },
+        {
+          "label": "Numbers",
+          "value": "Use the supplied account records"
+        },
+        {
+          "label": "Play mode",
+          "value": "Team or individual"
+        }
+      ],
+      "beats": [
+        {
+          "at": "Commit",
+          "what": "Each team locks its number and says how sure it is."
+        },
+        {
+          "at": "The numbers",
+          "what": "Every number, shown at once."
+        },
+        {
+          "at": "The definitions",
+          "what": "The definitions, and who wrote each one."
+        }
+      ]
+    }
+  },
+  "rapid-05-approve": {
+    "tagline": "Five requests. Each one reasonable. See where they lead.",
+    "description": "You manage a fitness app. Five requests to use customer data arrive one at a time. Decide whether to approve each feature, then see what your choices allow the app to learn and offer.",
+    "detail": {
+      "world": "Product decisions at a fitness app",
+      "seat": "Product manager at Loopwell",
+      "clock": "Five rounds with a three-minute decision window each",
+      "teaches": "Consider how separate data decisions add up and weigh useful features against what they reveal about a customer.",
+      "tangle": "Each feature has a business reason. You need to consider both that request and the effect of combining it with earlier choices.",
+      "turn": "You see the combined effect of a series of small decisions, rather than judging one request on its own.",
+      "after": "Review your five decisions and what the app can and cannot offer the customer. There is no score.",
+      "discussion": "The instructor can show how the class split on each request and compare the results.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow about 30 minutes for play, including five three-minute decisions and the feedback between them. Add time for class discussion. In team mode, students vote on each request.",
+      "recommendedMode": "individual",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual (recommended) or team"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Review; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Five final approvals or rejections"
+        },
+        {
+          "label": "Numbers",
+          "value": "No calculations required"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual (recommended) or team"
+        }
+      ],
+      "activity": "Read each feature request and approve or decline it. Review its effect on one customer before the next request arrives. Earlier decisions cannot be changed.",
+      "suitableFor": "Product management, data ethics, and information systems classes.",
+      "preparation": "No advance reading. All five requests are supplied during play.",
+      "output": "Five final approve-or-decline decisions and a summary of their combined effects.",
+      "beats": [
+        {
+          "at": "Read",
+          "what": "Consider one feature request and its business reason."
+        },
+        {
+          "at": "Choose",
+          "what": "Approve or decline before the three-minute window ends."
+        },
+        {
+          "at": "Review",
+          "what": "See its effect, continue through five rounds, and review the full set of choices."
+        }
+      ],
+      "durationNote": "About 30 minutes of play, plus discussion.",
+      "momentsIntro": ""
+    }
+  },
+  "rapid-06-switch": {
+    "tagline": "One decision, taken while the reports are still arriving.",
+    "description": "You run operations for a chain of twelve stores. Card payments are failing during a busy hour. Read reports and two supplier documents, then decide whether to stay with the current network provider or switch to the backup.",
+    "detail": {
+      "world": "Store operations and network outages",
+      "seat": "Head of store operations at Harlow Home & Hardware",
+      "teaches": "Read supplier promises carefully and explain a decision when the cause of an outage is still unclear.",
+      "clock": "One store hour in a ten-minute decision window",
+      "activity": "Read reports as they arrive and check the two supplier documents. Commit to staying or switching and give a short reason. If time runs out, the simulation records that you made no decision.",
+      "tangle": "Waiting may cost sales, while switching also takes time. The reports are incomplete and may point in different directions.",
+      "turn": "You must decide which evidence is strong enough to act on while the clock is still running.",
+      "after": "Review your choice, its timing, and the explanation of the outage. There is no score.",
+      "discussion": "Compare when students decided, what they had read, and why they trusted that information.",
+      "sessionShape": "Allow about 15 minutes for the activity, including a ten-minute decision window. Add time to discuss the reports and supplier documents.",
+      "suitableFor": "Operations management, IT continuity, and supplier management classes.",
+      "preparation": "No advance reading. The supplier documents are provided in the simulation.",
+      "output": "One stay-or-switch decision and a short written reason.",
+      "beats": [
+        {
+          "at": "Read",
+          "what": "Open the supplier documents and follow the incoming reports."
+        },
+        {
+          "at": "Choose",
+          "what": "Stay or switch, and explain why."
+        },
+        {
+          "at": "Review",
+          "what": "Compare your choice and timing with the case explanation."
+        }
+      ],
+      "durationNote": "About 15 minutes, including a ten-minute decision window; discussion is extra.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual or team"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Review; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "One final stay-or-switch choice"
+        },
+        {
+          "label": "Numbers",
+          "value": "Simple comparisons of time and sales"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual or team"
+        }
+      ],
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "momentsIntro": ""
+    }
+  },
+  "rapid-07-bought": {
+    "tagline": "The year 2000, and you can only see what they could see.",
+    "description": "You lead a large video rental chain in autumn 2000. A smaller, loss-making company offers to sell itself for $50 million. Read the proposal, consider four advisers, and make your decision before learning what happened later.",
+    "detail": {
+      "world": "A video rental business in 2000",
+      "seat": "Chief executive deciding on an acquisition",
+      "clock": "A ten-minute decision followed by three stages of history",
+      "teaches": "what was knowable at the time · how hindsight rewrites a judgement",
+      "tangle": "Four advisers, each right about the part of the business they run. The price is small for you and large for what you are buying.",
+      "turn": "Your written reason stays on screen while the next ten years arrive.",
+      "after": "See history in three stages and revisit your original reason. There is no score.",
+      "activity": "Read the proposal and four advisers' views. Decide whether to buy and explain your reason. Then review later events while your original reasoning remains visible.",
+      "discussion": "Compare the reasons given for buying and for declining, first on the evidence of 2000 and then again after each stage.",
+      "sessionShape": "Allow about 20 minutes for the decision and staged reveal, then add class discussion. The decision window is ten minutes. Individual play is recommended.",
+      "suitableFor": "Business strategy, acquisitions, and case discussion classes.",
+      "preparation": "No advance reading. Use only the evidence supplied in the case.",
+      "output": "One acquisition decision and a written reason to revisit during the reveal.",
+      "beats": [
+        {
+          "at": "Read",
+          "what": "Review the offer and the advisers' views."
+        },
+        {
+          "at": "Choose",
+          "what": "Make a decision and record your reason within ten minutes."
+        },
+        {
+          "at": "Reflect",
+          "what": "Read the staged history and revisit the evidence you used."
+        }
+      ],
+      "durationNote": "About 20 minutes including the reveal, plus discussion.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual (recommended) or team"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Reflection; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "One acquisition decision"
+        },
+        {
+          "label": "Numbers",
+          "value": "Read basic business figures"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual (recommended) or team"
+        }
+      ],
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "momentsIntro": ""
+    }
+  },
+  "rapid-08-later": {
+    "tagline": "You choose in twenty minutes. You find out a year and a half later.",
+    "description": "You help four veterinary clinics choose a scheduling system. Compare three vendors, spend a total of six questions, and choose a supplier and a plan to start using the system. Then see the result eighteen months later.",
+    "detail": {
+      "world": "Choosing software for veterinary clinics",
+      "seat": "Member of the selection committee at Brookfield Veterinary",
+      "clock": "A timed selection followed by an eighteen-month jump",
+      "teaches": "Ask useful questions about software and plan how staff will start using it.",
+      "tangle": "You cannot ask everything. The choice must fit both the budget and the way people work.",
+      "turn": "You compare the sales presentation with what daily work looks like after the system has been introduced.",
+      "after": "Review your vendor choice, questions, launch plan, and later result. There is no score.",
+      "discussion": "The instructor can compare choices and results to discuss which questions and preparations mattered.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow about 25 minutes for the activity. The timed briefing and decision stages total 17 minutes, including nine minutes for vendor questions; add time to read the result and discuss it. Team play is recommended.",
+      "recommendedMode": "team",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Team (recommended) or individual"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Review; no score"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "One vendor and one launch plan"
+        },
+        {
+          "label": "Numbers",
+          "value": "Compare costs within a $240,000 budget"
+        },
+        {
+          "label": "Play mode",
+          "value": "Team (recommended) or individual"
+        }
+      ],
+      "activity": "Review three proposals and demonstrations. Spend six questions across the vendors, choose a system, and commit to a plan for introducing it at the clinics.",
+      "suitableFor": "Systems analysis, software purchasing, and change management classes.",
+      "preparation": "No advance reading. Proposals, demonstrations, and questions are supplied during play.",
+      "output": "Six vendor questions, one system choice, and a plan for starting to use it.",
+      "beats": [
+        {
+          "at": "Compare",
+          "what": "Read three proposals and watch the demonstrations."
+        },
+        {
+          "at": "Ask and choose",
+          "what": "Use six questions, select a vendor, and choose a launch plan."
+        },
+        {
+          "at": "Review",
+          "what": "Read the eighteen-month report and discuss your choices."
+        }
+      ],
+      "durationNote": "Allow about 25 minutes for the activity, plus class discussion.",
+      "momentsIntro": ""
+    }
+  },
+  "rapid-09-money-land": {
+    "tagline": "The direction is obvious. Put your fund behind the destination.",
+    "description": "It is June 2000 and you have $1 million to invest. Read a forecast about businesses buying online, write down what you expect to change and who you think will earn money, then divide the fund among five companies.",
+    "detail": {
+      "world": "Investing in online business trade in 2000",
+      "seat": "Investment partner with a $1 million fund",
+      "clock": "About twenty minutes, followed by three historical reveals",
+      "teaches": "Separate growth in a technology from success for an individual business, and connect investment choices to a clear reason.",
+      "tangle": "Several businesses may benefit from the same trend in different ways. Your investment has to show which explanation you believe.",
+      "turn": "Your original statements stay alongside your investment choices, so you can compare both with later results.",
+      "after": "Review your statements, allocation, and its value at each reveal stage. There is no ranking.",
+      "discussion": "Compare concentrated and spread-out investments, and check whether each allocation matches its stated reason.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow about 20 minutes for the briefing, written statements, and allocation. The instructor releases the historical results in three stages and leads the discussion. Team play is recommended.",
+      "recommendedMode": "team",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Team (recommended) or individual"
+        },
+        {
+          "label": "Before play",
+          "value": "No advance reading"
+        },
+        {
+          "label": "Feedback",
+          "value": "Reflection; no ranking"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "One final investment allocation"
+        },
+        {
+          "label": "Numbers",
+          "value": "Divide $1 million among five companies"
+        },
+        {
+          "label": "Play mode",
+          "value": "Team (recommended) or individual"
+        }
+      ],
+      "activity": "Read the forecast and company cards. Write separate statements about the market trend and who will benefit. Then divide the fund among five companies and review later events.",
+      "suitableFor": "Technology strategy, entrepreneurship, and investment decision classes.",
+      "preparation": "No advance reading. The forecast and company cards are provided.",
+      "output": "Two written statements and one final allocation of a $1 million fund.",
+      "beats": [
+        {
+          "at": "Read",
+          "what": "Study the forecast and the five company cards."
+        },
+        {
+          "at": "Explain and invest",
+          "what": "Write two statements, then commit the fund."
+        },
+        {
+          "at": "Reflect",
+          "what": "Review later events and compare them with your original reasons."
+        }
+      ],
+      "durationNote": "About 20 minutes before the historical reveals and discussion.",
+      "momentsIntro": ""
+    }
+  },
+  "rapid-10-bubble": {
+    "tagline": "Two quarters of a real company. One call: infrastructure or bubble?",
+    "description": "Read two quarters of financial information from a real company whose name is hidden. Decide whether its business is supported by the evidence, explain your judgment, and say what would change your mind. Then learn its identity and what happened later.",
+    "detail": {
+      "world": "Technology infrastructure · financial analysis",
+      "seat": "Analyst evaluating a company",
+      "clock": "Two quarterly reports per case",
+      "teaches": "Read financial reports, question company claims, and explain the assumptions behind a judgment.",
+      "tangle": "Sales growth, cash needs, and the company's own performance measures may tell different stories.",
+      "turn": "You commit to a judgment before learning the company's name or later results.",
+      "after": "Review the company identity and later evidence alongside your original verdict.",
+      "discussion": "Compare which figures students trusted, how they interpreted them, and what would have changed their judgment.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow about 45 minutes, depending on whether the instructor selects one or two cases and individual or team play. Reading and decision windows are timed; the instructor controls the reveal and discussion.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual or team"
+        },
+        {
+          "label": "Before play",
+          "value": "Basic financial knowledge useful"
+        },
+        {
+          "label": "Feedback",
+          "value": "Class comparison and discussion"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "A verdict for each of one or two cases"
+        },
+        {
+          "label": "Numbers",
+          "value": "Read and compare financial statements"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual or team"
+        }
+      ],
+      "beats": [
+        {
+          "at": "Read",
+          "what": "Examine two quarters of company figures and claims."
+        },
+        {
+          "at": "Decide",
+          "what": "Give a verdict, supporting reasons, and evidence that could change it."
+        },
+        {
+          "at": "Review",
+          "what": "Compare your judgment with the company identity and later events."
+        }
+      ],
+      "activity": "Examine the financial statements and management claims. Choose a verdict, identify the figures behind it, and explain what evidence could change it. Your instructor can use one or two cases.",
+      "suitableFor": "Financial analysis, business strategy, and technology investment classes.",
+      "preparation": "The financial reports are supplied. Basic familiarity with income statements, balance sheets, and cash flow is useful.",
+      "output": "A verdict for each selected case, supporting figures and reasons, and evidence that could change the verdict.",
+      "durationNote": "Plan about 45 minutes; timing depends on the case count, mode, and discussion.",
+      "momentsIntro": ""
+    }
+  },
+  "rapidsimplus-01": {
+    "tagline": "Three interviews. Fifteen minutes each. Every question has a cost.",
+    "description": "A dental benefits administrator is replacing its claims system. You must document how claims arrive and reach the first review. Study an incomplete process chart, observe the work, interview three employees, and submit a report for the new system.",
+    "detail": {
+      "world": "Dental claims processing and a new computer system",
+      "seat": "Internal process analyst",
+      "clock": "A ten-minute observation and three fifteen-minute interviews",
+      "teaches": "Ask clear questions, compare evidence from different people, and document a work process.",
+      "tangle": "Each employee knows a different part of the work. Interview time is limited, and the wording of a question can affect the conversation.",
+      "turn": "You must turn separate observations and answers into a clear account of how the process works.",
+      "roomIntro": "These are the people whose views you will consider during the activity.",
+      "momentsIntro": "",
+      "after": "The instructor can compare the interview questions, time spent, process chart, and final report.",
+      "discussion": "Compare how students' questions and interview order affected the evidence they gathered and the report they wrote.",
+      "tryIt": "Try the complete activity before assigning it to students.",
+      "sessionShape": "Allow up to three hours for the full class. The suggested plan uses 20 minutes for the brief, 10 for observation, 45 for interviews, 20 for the report, a 15-minute break, and 45 for discussion.",
+      "cast": [
+        {
+          "name": "Ray Duffy",
+          "role": "Claim intake",
+          "stake": "Receives and releases incoming claims."
+        },
+        {
+          "name": "Terry Voss",
+          "role": "Receipt log",
+          "stake": "Keeps the receipt record and handles status questions."
+        },
+        {
+          "name": "Ruth Kessler",
+          "role": "First-pass review",
+          "stake": "Reviews claims before they move to the next stage."
+        }
+      ],
+      "beats": [
+        {
+          "at": "Brief and observation",
+          "what": "Read the incomplete process chart and observe the desk for ten minutes."
+        },
+        {
+          "at": "Three interviews",
+          "what": "Use three fifteen-minute appointments to gather evidence."
+        },
+        {
+          "at": "Chart and report",
+          "what": "Complete the process chart and write the report for the new system."
+        }
+      ],
+      "activity": "Read the brief and incomplete chart, observe the review desk, and choose an interview order. Use three appointments to fill gaps in your process chart and write a report for the new system.",
+      "suitableFor": "Systems analysis, process improvement, and requirements gathering classes.",
+      "preparation": "The brief and incomplete process chart are provided. No outside research is needed.",
+      "output": "A completed process chart and a report recommending how the new system should handle the work.",
+      "durationNote": "About 70 minutes of play; allow additional time for the full-class brief, break, and discussion.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Individual"
+        },
+        {
+          "label": "Before play",
+          "value": "Brief and chart included"
+        },
+        {
+          "label": "Feedback",
+          "value": "Report and interview review"
+        }
+      ],
+      "atAGlance": [
+        {
+          "label": "Main task",
+          "value": "Three interviews, a process chart, and a report"
+        },
+        {
+          "label": "Numbers",
+          "value": "Record observed timing and process facts"
+        },
+        {
+          "label": "Play mode",
+          "value": "Individual"
+        }
+      ]
+    }
+  },
+  "rapidsimplus-02": {
+    "tagline": "Four seats, one docket, and terms nobody wants imposed on them.",
+    "description": "Represent a utility, a data-centre developer, industrial energy users or a consumer advocate. Negotiate five electricity tariff terms before the Commission imposes the terms left unsigned, then see who pays if demand arrives or misses.",
+    "detail": {
+      "world": "A regulated utility has begun a transmission build for a surge in data-centre connection requests. The wire must be paid for even if the demand never arrives.",
+      "seat": "One of four parties at a negotiating table: Crestline Power, Halvorsen Digital, Industrial Energy Users or the Consumer Advocate.",
+      "activity": "Negotiate take-or-pay, contract term, exit fee, collateral and size threshold. All four seats must sign; unsigned groups are imposed by the Commission.",
+      "clock": "An untimed four-screen lobby walkthrough comes first. Then ten minutes of briefing, ten minutes of opening statements and 45 minutes of negotiation. The instructor may extend negotiation once.",
+      "output": "A signed term sheet, a record of changes and a comparison of who bears the costs under two demand scenarios.",
+      "preparation": "Complete the untimed lobby walkthrough, then read the public docket and your confidential seat brief in the simulation. No advance reading is required.",
+      "suitableFor": "Classes studying negotiation, energy policy, stakeholder trade-offs or investment under uncertainty.",
+      "teaches": "How contract terms distribute risk, and how a shared deadline changes bargaining between parties with different constraints.",
+      "tangle": "Everyone wants new demand, but each party wants someone else to carry the cost if that demand disappears.",
+      "turn": "The deadline ends negotiation. Terms left unsigned are imposed together, and delays carry costs of their own.",
+      "after": "Compare the term sheets across tables and examine the costs when demand arrives and when it misses.",
+      "discussion": "Which risk did your party accept? What did you need from the other seats to accept it?",
+      "sessionShape": "An instructor opens and seats a live room. Each table needs four students; additional students share seats as co-counsel.",
+      "beats": [
+        "Read your confidential seat brief.",
+        "Make opening statements and negotiate the term sheet.",
+        "Review the settled and imposed terms and their consequences."
+      ],
+      "durationNote": "65 minutes of timed play, with one optional ten-minute extension; allow additional time for the walkthrough, seating and debrief.",
+      "catalogueFacts": [
+        {
+          "label": "Play",
+          "value": "Groups of four or more, with an instructor"
+        },
+        {
+          "label": "Time",
+          "value": "65 minutes plus debrief"
+        }
+      ],
+      "tryIt": "Negotiate a tariff at a live class table and compare its consequences when demand arrives and when it misses."
+    }
+  }
+}

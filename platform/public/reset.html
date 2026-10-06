@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set a new password — Flexee RapidSims</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="narrow" id="app"></div>
+
+<div class="narrow"><div class="foot-note">
+  <span>&copy; 2026 Flexee LLC. All rights reserved.</span>
+  <span><a href="mailto:support@flexee.org">support@flexee.org</a></span>
+</div></div>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const token = new URLSearchParams(location.search).get('t') || '';
+
+async function api(path, payload) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  return d;
+}
+const problem = (t, m) => app.innerHTML =
+  '<div class="eyebrow">Flexee RapidSims</div><h1>' + esc(t) + '</h1><p class="lede">' + esc(m) + '</p><p><a href="/signin.html">Back to sign in</a></p>';
+
+(async () => {
+  if (!token) return problem('Nothing to reset here', 'This link is missing its code. Ask for a new one.');
+  let info;
+  try { info = await api('/api/auth', { action:'reset_check', token }); }
+  catch (e) {
+    const k = e.body && e.body.error;
+    if (k === 'already_used') return problem('Already used', 'This reset link has been used. Sign in with your new password.');
+    if (k === 'expired') return problem('This link has expired', 'Ask for a fresh one.');
+    return problem('We do not recognise this link', 'Check you copied all of it, or ask for a new one.');
+  }
+
+  app.innerHTML =
+    '<div class="eyebrow">Password reset</div>' +
+    '<h1>Hello again, <em>' + esc((info.name || '').split(' ')[0]) + '</em></h1>' +
+    '<p class="lede">Choose a new password for ' + esc(info.email) + '.</p>' +
+    '<div class="card" style="margin-top:24px">' +
+      '<div class="field"><label class="f">New password</label>' +
+      '<input id="p" type="password" autocomplete="new-password" placeholder="at least 8 characters"></div>' +
+      '<button class="btn pri" id="go">Set it and sign in</button>' +
+      '<div class="err" id="err"></div>' +
+    '</div>' +
+    '<div class="note">Setting a new password signs you out everywhere else.</div>';
+
+  const go = async () => {
+    const btn = document.getElementById('go');
+    btn.disabled = true; btn.textContent = 'Setting…';
+    try {
+      const d = await api('/api/auth', { action:'reset_accept', token, password: document.getElementById('p').value });
+      location.href = d.user.role === 'admin' ? '/admin.html' : d.user.role === 'faculty' ? '/faculty.html' : '/student.html';
+    } catch (e) {
+      document.getElementById('err').textContent = e.message;
+      btn.disabled = false; btn.textContent = 'Set it and sign in';
+    }
+  };
+  document.getElementById('go').onclick = go;
+  document.getElementById('p').onkeydown = e => { if (e.key === 'Enter') go(); };
+  document.getElementById('p').focus();
+})();
+</script>
+</body>
+</html>

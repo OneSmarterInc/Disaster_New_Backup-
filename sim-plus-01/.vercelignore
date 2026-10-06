@@ -1,0 +1,9 @@
+# Paths are rooted at this Vercel project. Runtime code under lib/, src/ and
+# data/ must remain available because serverless functions import it.
+/test/
+/HANDOFF.md
+/INTRO_BRIEF.md
+/PLATFORM_SPEC_transcript_view.md
+/playtest.js
+/demo-report.js
+/review-assets/

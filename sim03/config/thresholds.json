@@ -1,0 +1,15 @@
+{
+  "budgetPerYear": 9,
+  "runFloor": 4,
+  "perLineCap": 3,
+  "year1ConnectStrong": 2,
+  "heatUptimeStrong": 3,
+  "heatUptimeMiddle": 2,
+  "competitorConnectStrong": 4,
+  "competitorConnectPilotMin": 2,
+  "competitorConnectPilotMax": 3,
+  "year3ConnectStrong": 5,
+  "year3CapacityStrong": 2,
+  "year3ConnectPilotMin": 3,
+  "year3ConnectPilotMax": 4
+}

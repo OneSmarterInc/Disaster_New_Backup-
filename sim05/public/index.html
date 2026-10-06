@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script id="account-entry-redirect">
+(() => {
+  const q = new URLSearchParams(location.search);
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (['localhost', '127.0.0.1'].includes(location.hostname) ||
+      q.has('guest') || q.has('lt') || hash.has('lt')) return;
+  const entry = new URLSearchParams({ sim: 'rapid-05-approve' });
+  if (q.get('session')) entry.set('session', q.get('session'));
+  if (q.get('course')) entry.set('course', q.get('course'));
+  location.replace('https://rapidsims.flexee.org/open.html?' + entry.toString());
+})();
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Would You Approve This?</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{
+  --night:#0E1524;--panel:#161E2E;--raise:#1D2637;--line:#2B3548;--line2:#3A4659;
+  --bone:#E8E4DA;--soft:#C9C6BE;--dim:#8C95A8;--dimmer:#616B7E;
+  --amber:#F0A63C;--amberDeep:#8A6427;--rose:#CE7C8D;
+  --serif:'Newsreader',Georgia,serif;--mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--night);color:var(--bone)}
+body{font-family:var(--serif);font-size:17px;line-height:1.6}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.hidden{display:none!important}
+
+header{display:flex;align-items:center;gap:24px;padding:16px 28px;border-bottom:1px solid var(--line)}
+.brand{margin-right:auto;font-size:18px;font-weight:500}
+.brand small{display:block;font:12px var(--mono);color:var(--dimmer);font-weight:400}
+.track{display:flex;gap:4px;align-items:center}
+.track span{width:34px;height:6px;background:var(--line)}
+.track span.now{background:var(--amber)}
+.track span.ship{background:var(--soft)}
+.track span.decl{background:transparent;border:1px solid var(--soft)}
+.clock{font:600 26px var(--mono);color:var(--amber);min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
+.clock small{display:block;font:400 11px var(--mono);color:var(--dimmer);text-align:right}
+
+main{width:min(1120px,calc(100% - 40px));margin:0 auto;padding:44px 0 80px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:44px;align-items:start}
+.lead{max-width:62ch}
+.kicker{font:13px var(--mono);color:var(--amber);margin-bottom:12px}
+h1.request{font-size:clamp(28px,3.4vw,40px);font-weight:400;line-height:1.18;letter-spacing:-.01em;margin-bottom:22px}
+h2{font-size:30px;font-weight:400;line-height:1.2;margin-bottom:18px}
+p.body{color:var(--soft);margin-bottom:14px}
+.facts{margin:26px 0 30px;border-top:1px solid var(--line)}
+.facts div{display:grid;grid-template-columns:180px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.facts dt{font:13px var(--mono);color:var(--dim);padding-top:3px}
+.facts dd{color:var(--bone)}
+
+.decide{display:flex;gap:12px;flex-wrap:wrap}
+.btn{border:1px solid var(--line2);padding:13px 26px;font:500 15px var(--mono);color:var(--bone);transition:background .12s,border-color .12s}
+.btn:hover{border-color:var(--soft)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1A1206}
+.btn.pri:hover{background:#FFB94E}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.confirm{border:1px solid var(--amberDeep);background:rgba(240,166,60,.07);padding:18px 20px;max-width:560px}
+.confirm p{margin-bottom:14px}
+.note{border-left:2px solid var(--line2);padding:12px 16px;color:var(--soft);margin:18px 0;max-width:62ch}
+.note.warn{border-left-color:var(--amber)}
+.note.bad{border-left-color:var(--rose);color:#E3B9C2}
+
+.outcome{font-size:24px;margin-bottom:6px}
+.outcome small{display:block;font:13px var(--mono);color:var(--dim);margin-top:4px}
+.cost{border:1px solid var(--line2);padding:18px 20px;margin-top:22px;max-width:62ch}
+.cost h3{font:500 13px var(--mono);color:var(--dim);margin-bottom:8px}
+
+/* Dana's file: the one element that carries the sim. */
+.file{border:1px solid var(--line2);background:var(--panel);position:sticky;top:24px}
+.file-head{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.file-head .who{font-size:22px}
+.file-head .meta{font:12px var(--mono);color:var(--dim);margin-top:2px}
+.file-head .title{font:12px var(--mono);color:var(--amber);margin-top:12px}
+.file ol{list-style:none}
+.file li{padding:14px 20px;border-bottom:1px solid var(--line);font-size:15.5px;line-height:1.55;color:var(--soft)}
+.file li:last-child{border-bottom:0}
+.file li .lab{display:flex;justify-content:space-between;gap:10px;font:12px var(--mono);color:var(--dim);margin-bottom:5px}
+.file li.new{box-shadow:inset 3px 0 0 var(--amber);color:var(--bone)}
+.file li.new .lab .tag{color:var(--amber)}
+.file .empty{padding:18px 20px;color:var(--dimmer);font-style:italic}
+@media (prefers-reduced-motion:no-preference){.file li.new{animation:arrive .6s ease-out}}
+@keyframes arrive{from{background:rgba(240,166,60,.14)}to{background:transparent}}
+
+.ending{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:30px}
+.ending h3{font:500 13px var(--mono);color:var(--amber);margin-bottom:12px}
+.ending ul{list-style:none;border-top:1px solid var(--line)}
+.ending li{padding:14px 0;border-bottom:1px solid var(--line);color:var(--soft)}
+.ending li b{display:block;font:500 12px var(--mono);color:var(--dim);margin-bottom:4px}
+.decisions{margin-top:36px;border-top:1px solid var(--line)}
+.decisions div{display:grid;grid-template-columns:34px 1fr auto auto;gap:16px;padding:11px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.decisions .n{font:13px var(--mono);color:var(--dimmer)}
+.decisions .d{font:13px var(--mono);color:var(--bone)}
+.decisions .mv{font:12px var(--mono);color:var(--dim)}
+
+.join{max-width:460px}
+.field{margin-top:18px}
+.field label{display:block;font:13px var(--mono);color:var(--dim);margin-bottom:6px}
+.field input{width:100%;background:var(--night);border:1px solid var(--line2);padding:12px 13px}
+
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr}.file{position:static}
+  .ending{grid-template-columns:1fr}
+  header{flex-wrap:wrap;padding:14px 18px}.track span{width:22px}
+  .facts div{grid-template-columns:1fr;gap:4px}
+}
+
+/* Walkthrough */
+.walk{max-width:720px}
+.dots{display:flex;gap:6px;margin-bottom:22px}
+.dots span{width:28px;height:4px;background:var(--line)}
+.dots span.on{background:var(--amber)}.dots span.done{background:var(--soft)}
+.example{border:1px dashed var(--line2);padding:18px 20px 16px;margin-top:22px;position:relative}
+.ex-tag{position:absolute;top:-10px;left:14px;background:var(--night);padding:0 8px;font:12px var(--mono);color:var(--amber)}
+.ex-grid{display:grid;grid-template-columns:1fr 180px;gap:22px}
+.ex-label{white-space:nowrap}
+.ex-label{font:12px var(--mono);color:var(--dim);margin:10px 0 6px}
+.ex-bar{display:block;height:9px;background:var(--line2);margin-bottom:7px}
+.ex-bar.tall{height:14px}.w90{width:90%}.w80{width:80%}.w70{width:70%}.w60{width:60%}
+.ex-row{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:4px}
+.ex-row .ex-bar{margin:6px 0}
+.ex-btns{display:flex;gap:8px}.ex-btn{width:70px;height:26px;border:1px solid var(--line2)}.ex-btn.pri{background:var(--amberDeep);border-color:var(--amberDeep)}
+.ex-phone{height:170px;border:1px solid var(--line2);border-radius:18px}
+.ex-clock{margin-top:12px;font:600 15px var(--mono);color:var(--amber)}.ex-clock .ex-label{display:inline;margin-right:8px}
+
+/* Round layout with Dana's app */
+.lead-wide{min-width:0}
+.round-body{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:28px;align-items:start}
+.rule{font:13px var(--mono);color:var(--dim);margin-top:12px}
+.skip{margin-top:16px}
+.outcome.timeout{color:var(--amber)}
+.phone{margin:0}
+.phone figcaption{font:12px var(--mono);color:var(--dim);margin-bottom:8px}
+.ph-screen{border:1px solid var(--line2);border-radius:22px;background:#0A101C;padding:16px 16px 18px;min-height:250px;box-shadow:inset 0 0 0 5px #121A28}
+.ph-app{font:600 11px var(--mono);color:var(--amber);letter-spacing:.04em}
+.ph-title{font-size:15px;color:var(--soft);margin:8px 0 10px}
+.ph-art{width:100%;height:auto;max-height:110px;display:block;margin:4px 0 10px}
+.ph-track{fill:none;stroke:var(--line);stroke-width:10}
+.ph-arc{fill:none;stroke:var(--amber);stroke-width:10;stroke-linecap:round}
+.ph-street{fill:none;stroke:var(--line);stroke-width:5}
+.ph-route{fill:none;stroke:var(--amber);stroke-width:3;stroke-linejoin:round}
+.ph-dot{fill:var(--bone)}
+.ph-bar{fill:#5C6B86}
+.ph-tipmark{width:44px;height:44px;border-radius:50%;border:2px solid var(--amber);color:var(--amber);display:grid;place-items:center;font:600 22px var(--mono);margin:6px 0 12px}
+.ph-big{font:600 22px var(--mono);color:var(--bone);line-height:1.2}
+.ph-big small{font:400 13px var(--mono);color:var(--dim)}
+.ph-small{font-size:14px;color:var(--soft);margin-top:6px;line-height:1.45}
+.phone.preview .ph-screen{border-style:dashed}
+.phone.off .ph-screen{opacity:.75}
+.ph-off{color:var(--dim);font-size:14.5px;line-height:1.5;margin-top:10px}
+.phone.list{margin-top:22px;max-width:280px}
+.phone.list .ph-screen{min-height:0}
+.phone.list ul{list-style:none;margin-top:10px;border:0}
+.phone.list li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px;color:var(--bone)}
+.phone.list li b{font:500 12px var(--mono);color:var(--amber)}
+.phone.list li.off{color:var(--dimmer)}.phone.list li.off b{color:var(--dimmer)}
+
+/* Change cards on reveals */
+.change{border:1px solid var(--amberDeep);background:rgba(240,166,60,.06);padding:16px 18px;margin:16px 0}
+.ch-head{font:12px var(--mono);color:var(--amber);margin-bottom:6px}
+.ch-label{font-size:18px;margin-bottom:4px}
+.change p{color:var(--bone)}
+
+/* Dana's file: confidence on its own line, compact mode uses details */
+.file li .lab{display:block;font:12px var(--mono);color:var(--dim)}
+.file li .conf{display:block;font:12px var(--mono);color:var(--dimmer);margin-bottom:5px}
+.file li .conf b{color:var(--amber);font-weight:500}
+.file li p{margin:0}
+.file details summary{cursor:pointer;list-style:none}
+.file details summary::-webkit-details-marker{display:none}
+.file details summary .lab::before{content:'+ ';color:var(--amber)}
+.file details[open] summary .lab::before{content:'− '}
+.file details p{margin-top:6px}
+.file .hint{padding:0 20px 14px;font:12px var(--mono);color:var(--dimmer)}
+
+/* Ending */
+.sec{font:500 13px var(--mono);color:var(--amber);margin:26px 0 10px}
+.strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.strip .st{border:1px solid var(--line2);padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.strip .n{font:12px var(--mono);color:var(--dimmer)}
+.strip .t{font-size:15px;line-height:1.3}
+.strip .d{font:12px var(--mono);color:var(--bone)}
+.strip .timeout .d{color:var(--amber)}.strip .decline{border-style:dashed}
+.strip .mv{font:11px var(--mono);color:var(--dim)}
+.count{margin-top:12px;color:var(--soft)}
+.ending li b{display:block;font:500 12px var(--mono);color:var(--dim)}
+.ending li i{display:block;font:normal 12px var(--mono);color:var(--dimmer);margin-bottom:4px}
+.closing{margin-top:34px;color:var(--dim);font-style:italic}
+@media(max-width:860px){.round-body{grid-template-columns:1fr}.strip{grid-template-columns:1fr 1fr}.ex-grid{grid-template-columns:1fr}.phone{max-width:260px}}
+.walk-file{max-width:380px;margin-top:22px}
+.walk-file .file{position:static}
+.ex-entry{border-top:1px dashed var(--line2);padding:14px 20px 16px;position:relative}
+.ex-entry .lab{display:block;font:12px var(--mono);color:var(--dim)}
+.ex-entry .conf{display:block;font:12px var(--mono);color:var(--dimmer);margin-bottom:8px}
+.ex-tag2{position:absolute;right:16px;top:12px;font:11px var(--mono);color:var(--amber)}
+.ph-big.ph-head{font:500 19px/1.25 var(--serif)}
+.file li.new{box-shadow:inset 3px 0 0 var(--amber)}
+.summary{margin-top:6px;font-size:19px;color:var(--bone)}
+.reflect{border-left:3px solid var(--amber);padding:6px 0 6px 18px;margin-top:34px;max-width:62ch}
+.reflect p{font-size:20px;line-height:1.4}
+.team-box{border:1px solid var(--line2);padding:14px 16px;margin:16px 0;max-width:460px}
+.team-box .body{margin-bottom:10px;color:var(--bone)}
+.rename{display:flex;gap:8px}.rename input{flex:1;background:var(--night);border:1px solid var(--line2);padding:8px 10px}
+.btn.sm{padding:8px 14px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Would You Approve This?<small id="sub">Loopwell</small></div>
+  <div class="track" id="track" aria-hidden="true"></div>
+  <div class="clock" id="clock" aria-live="off"></div>
+</header>
+<main id="app" aria-live="polite"></main>
+<script>
+const BASE=(location.pathname.match(/^\/sim-?\d+/)||[''])[0];
+const app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fill=(t,v)=>String(t).replace(/\{(\w+)\}/g,(_,k)=>k in v?v[k]:'');
+
+function entryParam(k){return new URLSearchParams(location.hash.slice(1)).get(k)||new URLSearchParams(location.search).get(k)}
+let ACCESS_CODE=entryParam('code')||sessionStorage.getItem('m05-access')||null;
+if(ACCESS_CODE)sessionStorage.setItem('m05-access',ACCESS_CODE);
+const INITIAL_SESSION=(new URLSearchParams(location.search).get('session')||'').trim().toUpperCase();
+const tokenKey='m05-lt:'+(INITIAL_SESSION||'solo');
+const incomingToken=entryParam('lt');
+if(incomingToken)sessionStorage.setItem(tokenKey,incomingToken);
+const LAUNCH_TOKEN=incomingToken||sessionStorage.getItem(tokenKey)||null;
+let LAUNCH=null;
+if(LAUNCH_TOKEN){try{LAUNCH=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(LAUNCH_TOKEN.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))))}catch{}}
+if(LAUNCH_TOKEN||entryParam('code')){
+  const keep=new URLSearchParams(location.search);keep.delete('lt');keep.delete('code');
+  history.replaceState(null,'',location.pathname+(keep.toString()?'?'+keep.toString():''));
+}
+
+let CFG=null;
+const S={walk:0,walkDone:false,review:false,code:INITIAL_SESSION,pid:'',session:null,view:null,shown:'',confirming:null,busy:false,error:'',
+  syncedAt:0,remaining:0,poll:null,tick:null,reported:false,solo:false};
+
+function friendly(code){return({
+  session_not_running:CFG?.copy.waitingForStart,session_paused:CFG?.copy.paused,
+  round_closed:'That round has closed.',no_round_open:'No round is open right now.',
+  already_decided:'You have already decided this round.',team_not_assigned:CFG?.copy.waitingForTeam,
+  teams_locked:'This team session has already started. Ask your instructor to add you to the next one.',
+  session_closed:CFG?.copy.sessionClosed,no_such_session:'That session code was not found. Check it with your instructor.',
+  name_required:'Enter your name to join.',platform_signin_required:'Open this session from RapidSims to join it.'
+})[code]||''}
+
+async function request(path,payload,method='POST'){
+  const headers={'Content-Type':'application/json'};
+  if(LAUNCH_TOKEN)headers['x-launch-token']=LAUNCH_TOKEN;
+  else if(ACCESS_CODE)headers['x-access-code']=ACCESS_CODE;
+  const opt={method,headers};if(method!=='GET')opt.body=JSON.stringify(payload||{});
+  const r=await fetch(BASE+path,opt);let d={};try{d=await r.json()}catch{}
+  if(!r.ok){const e=new Error(d.message||friendly(d.error)||`Server error ${r.status}`);e.code=d.error;throw e}
+  return d;
+}
+const sessionApi=p=>request('/api/session',p);
+
+async function init(){
+  try{CFG=await request('/api/config'+(INITIAL_SESSION?'?session='+encodeURIComponent(INITIAL_SESSION):''),null,'GET')}
+  catch(e){
+    if(INITIAL_SESSION&&['access_code_required','access_code_not_configured','launch_token_invalid','platform_signin_required'].includes(e.code)){
+      sessionStorage.removeItem(tokenKey);
+      location.replace(BASE+'/api/join?session='+encodeURIComponent(INITIAL_SESSION));return;
+    }
+    if(e.code==='access_code_required'&&!LAUNCH_TOKEN){
+      sessionStorage.removeItem('m05-access');
+      app.innerHTML=`<div class="note bad">An access code is required to open this simulation.</div><button class="btn pri" id="acc">Enter access code</button>`;
+      document.getElementById('acc').onclick=()=>location.assign(BASE+'/launch.html');return;
+    }
+    app.innerHTML=`<div class="note bad">${esc(e.message)}</div><button class="btn" onclick="location.reload()">Try again</button>`;return;
+  }
+  if(S.code){
+    if(LAUNCH?.sub){
+      try{const d=await sessionApi({action:'join',code:S.code});S.pid=d.participantId;localStorage.setItem('m05-pid-'+S.code,S.pid)}
+      catch(e){S.error=e.message;return renderJoin()}
+    }else{
+      S.pid=localStorage.getItem('m05-pid-'+S.code)||'';
+      if(!S.pid)return renderJoin();
+    }
+    try{await poll()}catch{S.pid='';localStorage.removeItem('m05-pid-'+S.code);return renderJoin()}
+  }else{
+    // Direct launch: one private run with its own clock, resumed on refresh.
+    const soloKey='m05-solo'+(LAUNCH?.sub?':'+LAUNCH.sub:'');
+    let saved=null;try{saved=JSON.parse(sessionStorage.getItem(soloKey)||'null')}catch{}
+    S.solo=true;
+    if(saved){S.code=saved.code;S.pid=saved.pid;try{await poll()}catch{saved=null}}
+    if(!saved){
+      if(!LAUNCH?.sub)return renderSolo();
+      try{const d=await sessionApi({action:'solo'});S.code=d.code;S.pid=d.participantId;sessionStorage.setItem(soloKey,JSON.stringify({code:S.code,pid:S.pid}));await poll()}
+      catch(e){app.innerHTML=`<div class="note bad">${esc(e.message)}</div>`;return}
+    }
+  }
+  S.poll=setInterval(()=>poll().catch(()=>{}),2000);
+  S.tick=setInterval(tickClock,250);
+}
+
+function renderSolo(){
+  app.innerHTML=`<section class="join"><h2>Play on your own</h2><p class="body">Enter your name to start a private run.</p>
+    <div class="field"><label for="sn">Your name</label><input id="sn" maxlength="60" autocomplete="name"></div>
+    <div class="decide" style="margin-top:20px"><button class="btn pri" id="sb">Start simulation</button></div><div id="solo-error"></div></section>`;
+  document.getElementById('sb').onclick=async()=>{
+    const name=document.getElementById('sn').value.trim();
+    if(!name){document.getElementById('solo-error').textContent='Enter your name.';return}
+    document.getElementById('sb').disabled=true;
+    try{
+      const d=await sessionApi({action:'solo',name});S.code=d.code;S.pid=d.participantId;S.solo=true;
+      sessionStorage.setItem('m05-solo',JSON.stringify({code:S.code,pid:S.pid}));
+      await poll();S.poll=setInterval(()=>poll().catch(()=>{}),2000);S.tick=setInterval(tickClock,250);
+    }catch(e){document.getElementById('solo-error').textContent=e.message;document.getElementById('sb').disabled=false}
+  };
+}
+
+function renderJoin(){
+  app.innerHTML=`<section class="join"><h2>Join the session</h2>
+  <p class="body">${INITIAL_SESSION?'Enter your name to join your instructor’s session.':'Enter your name and the code on your instructor’s screen.'}</p>
+  ${S.error?`<div class="note bad">${esc(S.error)}</div>`:''}
+  <div class="field"><label for="jn">Name</label><input id="jn" autocomplete="name" value="${esc(LAUNCH?.name||'')}" ${LAUNCH?.sub?'readonly':''}></div>
+  <div class="field" ${INITIAL_SESSION?'hidden':''}><label for="jc">Session code</label><input id="jc" maxlength="5" autocomplete="off" value="${esc(S.code)}"></div>
+  <div class="decide" style="margin-top:20px"><button class="btn pri" id="jb">Join session</button></div></section>`;
+  document.getElementById('jb').onclick=join;
+}
+async function join(){
+  const name=document.getElementById('jn').value.trim(),code=document.getElementById('jc').value.trim().toUpperCase();
+  try{
+    const d=await sessionApi({action:'join',code,name,participantId:localStorage.getItem('m05-pid-'+code)||undefined});
+    S.code=code;S.pid=d.participantId;localStorage.setItem('m05-pid-'+S.code,S.pid);S.error='';
+    const q=new URLSearchParams(location.search);q.set('session',code);history.replaceState(null,'',location.pathname+'?'+q);
+    await poll();clearInterval(S.poll);S.poll=setInterval(()=>poll().catch(()=>{}),2000);clearInterval(S.tick);S.tick=setInterval(tickClock,250);
+  }catch(e){S.error=e.message;renderJoin()}
+}
+
+async function poll(){
+  const d=await sessionApi({action:'state',code:S.code,participantId:S.pid});
+  S.session=d.session;S.view=d.view;S.syncedAt=performance.now();S.remaining=d.view.clock.remaining;
+  const key=JSON.stringify([d.session.state,d.session.paused,d.view.clock.phase,d.view.clock.round,d.view.rounds,d.view.ending,d.view.canVote,d.view.canSkip,d.view.ready,d.view.team]);
+  if(key!==S.shown&&!S.renaming){S.shown=key;if(!d.view.canVote)S.confirming=null;render()}
+  if(d.view.ending&&LAUNCH_TOKEN&&!S.reported){S.reported=true;request('/api/finish',{code:S.code,participantId:S.pid}).then(d=>{S.reported=!!d.reported}).catch(()=>{S.reported=false})}
+}
+
+function tickClock(){
+  const v=S.view,el=document.getElementById('clock');if(!v){el.innerHTML='';return}
+  const c=v.clock;
+  if(['lobby','closed'].includes(c.phase)||S.session?.state==='closed'){el.innerHTML='';return}
+  const left=c.paused?S.remaining:Math.max(0,S.remaining-(performance.now()-S.syncedAt)/1000);
+  const m=Math.floor(left/60),s=Math.floor(left%60);
+  const label=c.phase==='briefing'?fill(CFG.copy.roundOpensIn,{n:1}):c.phase==='decide'?CFG.copy.roundClosesIn:c.phase==='reveal'?(c.round<5?fill(CFG.copy.roundOpensIn,{n:c.round+1}):CFG.copy.endingIn):'';
+  el.innerHTML=c.phase==='ending'?'':`${m}:${String(s).padStart(2,'0')}<small>${esc(c.paused?'Paused':label)}</small>`;
+}
+
+function track(){
+  const v=S.view,cells=[];
+  for(let n=1;n<=5;n++){
+    const r=v.rounds[n-1],res=r&&r.result;
+    let cls='';if(res)cls=res.decision==='decline'?'decl':'ship';else if(v.clock.round===n&&v.clock.phase==='decide')cls='now';
+    cells.push(`<span class="${cls}"></span>`);
+  }
+  document.getElementById('track').innerHTML=['lobby'].includes(v.clock.phase)?'':cells.join('');
+  document.getElementById('sub').textContent=S.view.team?`Loopwell · ${S.view.team.label||'Your team'}`:'Loopwell';
+}
+
+// Dana's app: what she gets if a feature ships, or what's missing if it doesn't.
+function phoneBody(a){
+  if(a.kind==='steps')return `<svg viewBox="0 0 120 120" class="ph-art" aria-hidden="true"><circle cx="60" cy="60" r="46" class="ph-track"/><circle cx="60" cy="60" r="46" class="ph-arc" stroke-dasharray="289" stroke-dashoffset="64" transform="rotate(-90 60 60)"/></svg>`;
+  if(a.kind==='route')return `<svg viewBox="0 0 160 110" class="ph-art" aria-hidden="true"><g class="ph-street"><path d="M0 22H160M0 58H160M0 92H160M26 0V110M70 0V110M118 0V110M0 110L60 0"/></g><path class="ph-route" d="M26 92 L26 58 L70 58 L70 22 L118 22 L118 58 L96 76 L70 92 Z"/><circle cx="26" cy="92" r="4" class="ph-dot"/></svg>`;
+  if(a.kind==='sleep'){const h=[12,26,40,30,46,22,38,48,28,16,34,20];return `<svg viewBox="0 0 160 70" class="ph-art" aria-hidden="true">${h.map((y,i)=>`<rect x="${i*13+2}" y="${60-y}" width="10" height="${y}" rx="2" class="ph-bar"/>`).join('')}<path d="M0 64H160" class="ph-street"/></svg>`}
+  if(a.kind==='calories')return `<svg viewBox="0 0 160 60" class="ph-art" aria-hidden="true"><path class="ph-route" d="M0 40 L20 38 L30 20 L40 44 L55 36 L70 38 L80 14 L90 46 L110 34 L130 36 L140 24 L160 30"/></svg>`;
+  return '';
+}
+function phone(a,mode){
+  if(!a)return '';
+  const head=mode==='preview'?CFG.copy.appIfShips:mode==='off'?CFG.copy.appNotShipped:CFG.copy.appHeading;
+  if(mode==='off')return `<figure class="phone off"><figcaption>${esc(head)}</figcaption><div class="ph-screen"><div class="ph-app">Loopwell</div><div class="ph-title">${esc(a.name)}</div><p class="ph-off">${esc(a.off)}</p></div></figure>`;
+  return `<figure class="phone ${mode==='preview'?'preview':''}"><figcaption>${esc(head)}</figcaption><div class="ph-screen"><div class="ph-app">Loopwell</div><div class="ph-title">${esc(a.title)}</div>${phoneBody(a)}<div class="ph-big${a.kind==='tip'?' ph-head':''}">${esc(a.big)}${a.bigUnit?` <small>${esc(a.bigUnit)}</small>`:''}</div><p class="ph-small">${esc(a.small)}</p></div></figure>`;
+}
+
+// Dana's file. During a decision it is compact (tap a line to read it); in a
+// reveal every line is in full and the changed ones are marked.
+function file(picture,opts={}){
+  const c=CFG.customer,changed=opts.changed||[],added=opts.added||[];
+  const line=p=>{
+    const ch=changed.includes(p.id),tag=ch?(added.includes(p.id)?CFG.copy.newMarker:CFG.copy.updatedMarker):'';
+    const lab=`<span class="lab">${esc(p.label)}</span><span class="conf">${tag?`<b>${esc(tag)}</b> · `:''}${esc(CFG.copy.levelWords[p.level]||'')}</span>`;
+    return opts.compact?`<li class="${ch?'new':''}"><details><summary>${lab}</summary><p>${esc(p.text)}</p></details></li>`:`<li class="${ch?'new':''}">${lab}<p>${esc(p.text)}</p></li>`;
+  };
+  const items=picture&&picture.length?`<ol>${(opts.chronological?picture:byRecency(picture)).map(line).join('')}</ol>${opts.compact?`<div class="hint">${esc(CFG.copy.expandHint)}</div>`:''}`:`<div class="empty">${esc(CFG.copy.revealEmpty)}</div>`;
+  return `<aside class="file" aria-label="${esc(CFG.copy.revealHeading)}"><div class="file-head"><div class="who">${esc(c.name)}</div><div class="meta">${c.age} · ${esc(c.since)}</div><div class="title">${esc(CFG.copy.revealHeading)}</div></div>${items}</aside>`;
+}
+function byRecency(picture){
+  const last={};
+  for(const r of S.view.rounds)if(r.result)for(const id of r.result.changed)last[id]=r.n;
+  return picture.map((p,i)=>({p,i})).sort((a,b)=>(last[b.p.id]||0)-(last[a.p.id]||0)||a.i-b.i).map(x=>x.p);
+}
+function latestPicture(){
+  const done=S.view.rounds.filter(r=>r.result);
+  return done.length?done[done.length-1].result.picture:[];
+}
+function outcomeWords(d){return CFG.copy.outcomeWords[d]||''}
+function skipButton(){
+  const v=S.view;if(!v.canSkip)return '';
+  const c=v.clock;
+  const label=c.phase==='decide'?CFG.copy.skipToResult:c.phase==='briefing'?fill(CFG.copy.skipToNext,{n:1}):c.round<5?fill(CFG.copy.skipToNext,{n:c.round+1}):CFG.copy.skipToEnding;
+  return `<div class="skip"><button class="btn pri" id="skip">${esc(label)}</button></div>`;
+}
+function wireSkip(){
+  const b=document.getElementById('skip');if(!b)return;
+  b.onclick=async()=>{b.disabled=true;try{const d=await sessionApi({action:'skip',code:S.code,participantId:S.pid});S.view=d.view;S.remaining=d.view.clock.remaining;S.syncedAt=performance.now();S.shown='';render()}catch(e){S.error=e.message;b.disabled=false}};
+}
+
+function render(){
+  const v=S.view,c=v.clock;track();tickClock();
+  if(S.session.state==='closed'&&!v.ending){app.innerHTML=`<div class="note">${esc(CFG.copy.sessionClosed)}</div>`;return}
+  if(c.phase==='lobby'){
+    if(S.session.solo||!v.ready||S.review)return renderWalk(false);
+    const wait=S.session.mode==='team'&&!v.team?.label?CFG.copy.waitingForTeam:CFG.copy.walkWaiting;
+    const t=v.team,X=CFG.copy;
+    const teamBlock=t&&t.assigned?`<div class="team-box"><p class="body">${esc(fill(X.teamYoureOn,{team:t.label}))}</p>${t.canRename?(S.renaming?`<div class="rename"><input id="tname" maxlength="30" autocomplete="off" value="${esc(t.label)}" aria-label="${esc(X.teamRename)}"><button class="btn pri sm" id="tsave">${esc(X.teamRenameSave)}</button></div><p class="rule">${esc(X.teamRenameHint)}</p>`:`<button class="btn sm" id="tren">${esc(X.teamRename)}</button>`):''}</div>`:'';
+    app.innerHTML=`<div class="lead"><div class="kicker">Session ${esc(S.session.code)}</div><h2>You're in.</h2><p class="body">${esc(wait)}</p>${teamBlock}${S.error?`<div class="note bad">${esc(S.error)}</div>`:''}<button class="btn" id="again">${esc(CFG.copy.walkReview)}</button></div>`;
+    document.getElementById('again').onclick=()=>{S.walk=0;S.review=true;renderWalk(false)};
+    const tr=document.getElementById('tren');if(tr)tr.onclick=()=>{S.renaming=true;render();document.getElementById('tname')?.focus()};
+    const ts=document.getElementById('tsave');if(ts)ts.onclick=async()=>{
+      try{const d=await sessionApi({action:'rename_team',code:S.code,participantId:S.pid,label:document.getElementById('tname').value});S.view=d.view;S.error='';S.renaming=false;S.shown='';render()}
+      catch(e){S.error=e.message;render()}};
+    return;
+  }
+  if(!S.session.solo&&!v.ready&&!S.walkDone&&!v.ending)return renderWalk(true);
+  const paused=c.paused?`<div class="note warn">${esc(CFG.copy.paused)}</div>`:'';
+  if(v.ending)return renderEnding(paused);
+  if(c.phase==='briefing'){
+    const team=S.session.mode==='team'?`<p class="body">${esc(CFG.briefing.teamExtra)}</p>`:'';
+    app.innerHTML=`<div class="lead">${paused}<div class="kicker">Before round 1</div><h2>${esc(CFG.briefing.recapHeading)}</h2><p class="body">${esc(CFG.briefing.recap)}</p>${team}${skipButton()}</div>`;
+    return wireSkip();
+  }
+  const r=v.rounds[c.round-1];
+  if(c.phase==='decide')return renderDecide(r,paused);
+  renderReveal(r,paused);
+}
+
+// The untimed walkthrough. Late arrivals see it with a way straight into play.
+function renderWalk(late){
+  const W=CFG.walkthrough,i=Math.min(S.walk||0,W.length-1),w=W[i],solo=!!S.session.solo;
+  const body=(solo&&w.soloBody?w.soloBody:w.body).map(p=>`<p class="body">${esc(p)}</p>`).join('')+(w.teamBody&&S.session.mode==='team'?`<p class="body">${esc(w.teamBody)}</p>`:'');
+  const fx=w.fileExample;
+  const example=w.example?exampleRound(w.labels):fx?`<div class="walk-file">${file([]).replace('</aside>',`<div class="ex-entry"><span class="ex-tag2">${esc(fx.tag)}</span><span class="lab">${esc(fx.label)}</span><span class="conf">${esc(CFG.copy.levelWords[fx.level])}</span><span class="ex-bar w90"></span><span class="ex-bar w70"></span></div></aside>`)}</div>`:'';
+  const last=i===W.length-1;
+  const next=last?`<button class="btn pri" id="wn">${esc(solo?CFG.copy.walkStartSolo:CFG.copy.walkReady)}</button>`:`<button class="btn pri" id="wn">${esc(CFG.copy.walkNext)}</button>`;
+  const banner=late?`<div class="note warn">${esc(CFG.copy.walkLate)} <button class="btn sm pri" id="wskip">${esc(CFG.copy.walkSkip)}</button></div>`:'';
+  app.innerHTML=`<section class="walk">${banner}<div class="dots" aria-label="Step ${i+1} of ${W.length}">${W.map((_,k)=>`<span class="${k===i?'on':k<i?'done':''}"></span>`).join('')}</div>
+    <h2>${esc(w.title)}</h2>${body}${example}
+    <div class="decide" style="margin-top:26px">${i>0?`<button class="btn" id="wb">${esc(CFG.copy.walkBack)}</button>`:''}${next}</div>
+    ${S.error?`<div class="note bad">${esc(S.error)}</div>`:''}</section>`;
+  const wb=document.getElementById('wb');if(wb)wb.onclick=()=>{S.walk=i-1;renderWalk(late)};
+  document.getElementById('wn').onclick=async()=>{
+    if(!last){S.walk=i+1;return renderWalk(late)}
+    try{
+      if(solo){await sessionApi({action:'solo_start',code:S.code,participantId:S.pid})}
+      else{await sessionApi({action:'ready',code:S.code,participantId:S.pid})}
+      S.walkDone=true;S.review=false;S.shown='';await poll();
+    }catch(e){S.error=e.message;renderWalk(late)}
+  };
+  const ws=document.getElementById('wskip');if(ws)ws.onclick=async()=>{S.walkDone=true;S.shown='';sessionApi({action:'ready',code:S.code,participantId:S.pid}).catch(()=>{});await poll()};
+}
+// A labelled wireframe of a round. Grey bars, not real content, so nothing is primed.
+function exampleRound(L){
+  return `<div class="example" aria-label="Example of a round screen"><div class="ex-tag">Example</div>
+    <div class="ex-grid"><div>
+      <div class="ex-label">${esc(L.request)}</div><div class="ex-bar w90 tall"></div><div class="ex-bar w60 tall"></div>
+      <div class="ex-row"><span class="ex-label">${esc(L.why)}</span><span class="ex-bar w80"></span></div>
+      <div class="ex-row"><span class="ex-label">${esc(L.adds)}</span><span class="ex-bar w70"></span></div>
+      <div class="ex-label">${esc(L.buttons)}</div><div class="ex-btns"><span class="ex-btn pri"></span><span class="ex-btn"></span></div>
+    </div><div><div class="ex-label">${esc(L.app)}</div><div class="ex-phone"></div></div></div>
+    <div class="ex-clock"><span class="ex-label">${esc(L.clock)}</span> 3:00</div></div>`;
+}
+
+function requestHead(r){
+  return `<div class="kicker">Round ${r.n} of 5 · ${esc(r.title)}</div><h1 class="request">${esc(r.request)}</h1>`;
+}
+function renderDecide(r,paused){
+  const v=S.view,team=S.session.mode==='team';let act='';
+  if(r.myVote){
+    act=`<div class="note">${team?'You voted to '+esc(r.myVote)+'. ':''}${esc(team?CFG.copy.votedTeam:CFG.copy.votedIndividual)}</div>${skipButton()}`;
+  }else if(S.confirming){
+    const ap=S.confirming==='approve';
+    act=`<div class="confirm" role="group" aria-label="Confirm your decision"><p>${esc(ap?CFG.copy.confirmApprove:CFG.copy.confirmDecline)}</p>
+    <div class="decide"><button class="btn pri" id="yes">${ap?'Confirm approval':'Confirm decline'}</button><button class="btn" id="no">Go back</button></div></div>`;
+  }else{
+    act=`<div class="decide"><button class="btn pri" id="ap" ${v.canVote?'':'disabled'}>${esc(CFG.copy.decide.approve)}</button><button class="btn" id="dc" ${v.canVote?'':'disabled'}>${esc(CFG.copy.decide.decline)}</button></div><p class="rule">${esc(CFG.copy.timeoutRule)}</p>`;
+  }
+  const err=S.error?`<div class="note bad">${esc(S.error)}</div>`:'';
+  app.innerHTML=`<div class="layout"><div class="lead-wide">${paused}${requestHead(r)}
+    <div class="round-body"><div><dl class="facts"><div><dt>Why the team wants it</dt><dd>${esc(r.reason)}</dd></div><div><dt>What it adds</dt><dd>${esc(r.adds)}</dd></div></dl>${act}${err}</div>${phone(r.app,'preview')}</div>
+  </div>${file(latestPicture(),{compact:true})}</div>`;
+  const ap=document.getElementById('ap'),dc=document.getElementById('dc'),yes=document.getElementById('yes'),no=document.getElementById('no');
+  if(ap)ap.onclick=()=>{S.confirming='approve';S.error='';render();document.getElementById('yes')?.focus()};
+  if(dc)dc.onclick=()=>{S.confirming='decline';S.error='';render();document.getElementById('yes')?.focus()};
+  if(no)no.onclick=()=>{S.confirming=null;render()};
+  if(yes)yes.onclick=()=>vote(r.n,S.confirming);
+  wireSkip();
+}
+async function vote(n,decision){
+  if(S.busy)return;S.busy=true;
+  try{const d=await sessionApi({action:'vote',code:S.code,participantId:S.pid,round:n,decision});S.view=d.view;S.remaining=d.view.clock.remaining;S.syncedAt=performance.now();S.error=''}
+  catch(e){S.error=e.message}
+  finally{S.busy=false;S.confirming=null;S.shown='';render()}
+}
+function renderReveal(r,paused){
+  const res=r.result,team=S.session.mode==='team';
+  const mine=team&&r.myVote?`<small>${esc(CFG.copy.yourVotes)}: ${esc(outcomeWords(r.myVote))}</small>`:'';
+  const head=esc((team?CFG.copy.teamOutcomeSentence:CFG.copy.outcomeSentence)[res.decision]);
+  const changed=res.picture.filter(p=>res.changed.includes(p.id));
+  const change=changed.length?changed.map(p=>`<div class="change"><div class="ch-head">${esc(res.added.includes(p.id)?CFG.copy.newInFile:CFG.copy.updatedInFile)} · ${esc(CFG.copy.levelWords[p.level])}</div><div class="ch-label">${esc(p.label)}</div><p>${esc(p.text)}</p></div>`).join('')
+    :`<p class="note">${esc(CFG.copy.revealUnchanged)}</p>`;
+  const cost=res.cost?`<div class="cost"><h3>${esc(CFG.copy.costHeading)}</h3><p>${esc(res.cost)}</p></div>`:'';
+  app.innerHTML=`<div class="layout"><div class="lead-wide">${paused}<div class="kicker">Round ${r.n} of 5 · ${esc(r.title)}</div>
+  <p class="outcome ${res.decision}">${head}${mine}</p><p class="body">${esc(r.request)}</p>
+  <div class="round-body"><div>${change}${cost}${skipButton()}</div>${phone(r.app,res.decision==='decline'?'off':'live')}</div></div>${file(res.picture,{changed:res.changed,added:res.added,compact:true})}</div>`;
+  wireSkip();
+}
+function renderEnding(paused){
+  const e=S.view.ending,team=S.session.mode==='team';
+  const strip=e.decisions.map(d=>`<div class="st ${d.decision}"><span class="n">${d.round}</span><span class="t">${esc(d.title)}</span><span class="d">${esc(outcomeWords(d.decision))}</span>${team&&d.myVote?`<span class="mv">${esc(CFG.copy.yourVotes)}: ${esc(outcomeWords(d.myVote))}</span>`:''}</div>`).join('');
+  const W=['no','one','two','three','four','five'],c=e.counts,who=team?'Your team':'You',X=CFG.copy;
+  const req=n=>`${W[n]} request${n===1?'':'s'}`;
+  let count=c.approve===5?fill(X.countAllApproved,{who}):c.decline===5?fill(X.countAllDeclined,{who})
+    :c.approve&&c.decline?fill(X.countBoth,{who,approve:req(c.approve),decline:W[c.decline]})
+    :c.approve?fill(X.countApprovedOnly,{who,approve:req(c.approve)}):c.decline?fill(X.countDeclinedOnly,{who,decline:req(c.decline)}):'';
+  const t=c.timeout;
+  if(t===5)count=X.timeoutCountAll;else if(t===1)count+=' '+X.timeoutCountOne;else if(t>1)count+=' '+fill(X.timeoutCountMany,{timeout:W[t]});
+  const k=e.knows.length,summary=k===0?X.summaryNone:k===1?X.summaryOne:fill(X.summaryMany,{n:W[k]});
+  const knows=e.knows.length?e.knows.map(k=>`<li><b>${esc(k.label)}</b><i>${esc(CFG.copy.levelWords[k.level])}</i>${esc(k.text)}</li>`).join(''):`<li>${esc(CFG.copy.revealEmpty)}</li>`;
+  const missing=e.missing.length?e.missing.map(m=>`<li>${esc(m)}</li>`).join(''):`<li>${esc(CFG.copy.endingMissingEmpty)}</li>`;
+  const appRows=e.decisions.map(d=>`<li class="${d.decision==='decline'?'off':''}"><span>${esc(d.app?.name||d.title)}</span><b>${d.decision==='decline'?'Not available':'On'}</b></li>`).join('');
+  app.innerHTML=`${paused}<div class="kicker">${esc(CFG.customer.name)}</div><h2>${esc(CFG.copy.endingHeading)}</h2>
+  <h3 class="sec">${esc(team?CFG.copy.teamDecision+'s':CFG.copy.yourDecisions)}</h3><div class="strip">${strip}</div><p class="count">${esc(count.trim())}</p><p class="summary">${esc(summary)}</p>
+  <div class="ending"><section><h3 class="sec">${esc(CFG.copy.endingKnows)}</h3><ul>${knows}</ul></section>
+  <section><h3 class="sec">${esc(CFG.copy.endingMissing)}</h3><ul>${missing}</ul>
+  <figure class="phone list"><figcaption>${esc(CFG.copy.appHeading)}</figcaption><div class="ph-screen"><div class="ph-app">Loopwell</div><ul>${appRows}</ul></div></figure></section></div>
+  ${S.session.solo?`<div class="reflect"><p>${esc(CFG.copy.soloReflection)}</p></div>`:''}<p class="closing">${esc(S.session.solo?CFG.copy.soloClosingLine:CFG.copy.closingLine)}</p>`;
+}
+
+init();
+</script>
+</body>
+</html>

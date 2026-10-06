@@ -1,0 +1,10 @@
+{
+  "name": "flexee-platform",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Flexee RapidSims — catalogue, courses, entitlement",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}

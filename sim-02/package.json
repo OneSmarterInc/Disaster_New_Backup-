@@ -1,0 +1,7 @@
+{
+  "name": "flexee-rapid-sim-02",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Flexee RapidSim 02 — What Did It Tell Them?",
+  "engines": { "node": ">=20" }
+}
