@@ -799,7 +799,7 @@ function facultyRoute() {
 }
 async function restoreFaculty(params,current) {
   const courseId=PortalNavigation.id(params,'course'), simId=PortalNavigation.id(params,'sim'), studentId=PortalNavigation.id(params,'student');
-  const view=['course','played','student-results'].includes(params.get('view')) ? params.get('view') : courseId ? 'course' : 'home';
+  const view=['home','course','played','student-results'].includes(params.get('view')) ? params.get('view') : courseId ? 'course' : 'home';
   if (view!=='home' && (!courseId || (view==='played' && !simId) || (view==='student-results' && !studentId))) {
     throw Object.assign(new Error('Incomplete link'),{status:404});
   }

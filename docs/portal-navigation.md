@@ -87,3 +87,38 @@ own Admin, Faculty and Student accounts in separate browser profiles.
 No database migration or new production dependency is required. The launcher
 must serve JavaScript from `platform/public`, including `portal-navigation.js`;
 the previously supplied generic static-file launcher supports this.
+
+## Route consistency follow-up
+
+- Admin tab changes clear the person editor and its temporary reset link. A
+  facilitator editor cannot become a student editor after a tab change.
+- Edit, Catalogue page and Reviewers are mutually exclusive catalogue panels.
+  For a conflicting direct link, precedence is `edit`, then `copy`, then
+  `reviewers`. Ignored panel IDs are removed rather than fetched or validated;
+  the selected panel still validates its record.
+- Admin `faculty=<id>` detail takes precedence over list tabs/panels. Its URL
+  normalizes to `tab=fac`, while preserving list filter/pagination context.
+- Faculty explicitly accepts `view=home`. Stale course, simulation, student,
+  edit and add parameters are discarded for Home. Legacy `?course=<id>` links
+  still infer the course view. Incomplete result links still show an error.
+- Normalization uses the existing replace-state path, not a new history entry.
+  Search, pagination and Back/Forward recovery continue to use existing state.
+
+Verification now includes 66 browser scenarios, including cross-tab editors,
+conflicting deep links and catalogue panel switching. Tests use disposable API
+fixtures, never the live database. Existing Admin/Faculty/Student view, catalogue
+and link checks also pass.
+
+`node platform/tools/routing-check.js` checks 55 exact destinations across 11
+configured hosted simulation prefixes, aliases, platform paths and uniqueness of
+all 12 local routes. This checks configuration, not remote deployment health.
+It explicitly reports the existing missing hosted `/simplus02` mapping. Use
+`--require-all-hosted` to make that known gap fail a hosted readiness check.
+Do not invent a deployment URL to make that check pass.
+
+With the local suite running, `node tools/local/check.cjs` additionally checks
+all 12 health identities, entry pages, slash redirects with query preservation,
+prefix boundaries, six portal aliases and their HTML destinations, the legacy
+Plus alias and Sim07 demo. These checks passed in an isolated local suite with
+real Redis and a PGlite test database adapter. Windows PostgreSQL and complete
+gameplay are not covered by that fixture; rerun the check on the laptop.

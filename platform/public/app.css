@@ -21,6 +21,8 @@ input,select,textarea{font:inherit;color:inherit}
 a{color:var(--amber);text-decoration:none}
 a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+/* Restored page headings receive focus for assistive technology, not interaction. */
+h1[data-portal-heading][tabindex="-1"]:focus{outline:none}
 
 .mono{font-family:var(--mono)}
 .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
