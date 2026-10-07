@@ -21,6 +21,7 @@
   @media (max-width:860px){.split{grid-template-columns:1fr}.hero h1{font-size:36px}.how{grid-template-columns:1fr}}
 </style>
 <script src="/sim-identity.js"></script>
+<script src="/portal-navigation.js"></script>
 </head>
 <body>
 <div class="narrow" id="app"></div>
@@ -36,7 +37,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;
 async function api(path, payload) {
   const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 const simLabel = (x) => RapidSimsIdentity.label(x) + ' — ' + x.title;
@@ -67,7 +68,7 @@ function page(msg) {
     try {
       const d = await api('/api/auth', { action:'signin',
         email: document.getElementById('em').value, password: document.getElementById('pw').value });
-      location.href = home(d.user.role);
+      location.replace(PortalNavigation.safeReturn(new URLSearchParams(location.search).get('next'), d.user.role));
     } catch (e) {
       document.getElementById('err').textContent = e.message;
       btn.disabled = false; btn.textContent = 'Sign in';
@@ -81,7 +82,7 @@ function page(msg) {
 (async () => {
   try {
     const d = await api('/api/auth', { action:'me' });
-    if (d.user) { location.href = home(d.user.role); return; }
+    if (d.user) { location.replace(PortalNavigation.safeReturn(new URLSearchParams(location.search).get('next'), d.user.role)); return; }
   } catch (e) {
     if (e.body && e.body.error === 'no_db') {
       app.innerHTML = '<div class="hero"><div class="eyebrow">Flexee RapidSims</div>' +

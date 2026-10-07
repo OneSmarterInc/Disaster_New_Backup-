@@ -496,13 +496,17 @@ function detail(){
 // nothing about which simulation is open, so a link to one is a link to the list.
 function setLink(id) {
   const url = id ? location.pathname + '?sim=' + encodeURIComponent(id) : location.pathname;
-  history.replaceState(null, '', url);
+  if (url !== location.pathname + location.search) history.pushState(null, '', url);
 }
 
 function render(){
   VIEW ? detail() : list();
   if (window.scrollTo) window.scrollTo(0, 0);
 }
+window.addEventListener('popstate', () => {
+  const id = new URLSearchParams(location.search).get('sim');
+  VIEW = SIMS.some(sim => sim.id === id) ? id : null; render();
+});
 document.getElementById('home').onclick = event => { event.preventDefault(); VIEW = null; setLink(null); render(); };
 
 (async () => {

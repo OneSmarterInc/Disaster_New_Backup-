@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Join your course — Flexee RapidSims</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/portal-navigation.js"></script>
 </head>
 <body>
 <div class="narrow" id="app"></div>
@@ -21,7 +22,7 @@ let code = (new URLSearchParams(location.search).get('c') || '').toUpperCase();
 async function api(path, payload) {
   const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 
@@ -36,7 +37,7 @@ function askCode(msg) {
       <button class="btn pri" id="go">Continue</button>
       <div class="err">${msg ? esc(msg) : ''}</div>
     </div>`;
-  const go = () => { const v = document.getElementById('cc').value.trim().toUpperCase(); if (v) { code = v; start(); } };
+  const go = () => { const v = document.getElementById('cc').value.trim().toUpperCase(); if (v) { code = v; const url = new URL(location.href); url.searchParams.set('c', code); history.replaceState(null, '', url.pathname + url.search); start(); } };
   document.getElementById('go').onclick = go;
   document.getElementById('cc').onkeydown = e => { if (e.key === 'Enter') go(); };
   document.getElementById('cc').focus();
