@@ -87,7 +87,52 @@ function reply(url,b) {
   }
   await check('admin search survives refresh without entering URL',async()=>{await goto('/admin.html?tab=stu');await page.locator('[data-q="stu"]').fill('Student 1');await page.reload();await settled();assert.equal(await page.locator('[data-q="stu"]').inputValue(),'Student 1');assert(!page.url().includes('Student'));});
   await check('admin detail opened by button survives refresh',async()=>{await goto('/admin.html');await page.locator('[data-open="f1"]').click();await page.locator('#rst').waitFor();await refresh('#rst');assert(new URL(page.url()).searchParams.get('faculty')==='f1');});
+  for (const [from,to,id] of [['fac','stu','f1'],['stu','fac','s1']]) {
+    await check('admin editor does not cross tabs '+from+' to '+to,async()=>{
+      await goto('/admin.html?tab='+from+'&person='+id);
+      await page.locator(`[data-tab="${to}"]`).click();
+      assert.equal(new URL(page.url()).searchParams.get('person'),null);
+      await refresh(`[data-tab="${to}"].on`);
+      await page.goBack();await settled();await page.locator(`[data-psave="${id}"]`).waitFor();
+      await page.goForward();await settled();await refresh(`[data-tab="${to}"].on`);
+    });
+  }
+  for (const [button,target,key] of [['[data-simedit]','[data-simsave]','edit'],['[data-rev]','[data-grant]','reviewers']]) {
+    await check('catalogue copy panel switches to '+key,async()=>{
+      await goto('/admin.html?tab=cat&copy='+simId);
+      await page.locator(button).first().click();await page.locator(target).first().waitFor();
+      assert.equal(new URL(page.url()).searchParams.get('copy'),null);
+      assert.equal(await page.locator('[data-copysave]').count(),0);
+      await refresh(target);await page.goBack();await settled();await page.locator('[data-copysave]').waitFor();
+      await page.goForward();await settled();await refresh(target);
+    });
+  }
+  await check('conflicting catalogue URL normalizes without extra history',async()=>{
+    await goto('/admin.html?tab=cat&edit='+simId+'&copy=missing&reviewers=missing');
+    await page.locator('[data-simsave]').waitFor();
+    assert.equal(new URL(page.url()).searchParams.get('copy'),null);
+    assert.equal(new URL(page.url()).searchParams.get('reviewers'),null);
+    const n=await page.evaluate(()=>history.length);await refresh('[data-simsave]');
+    assert.equal(await page.evaluate(()=>history.length),n);
+  });
+  await check('admin detail drops incompatible list panels',async()=>{
+    await goto('/admin.html?faculty=f1&tab=cat&edit=missing&person=missing&invite=1');
+    await refresh('#rst');const q=new URL(page.url()).searchParams;
+    assert.equal(q.get('tab'),'fac');for(const k of ['edit','person','invite'])assert.equal(q.get(k),null);
+  });
   role='faculty';
+  await check('faculty explicit home ignores stale course parameters',async()=>{
+    requestLog=[];await goto('/faculty.html?view=home&course=missing&sim=missing&student=missing&edit=1&add=1');
+    await page.locator('[data-tab="crs"].on').waitFor();
+    assert(!requestLog.includes('course_detail'));const q=new URL(page.url()).searchParams;
+    for(const k of ['course','sim','student','edit','add'])assert.equal(q.get(k),null);
+    await refresh('[data-tab="crs"].on');
+  });
+  for (const url of ['?view=played&course=c1','?view=student-results&course=c1']) {
+    await check('incomplete faculty deep link '+url,async()=>{
+      await goto('/faculty.html'+url);await page.getByRole('heading',{name:'Unable to open this page'}).waitFor();
+    });
+  }
   const routes=[['','[data-tab="crs"].on'],['?tab=sim','[data-tab="sim"].on'],['?course=c1','#ce'],['?view=played&course=c1&sim='+simId,'#back'],['?view=student-results&course=c1&student=s1','#backCourse'],['?new=1','#ncgo'],['?course=c1&edit=1','#e_go'],['?course=c1&add=1','#a_go'],['?tab=sim&look='+simId,'#lookClose']];
   for(const [url,selector]of routes)await check('faculty direct and refresh '+url,async()=>{await goto('/faculty.html'+url);await refresh(selector);});
   await check('faculty nested Back Forward and refresh',async()=>{await goto('/faculty.html');await page.locator('[data-open="c1"]').click();await page.locator('[data-student-results="s1"]').click();await page.locator('#backCourse').waitFor();await page.goBack();await settled();await page.locator('#ce').waitFor();await page.goForward();await settled();await refresh('#backCourse');});

@@ -80,7 +80,7 @@
         restoring = false; intent = 'replace';
         config.render(); record();
         const heading = config.root.querySelector('h1');
-        if (heading) { heading.setAttribute('tabindex','-1'); heading.focus({preventScroll:true}); }
+        if (heading) { heading.setAttribute('tabindex','-1'); heading.setAttribute('data-portal-heading',''); heading.focus({preventScroll:true}); }
         window.scrollTo(0, saved.scroll || 0);
       } catch (error) {
         if (ticket !== generation) return;

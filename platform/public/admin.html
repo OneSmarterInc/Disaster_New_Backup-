@@ -143,7 +143,7 @@ function render() {
       ${tabs.map(([k,l,n]) => `<button class="tab ${D.tab===k?'on':''}" data-tab="${k}">${l} <span class="count">${n}</span></button>`).join('')}
     </div>
     <div id="body"></div>`;
-  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { D.tab = b.dataset.tab; D.open = null; render(); });
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { D.tab = b.dataset.tab; D.open = null; D.personEdit = null; D.link = null; render(); });
   wireHelp();
   const body = document.getElementById('body');
   body.innerHTML = ({ fac:facTab, stu:stuTab, crs:crsTab, cat:catTab })[D.tab]();
@@ -685,9 +685,9 @@ function wireCat() {
   });
 
   app.querySelectorAll('[data-simedit]').forEach(b => b.onclick = () => {
-    D.simEdit = D.simEdit === b.dataset.simedit ? null : b.dataset.simedit; D.reviewersFor = null; render(); });
+    D.simEdit = D.simEdit === b.dataset.simedit ? null : b.dataset.simedit; D.reviewersFor = null; D.copyFor = null; render(); });
   app.querySelectorAll('[data-rev]').forEach(b => b.onclick = () => {
-    D.reviewersFor = D.reviewersFor === b.dataset.rev ? null : b.dataset.rev; D.simEdit = null; render(); });
+    D.reviewersFor = D.reviewersFor === b.dataset.rev ? null : b.dataset.rev; D.simEdit = null; D.copyFor = null; render(); });
 
   app.querySelectorAll('[data-simsave]').forEach(btn => btn.onclick = async () => {
     const id = btn.dataset.simsave, si = (D.data.sims||[]).find(x => x.id === id);
@@ -980,8 +980,17 @@ function adminRoute() {
     ...PortalNavigation.listState(D.filter,D.page)};
 }
 async function restoreAdmin(params, current) {
-  const tab = ['fac','stu','crs','cat'].includes(params.get('tab')) ? params.get('tab') : 'fac';
+  params = new URLSearchParams(params);
   const faculty = PortalNavigation.id(params,'faculty');
+  const tab = faculty ? 'fac' : ['fac','stu','crs','cat'].includes(params.get('tab')) ? params.get('tab') : 'fac';
+  // A detail screen takes precedence over list panels. Conflicting catalogue
+  // links keep one panel in a stable order; normal clicks select just one.
+  if (faculty) for (const key of ['person','edit','copy','reviewers','invite','add','maintenance']) params.delete(key);
+  if (!['fac','stu'].includes(tab)) params.delete('person');
+  if (tab === 'cat') {
+    const panel = ['edit','copy','reviewers'].find(key => params.get(key));
+    for (const key of ['edit','copy','reviewers']) if (key !== panel) params.delete(key);
+  }
   const data = await api('/api/admin',{action:'overview'});
   const grants = (await api('/api/admin',{action:'sim_access_list'})).grants || [];
   const detail = faculty ? await api('/api/admin',{action:'faculty_detail',facultyId:faculty}) : null;
