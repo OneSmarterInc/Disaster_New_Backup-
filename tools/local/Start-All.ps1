@@ -2,8 +2,9 @@ param([switch]$WithAI)
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $repo
-if ((git branch --show-current) -ne 'feature/local-laptop-setup') {
-    throw 'Run this from feature/local-laptop-setup in Disaster_New_Local.'
+$allowedBranches = @('feature/local-laptop-setup', 'integration/production-local-validation')
+if ((git branch --show-current) -notin $allowedBranches) {
+    throw 'Run this from feature/local-laptop-setup or integration/production-local-validation in the backup repository.'
 }
 $remote = git remote get-url origin
 if ($remote -notmatch 'OneSmarterInc/Disaster_New_Backup-(\.git)?$') {
