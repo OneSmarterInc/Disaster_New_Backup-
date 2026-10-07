@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Your account — Flexee RapidSims</title>
 <link rel="stylesheet" href="/app.css">
+<script src="/portal-navigation.js"></script>
 </head>
 <body>
 <div class="bar">
@@ -25,7 +26,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;
 async function api(path, payload) {
   const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
@@ -34,11 +35,11 @@ document.getElementById('out').onclick = async () => { await api('/api/auth', { 
   let me;
   try {
     me = (await api('/api/auth', { action:'me' })).user;
-    if (!me) { location.href = '/signin.html'; return; }
-  } catch (e) { location.href = '/signin.html'; return; }
+    if (!me) { PortalNavigation.signin(); return; }
+  } catch (e) { PortalNavigation.failure(app, e, () => location.reload()); return; }
   const home = me.role === 'admin' ? '/admin.html' : me.role === 'faculty' ? '/faculty.html' : '/student.html';
   document.getElementById('who').textContent = me.name;
-  document.getElementById('back').onclick = () => location.href = home;
+  document.getElementById('back').onclick = () => location.href = PortalNavigation.safeReturn(new URLSearchParams(location.search).get('next'), me.role);
 
   const roleWord = me.role === 'admin' ? 'Administrator' : me.role === 'faculty' ? 'Facilitator' : 'Student';
 

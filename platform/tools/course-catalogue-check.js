@@ -76,14 +76,17 @@ async function client() {
       }
     }
     get innerHTML() { return this.html || ''; }
+    setAttribute() {}
+    removeAttribute() {}
     querySelectorAll() { return []; }
     querySelector() { return null; }
   }
   const html=fs.readFileSync(path.join(root,'public/faculty.html'),'utf8');
   for (const m of html.matchAll(/\bid="(app|out|who|adminlink)"/g)) elements.set(m[1],new Element(m[1]));
   const ctx=vm.createContext({ console, URLSearchParams, Set, Date, RapidSimsIdentity: require('../public/sim-identity.js'),
-    document: { getElementById: id => elements.get(id) || null, querySelectorAll: () => [] },
-    location: { search: '?course=course-a' }, setTimeout: () => {},
+    document: { getElementById: id => elements.get(id) || null, querySelectorAll: () => [], addEventListener(){}, removeEventListener(){}, body:{classList:{remove(){}}} },
+    location: { pathname:'/faculty.html', search: '?course=course-a' }, setTimeout: () => {},
+    window:{addEventListener(){},scrollTo(){},scrollY:0},
     fetch: async (url,opt) => {
       const body=JSON.parse(opt.body); requests.push({ ...body, cache: opt.cache });
       if (failRead && body.action==='course_detail') { failRead=false; throw Error('temporary outage'); }
@@ -92,12 +95,21 @@ async function client() {
       return { ok:r.status<400, status:r.status, json:async()=>JSON.parse(JSON.stringify(r.body)) };
     }
   });
-  let code=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  // Use the real navigation helper with a minimal history adapter. Full history
+  // and browser events are exercised by portal-navigation-browser-check.js.
+  vm.runInContext(`globalThis.history={state:null,replaceState(state,unused,url){this.state=state;location.search=url.includes('?')?'?'+url.split('?')[1]:'';},pushState(state,unused,url){this.replaceState(state,unused,url);}}`,ctx);
+  vm.runInContext(fs.readFileSync(path.join(root,'public/portal-navigation.js'),'utf8'),ctx);
+  vm.runInContext('globalThis.PortalNavigation=window.PortalNavigation',ctx);
+  // Windows checkouts may use CRLF; normalize before matching the boot function.
+  let code=html.match(/<script>([\s\S]*?)<\/script>/)[1].replace(/\r\n?/g, '\n');
   code=code.replace('(async () => {\n  try {\n    const me', 'globalThis.ready=(async () => {\n  try {\n    const me');
-  vm.runInContext(code,ctx); await ctx.ready;
+  vm.runInContext(code,ctx);
+  assert(ctx.ready && typeof ctx.ready.then === 'function', 'Test did not capture portal startup');
+  await ctx.ready;
   return { elements,requests,run:s=>vm.runInContext(s,ctx),click:async id=>{
     const e=elements.get(id);assert(e?.onclick,'Missing button '+id);await e.onclick();
-    for(let i=0;i<20;i++)await Promise.resolve();
+    for(let i=0;i<200;i++)await Promise.resolve();
+    assert(!vm.runInContext('navigation?.restoring',ctx),'Navigation did not settle');
   },html:()=>elements.get('app').innerHTML };
 }
 

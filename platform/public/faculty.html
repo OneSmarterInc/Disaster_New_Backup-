@@ -9,6 +9,7 @@
 <script src="/sim-identity.js"></script>
 <script src="/sim-detail.js"></script>
 <script src="/render-transcript.js?v=2"></script>
+<script src="/portal-navigation.js"></script>
 </head>
 <body class="console">
 <div class="top">
@@ -29,6 +30,7 @@
 </div></div>
 <script>
 const app = document.getElementById('app');
+let navigation = null;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const F = {
@@ -62,9 +64,11 @@ function wirePager() {
 }
 
 async function api(path, payload) {
+  const version = navigation?.version;
   const r = await fetch(path, { method:'POST', cache:'no-store', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (navigation?.version !== version) throw Object.assign(new Error('Navigation changed'), {stale:true});
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 const when = (t) => {
@@ -109,29 +113,35 @@ function acting(btn, working) {
 document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
 
 async function loadHome() {
+  if (navigation) return navigation.go({...facultyRoute(), view:'home', course:null, sim:null, student:null, edit:null, add:null});
   try { F.data = await api('/api/faculty', { action:'overview' }); F.err = null; }
-  catch (e) { F.err = e.message; }
+  catch (e) { if (e.stale) return; F.err = e.message; }
   F.view = 'home'; F.course = null; F.sel.clear(); render();
 }
 async function openCourse(id) {
+  if (navigation) return navigation.go({...facultyRoute(),view:'course',course:id,sim:null,student:null});
   try { F.course = await api('/api/faculty', { action:'course_detail', courseId:id }); F.view = 'course'; F.sel.clear(); F.page.ros = 1; F.err = null; }
-  catch (e) { F.err = e.message; }
+  catch (e) { if (e.stale) return; F.err = e.message; }
   render();
 }
 // Catalogue publication may change while a faculty member keeps a course open.
 // Fetch again when adding, including when every previously visible sim is attached.
 async function refreshSimulationChoices(button) {
   const courseId = F.course.course.id;
+  const version = navigation?.version;
+  const wasOpen = F.addSim;
+  if (navigation && !wasOpen) { F.addSim = true; navigation.record('push'); }
   const done = acting(button, 'Loading…');
   try {
     const fresh = await api('/api/faculty', { action:'course_detail', courseId });
-    if (F.view !== 'course' || F.course?.course.id !== courseId) return;
+    if (F.view !== 'course' || F.course?.course.id !== courseId || navigation?.version !== version) return;
     F.course = fresh;
     F.data.catalogue = fresh.catalogue;
     F.addSim = true;
     F.err = null;
-  } catch (e) {
-    if (F.view !== 'course' || F.course?.course.id !== courseId) return;
+    navigation?.record(wasOpen ? 'replace' : 'push');
+  } catch (e) { if (e.stale) return;
+    if (F.view !== 'course' || F.course?.course.id !== courseId || navigation?.version !== version) return;
     F.err = 'Unable to refresh simulations: ' + e.message;
     F.addSim = false;
   } finally { done(); }
@@ -139,17 +149,20 @@ async function refreshSimulationChoices(button) {
 }
 
 async function openProgress(courseId, simId) {
+  if (navigation) return navigation.go({...facultyRoute(),view:'played',course:courseId,sim:simId,student:null,edit:null,add:null});
   try { F.progress = await api('/api/faculty', { action:'sim_progress', courseId, simId }); F.view = 'played'; F.page.played = 1; F.err = null; }
-  catch (e) { F.err = e.message; }
+  catch (e) { if (e.stale) return; F.err = e.message; }
   render();
 }
 async function openStudentResults(courseId, studentId) {
+  if (navigation) return navigation.go({...facultyRoute(),view:'student-results',course:courseId,student:studentId,sim:null,edit:null,add:null});
   try { F.studentResults = await api('/api/faculty', { action:'student_results', courseId, studentId }); F.view = 'student-results'; F.page.studentResults = 1; F.err = null; }
-  catch (e) { F.err = e.message; }
+  catch (e) { if (e.stale) return; F.err = e.message; }
   render();
 }
 
 function render() {
+  navigation?.record();
   if (!F.data) { app.innerHTML = F.err
     ? `<div class="crumb" style="margin-top:34px">Teaching</div><div class="head"><div><h1>Something went wrong</h1><p class="hint">${esc(F.err)}</p></div></div>`
     : '<div class="empty" style="margin-top:40px">Loading…</div>'; return; }
@@ -231,7 +244,7 @@ function wireCourses() {
     const done = acting(go, 'Creating…');
     try { await api('/api/faculty', { action:'create_course', title:t, term: document.getElementById('c_m').value });
       done(); F.newCourse = false; loadHome(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   app.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openCourse(b.dataset.open));
 }
@@ -243,7 +256,7 @@ function simsTab() {
       // An empty list and a list that failed to arrive are different things, and
       // showing the first when it was the second is how somebody concludes a
       // simulation has vanished.
-      .catch(e => { F.simsOverview = []; F.simsFailed = e.message; render(); });
+      .catch(e => { if (e.stale) return; F.simsOverview = []; F.simsFailed = e.message; render(); });
     return '<div class="panel"><div class="empty">Loading…</div></div>';
   }
   const inUse = F.simsOverview;
@@ -316,7 +329,7 @@ function wireSims() {
   app.querySelectorAll('[data-prev]').forEach(b => b.onclick = async () => {
     const done = acting(b, 'Starting…');
     try { await api('/api/faculty', { action:'start_preview', simId:b.dataset.prev }); done(); F.simsOverview = null; loadHome(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
 }
 
@@ -474,19 +487,19 @@ function renderCourse() {
     try { await api('/api/faculty', { action:'update_course', courseId:course.id,
         title: document.getElementById('e_t').value, term: document.getElementById('e_m').value });
       done(); F.editCourse = false; openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   document.getElementById('ca').onclick = async () => {
     if (!confirm('Archive this course?\n\nIt disappears from your list and nobody new can join, but nothing is deleted and the record of who played what survives.')) return;
     const b = document.getElementById('ca'); const done = acting(b, 'Archiving…');
     try { await api('/api/faculty', { action:'update_course', courseId:course.id, archived:true }); done(); loadHome(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   document.getElementById('cd').onclick = async () => {
     if (!confirm('Delete this course?\n\nEveryone enrolled loses it. If students have already played, archive it instead — that keeps the record.')) return;
     const b = document.getElementById('cd'); const done = acting(b, 'Deleting…');
     try { await api('/api/faculty', { action:'delete_course', courseId:course.id }); done(); loadHome(); }
-    catch (e) {
+    catch (e) { if (e.stale) return;
       if (confirm(e.message + '\n\nDelete it anyway?')) {
         await api('/api/faculty', { action:'delete_course', courseId:course.id, force:true }); done(); loadHome();
       } else done('Kept','bad');
@@ -505,7 +518,7 @@ function renderCourse() {
     try { await api('/api/faculty', { action:'add_sim', courseId:course.id,
         simId: document.getElementById('a_sim').value, expectedSeats: document.getElementById('a_seats').value });
       done(); F.addSim = false; openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   document.getElementById('ecopy').onclick = () => {
     const f = document.getElementById('eurl'); f.select(); navigator.clipboard.writeText(f.value);
@@ -519,14 +532,14 @@ function renderCourse() {
     const done = acting(b, 'Saving…');
     try { await api('/api/faculty', { action:'add_sim', courseId:course.id, simId:b.dataset.seats, expectedSeats:v });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   app.querySelectorAll('[data-rmsim]').forEach(b => b.onclick = async () => {
     if (!confirm('Remove this simulation from the course?\n\nStudents lose access to it; nothing they have already done is deleted.')) return;
     const done = acting(b, 'Removing…');
     try { await api('/api/faculty', { action:'remove_sim', courseId:course.id, simId:b.dataset.rmsim });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   app.querySelectorAll('[data-en]').forEach(cb => cb.onchange = () => {
     cb.checked ? F.sel.add(cb.dataset.en) : F.sel.delete(cb.dataset.en); render(); });
@@ -536,7 +549,7 @@ function renderCourse() {
     try { await api('/api/faculty', { action:'set_paid', courseId:course.id, all:true, paid:true,
         note: document.getElementById('p_note').value });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   const pSel = document.getElementById('p_sel');
   if (pSel) pSel.onclick = async () => {
@@ -544,28 +557,28 @@ function renderCourse() {
     try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:true,
         enrolmentIds:[...F.sel], note: document.getElementById('p_note').value });
       done(); F.sel.clear(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   app.querySelectorAll('[data-give]').forEach(b => b.onclick = async () => {
     const done = acting(b, 'Giving…');
     try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:true,
         enrolmentIds:[b.dataset.give], note: document.getElementById('p_note').value });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   app.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async () => {
     if (!confirm('Take access away? If they have already played, that does not undo it.')) return;
     const done = acting(b, 'Removing…');
     try { await api('/api/faculty', { action:'set_paid', courseId:course.id, paid:false, enrolmentIds:[b.dataset.revoke] });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   app.querySelectorAll('[data-drop]').forEach(b => b.onclick = async () => {
     const done = acting(b, 'Saving…');
     try { await api('/api/faculty', { action:'set_dropped', courseId:course.id,
         enrolmentId:b.dataset.drop, dropped: b.dataset.now !== '1' });
       done(); openCourse(course.id); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   wireCommon();
 }
@@ -718,7 +731,10 @@ function wireLook() {
     F.looking = b.dataset.look; drawLook();
   });
 }
+let closeLookHandler = null;
 function drawLook() {
+  if (closeLookHandler) document.removeEventListener('keydown', closeLookHandler);
+  navigation?.record();
   const old = document.getElementById('lookSheet');
   if (old) old.remove();
   document.body.classList.remove('sheet-open');
@@ -741,6 +757,7 @@ function drawLook() {
 
   const shut = () => {
     F.looking = null;
+    navigation?.record();
     document.removeEventListener('keydown', onKey);
     document.body.classList.remove('sheet-open');
     sheet.remove();
@@ -748,6 +765,7 @@ function drawLook() {
   const onKey = (e) => { if (e.key === 'Escape') shut(); };
   document.getElementById('lookClose').onclick = shut;
   sheet.onclick = (e) => { if (e.target === sheet) shut(); };
+  closeLookHandler = onKey;
   document.addEventListener('keydown', onKey);
   document.getElementById('lookClose').focus();
 }
@@ -769,20 +787,53 @@ function wireCommon() {
   wirePager();
 }
 
+
+function facultyRoute() {
+  const course = F.view === 'played' ? F.progress?.course.id
+    : F.view === 'student-results' ? F.studentResults?.course.id : F.course?.course.id;
+  return {view:F.view,tab:F.tab,course:F.view==='home'?null:course,
+    sim:F.view==='played'?F.progress?.sim.id:null,
+    student:F.view==='student-results'?F.studentResults?.student.id:null,
+    look:F.looking,new:F.view==='home'&&F.newCourse?'1':null,edit:F.view==='course'&&F.editCourse?'1':null,add:F.view==='course'&&F.addSim?'1':null,
+    ...PortalNavigation.listState(F.filter,F.page)};
+}
+async function restoreFaculty(params,current) {
+  const courseId=PortalNavigation.id(params,'course'), simId=PortalNavigation.id(params,'sim'), studentId=PortalNavigation.id(params,'student');
+  const view=['course','played','student-results'].includes(params.get('view')) ? params.get('view') : courseId ? 'course' : 'home';
+  if (view!=='home' && (!courseId || (view==='played' && !simId) || (view==='student-results' && !studentId))) {
+    throw Object.assign(new Error('Incomplete link'),{status:404});
+  }
+  const data=await api('/api/faculty',{action:'overview'});
+  const tab=params.get('tab')==='sim'?'sim':'crs';
+  const simsOverview=tab==='sim' ? (await api('/api/faculty',{action:'sims_overview'})).sims || [] : null;
+  const course=view!=='home'?await api('/api/faculty',{action:'course_detail',courseId}):null;
+  const progress=view==='played'?await api('/api/faculty',{action:'sim_progress',courseId,simId}):null;
+  const studentResults=view==='student-results'?await api('/api/faculty',{action:'student_results',courseId,studentId}):null;
+  if(!current())return;
+  Object.assign(F,{data,tab,view,course,progress,studentResults,simsOverview,err:null,
+    ...PortalNavigation.lists(params,['crs','sim','ros','studentResults','played']),
+    newCourse:view==='home' && params.get('new')==='1',editCourse:view==='course' && params.get('edit')==='1',
+    addSim:view==='course' && params.get('add')==='1',looking:PortalNavigation.id(params,'look') || null,help:null});
+  F.sel.clear();
+}
+
 (async () => {
   try {
     const me = await api('/api/auth', { action:'me' });
-    if (!me.user) { location.href = '/signin.html'; return; }
+    if (!me.user) { PortalNavigation.signin(); return; }
     if (me.user.role === 'student') { location.href = '/student.html'; return; }
     F.me = me.user;
     document.getElementById('who').textContent = me.user.name +
       (me.user.role === 'admin' ? ' · administrator, teaching view' : ' · facilitator');
     if (me.user.role === 'admin') document.getElementById('adminlink').style.display = '';
-  } catch (e) { location.href = '/signin.html'; return; }
-  const requestedCourse = new URLSearchParams(location.search).get('course');
-  // render() needs the overview before it can display any course.
-  await loadHome();
-  if (requestedCourse && F.data) await openCourse(requestedCourse);
+  } catch (e) { if (e.stale) return; PortalNavigation.failure(app, e, () => location.reload()); return; }
+  navigation = PortalNavigation.create({
+    root:app, read:facultyRoute, restore:restoreFaculty,
+    beforeRestore:()=>{document.getElementById('lookSheet')?.remove();document.body.classList.remove('sheet-open');},
+    render:()=>{render();drawLook();}, search:()=>F.q, setSearch:q=>{F.q=q;},
+    navigation:'[data-tab],[data-open],#back,#backCourse,[data-prog],[data-student-results],[data-f],[data-page-key],[data-look],#lookClose,#nc,#ce,#as'
+  });
+  await navigation.start(F.me.id);
 })();
 </script>
 </body>

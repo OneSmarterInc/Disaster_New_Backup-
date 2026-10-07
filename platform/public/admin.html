@@ -6,6 +6,7 @@
 <title>Administration — Flexee RapidSims</title>
 <link rel="stylesheet" href="/app.css">
 <script src="/sim-identity.js"></script>
+<script src="/portal-navigation.js"></script>
 </head>
 <body class="console">
 <div class="top">
@@ -25,6 +26,7 @@
 </div></div>
 <script>
 const app = document.getElementById('app');
+let navigation = null;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const D = {
@@ -36,9 +38,11 @@ const D = {
 };
 
 async function api(path, payload) {
+  const version = navigation?.version;
   const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (navigation?.version !== version) throw Object.assign(new Error('Navigation changed'), {stale:true});
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 
@@ -108,15 +112,17 @@ const matches = (key, fields) => {
 document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
 
 async function load() {
+  if (navigation?.failed) return navigation.restore();
   try {
     D.data = await api('/api/admin', { action:'overview' });
     D.grants = (await api('/api/admin', { action:'sim_access_list' })).grants || [];
     D.err = null;
-  } catch (e) { D.err = e.message; }
+  } catch (e) { if (e.stale) return; D.err = e.message; }
   render();
 }
 
 function render() {
+  navigation?.record();
   if (!D.data) return renderBlocked();
   if (D.detail) return renderDetail();
   const t = D.data.totals || {};
@@ -165,7 +171,7 @@ function renderBlocked() {
     try { const d = await api('/api/admin', { action:'migrate' });
       document.getElementById('fixout').innerHTML = `<div class="hint" style="color:var(--green)">Up to date — ${d.statements} statements checked.</div>`;
       D.err = null; load(); }
-    catch (e) { document.getElementById('fixout').innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+    catch (e) { if (e.stale) return; document.getElementById('fixout').innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
   };
   const rt = document.getElementById('retry');
   if (rt) rt.onclick = () => { D.err = null; load(); };
@@ -267,7 +273,7 @@ function wireFac() {
         institution: document.getElementById('ii').value });
       D.lastInvite = { name, email, inviteUrl: d.inviteUrl, expiresAt: d.expiresAt };
       done(); await load();
-    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+    } catch (e) { if (e.stale) return; out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
   };
   const ic = document.getElementById('icopy');
   if (ic) ic.onclick = () => { const f = document.getElementById('iurl'); f.select();
@@ -276,9 +282,10 @@ function wireFac() {
   if (idn) idn.onclick = () => { D.lastInvite = null; render(); };
 
   app.querySelectorAll('[data-open]').forEach(b => b.onclick = async () => {
+    if (navigation) return navigation.go({...adminRoute(), faculty:b.dataset.open});
     const done = acting(b, 'Opening…');
     try { D.detail = await api('/api/admin', { action:'faculty_detail', facultyId: b.dataset.open }); done(); render(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   app.querySelectorAll('[data-prow]').forEach(btn => btn.onclick = async () => {
     const fid = btn.dataset.prow, person = D.data.faculty.find(x => x.id === fid);
@@ -292,7 +299,7 @@ function wireFac() {
         D.link = { for:fid, url:d.inviteUrl, note:'A fresh invitation. It works once and replaces any earlier link.' };
       }
       D.personEdit = null; done(); render();
-    } catch (e) { done('Failed','bad'); }
+    } catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
   const rc = document.getElementById('rowcopy');
   if (rc) rc.onclick = () => { const f = document.getElementById('rowurl'); f.select();
@@ -356,7 +363,7 @@ async function loadStudents() {
   // Distinguish "nobody yet" from "could not ask". Rendering the first when it
   // was the second is how somebody concludes their students have disappeared.
   try { D.students = (await api('/api/admin', { action:'all_students' })).students; D.studentsFailed = null; }
-  catch (e) { D.students = []; D.studentsFailed = e.message; }
+  catch (e) { if (e.stale) return; D.students = []; D.studentsFailed = e.message; }
   render();
 }
 function wireStu() {
@@ -367,7 +374,7 @@ function wireStu() {
     const done = acting(btn, 'Deleting…');
     try { await api('/api/admin', { action:'delete_student', userId: btn.dataset.sdel });
       done(); D.students = null; await load(); }
-    catch (e) {
+    catch (e) { if (e.stale) return;
       if (confirm(e.message + '\n\nDelete anyway?')) {
         await api('/api/admin', { action:'delete_student', userId: btn.dataset.sdel, force:true });
         done(); D.students = null; await load();
@@ -413,7 +420,7 @@ function crsTab() {
 }
 async function loadCourses() {
   try { D.allCourses = (await api('/api/admin', { action:'all_courses' })).courses; D.coursesFailed = null; }
-  catch (e) { D.allCourses = []; D.coursesFailed = e.message; }
+  catch (e) { if (e.stale) return; D.allCourses = []; D.coursesFailed = e.message; }
   render();
 }
 function wireCrs() {
@@ -652,7 +659,7 @@ function wireCat() {
     if (D.copyFor && !D.copyFields) {
       const done = acting(b, 'Opening…');
       try { D.copyFields = (await api('/api/admin', { action:'catalogue_fields' })).fields; done(); }
-      catch (e) { D.copyFields = []; done('Failed', 'bad'); }
+      catch (e) { if (e.stale) return; D.copyFields = []; done('Failed', 'bad'); }
     }
     render();
   });
@@ -662,7 +669,7 @@ function wireCat() {
     const done = acting(btn, 'Asking it…');
     try { await api('/api/admin', { action:'reset_detail', id: btn.dataset.copyreset });
       done(); D.copyFor = null; load(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
 
   app.querySelectorAll('[data-copysave]').forEach(btn => btn.onclick = async () => {
@@ -674,7 +681,7 @@ function wireCat() {
     try {
       await api('/api/admin', payload);
       done('Saved'); D.copyFor = null; load();
-    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+    } catch (e) { if (e.stale) return; if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
   });
 
   app.querySelectorAll('[data-simedit]').forEach(b => b.onclick = () => {
@@ -693,7 +700,7 @@ function wireCat() {
         tagline:v('tagline'), description:v('description'), minutes:v('minutes'),
         launchUrl: v('launchUrl') || si.launch_url, published: !!si.published });
       done('Saved'); D.simEdit = null; load();
-    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+    } catch (e) { if (e.stale) return; if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
   });
 
   app.querySelectorAll('[data-pub]').forEach(btn => btn.onclick = async () => {
@@ -704,7 +711,7 @@ function wireCat() {
         tagline:si.tagline, description:si.description, launchUrl:si.launch_url,
         minutes:si.minutes, published: btn.dataset.now !== '1' });
       done(); load();
-    } catch (e) { done('Failed','bad'); }
+    } catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
 
   app.querySelectorAll('[data-grant]').forEach(btn => btn.onclick = async () => {
@@ -727,7 +734,7 @@ function wireCat() {
         'Thanks for looking at it.'
       ].join('\n') };
       done('Granted'); load();
-    } catch (e) {
+    } catch (e) { if (e.stale) return;
       const out = app.querySelector(`[data-grantout="${sid}"]`);
       if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`;
       done('Failed','bad');
@@ -741,14 +748,14 @@ function wireCat() {
   app.querySelectorAll('[data-revgrant]').forEach(btn => btn.onclick = async () => {
     const done = acting(btn, 'Revoking…');
     try { await api('/api/admin', { action:'revoke_sim_access', grantId: btn.dataset.revgrant }); done(); load(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   });
 
   app.querySelectorAll('[data-simdel]').forEach(btn => btn.onclick = async () => {
     if (!confirm('Delete this simulation from the catalogue? It will reappear, unpublished, the next time that deployment is used.')) return;
     const done = acting(btn, 'Deleting…');
     try { await api('/api/admin', { action:'delete_sim', simId: btn.dataset.simdel }); done(); load(); }
-    catch (e) {
+    catch (e) { if (e.stale) return;
       if (confirm(e.message + '\n\nDelete it anyway?')) {
         await api('/api/admin', { action:'delete_sim', simId: btn.dataset.simdel, force:true }); done(); load();
       } else done('Kept','bad');
@@ -774,7 +781,7 @@ function wireCat() {
         <div style="margin-top:8px">Open it below to give it a title and description, then publish it when you are ready.</div>
       </div>`;
       done('Added'); D.addSim = false; load();
-    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not found','bad'); }
+    } catch (e) { if (e.stale) return; out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not found','bad'); }
   };
 
   const ck = document.getElementById('chk');
@@ -782,7 +789,7 @@ function wireCat() {
     const done = acting(ck, 'Checking…');
     try { const d = await api('/api/admin', { action:'refresh_sims' });
       D.checkOut = d.results; D.ourBuild = d.ourBuild; D.addSim = false; done(); render(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   const cd = document.getElementById('chkdone');
   if (cd) cd.onclick = () => { D.checkOut = null; render(); };
@@ -795,7 +802,7 @@ function wireCat() {
     const done = acting(mb, 'Updating…');
     try { const d = await api('/api/admin', { action:'migrate' });
       out.innerHTML = `<div class="hint" style="color:var(--green)">Up to date — ${d.statements} statements checked.</div>`; done(); }
-    catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+    catch (e) { if (e.stale) return; out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
   };
   const rg = document.getElementById('rst_go');
   if (rg) rg.onclick = async () => {
@@ -805,7 +812,7 @@ function wireCat() {
       await api('/api/admin', { action:'reset_test_data', confirm: document.getElementById('rst_confirm').value });
       out.innerHTML = '<div class="hint" style="color:var(--green)">Done. Everything except administrators and the catalogue is gone.</div>';
       D.detail = null; D.lastInvite = null; D.allCourses = null; D.students = null; done(); load();
-    } catch (e) { out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+    } catch (e) { if (e.stale) return; out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
   };
 }
 
@@ -879,7 +886,7 @@ function renderDetail() {
       document.getElementById('rurl').select(); navigator.clipboard.writeText(url);
       flash(document.getElementById('rcopy'), 'Copied'); };
   };
-  document.getElementById('back').onclick = () => { D.detail = null; D.q.det = ''; render(); };
+  document.getElementById('back').onclick = () => { D.detail = null; render(); };
   document.getElementById('rst').onclick = async () => {
     const b = document.getElementById('rst'); const done = acting(b, 'Creating…');
     try {
@@ -891,7 +898,7 @@ function renderDetail() {
         showLink(`Send this to ${person.name}.`, d.inviteUrl, 'A fresh invitation. It works once; any earlier link is replaced.');
       }
       done();
-    } catch (e) { out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
+    } catch (e) { if (e.stale) return; out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Failed','bad'); }
   };
   const rev = document.getElementById('rev');
   if (rev) rev.onclick = async () => {
@@ -899,14 +906,14 @@ function renderDetail() {
     const done = acting(rev, 'Cancelling…');
     try { await api('/api/admin', { action:'revoke_invites', facultyId: person.id });
       out().innerHTML = '<div class="hint" style="color:var(--green)">Invitation cancelled. Any link already sent is now dead.</div>'; done(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   document.getElementById('tog').onclick = async () => {
     const b = document.getElementById('tog'); const done = acting(b, 'Saving…');
     try { await api('/api/admin', { action:'set_faculty_disabled', facultyId: person.id, disabled: !person.disabled });
       D.detail = await api('/api/admin', { action:'faculty_detail', facultyId: person.id });
       done(); await load(); }
-    catch (e) { done('Failed','bad'); }
+    catch (e) { if (e.stale) return; done('Failed','bad'); }
   };
   const del = document.getElementById('del');
   if (del) del.onclick = async () => {
@@ -914,7 +921,7 @@ function renderDetail() {
     const done = acting(del, 'Deleting…');
     try { await api('/api/admin', { action:'delete_faculty', facultyId: person.id });
       done(); D.detail = null; await load(); }
-    catch (e) { out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Refused','bad'); }
+    catch (e) { if (e.stale) return; out().innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Refused','bad'); }
   };
   wireCommon();
 }
@@ -931,14 +938,14 @@ function wirePerson() {
     try {
       await api('/api/admin', { action:'update_person', userId:uid, name:v('name'), email:v('email'), institution:v('institution') });
       done('Saved'); D.personEdit = null; D.students = null; await load();
-    } catch (e) { if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
+    } catch (e) { if (e.stale) return; if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`; done('Not saved','bad'); }
   });
   app.querySelectorAll('[data-pdel]').forEach(btn => btn.onclick = async () => {
     if (!confirm('Delete this account? Only possible because they have no courses.')) return;
     const done = acting(btn, 'Deleting…');
     try { await api('/api/admin', { action:'delete_faculty', facultyId: btn.dataset.pdel });
       done(); D.personEdit = null; await load(); }
-    catch (e) {
+    catch (e) { if (e.stale) return;
       const out = app.querySelector(`[data-pout="${btn.dataset.pdel}"]`);
       if (out) out.innerHTML = `<div class="hint" style="color:var(--rose)">${esc(e.message)}</div>`;
       done('Refused','bad');
@@ -965,14 +972,56 @@ function wireCommon() {
     const [k, n] = b.dataset.page.split(':'); D.page[k] = parseInt(n, 10); render(); });
 }
 
+
+function adminRoute() {
+  return {tab:D.tab, faculty:D.detail?.person.id,
+    person:['fac','stu'].includes(D.tab)?D.personEdit:null, edit:D.tab==='cat'?D.simEdit:null, reviewers:D.tab==='cat'?D.reviewersFor:null, copy:D.tab==='cat'?D.copyFor:null,
+    invite:D.tab==='fac' && D.invite ? '1' : null, add:D.tab==='cat' && D.addSim ? '1' : null, maintenance:D.tab==='cat' && D.maint ? '1' : null,
+    ...PortalNavigation.listState(D.filter,D.page)};
+}
+async function restoreAdmin(params, current) {
+  const tab = ['fac','stu','crs','cat'].includes(params.get('tab')) ? params.get('tab') : 'fac';
+  const faculty = PortalNavigation.id(params,'faculty');
+  const data = await api('/api/admin',{action:'overview'});
+  const grants = (await api('/api/admin',{action:'sim_access_list'})).grants || [];
+  const detail = faculty ? await api('/api/admin',{action:'faculty_detail',facultyId:faculty}) : null;
+  const students = tab === 'stu' ? (await api('/api/admin',{action:'all_students'})).students : null;
+  const allCourses = tab === 'crs' ? (await api('/api/admin',{action:'all_courses'})).courses : null;
+  const copy = tab === 'cat' ? PortalNavigation.id(params,'copy') : '';
+  const copyFields = copy ? (await api('/api/admin',{action:'catalogue_fields'})).fields : null;
+  if (!current()) return;
+  const person=PortalNavigation.id(params,'person');
+  const simIds=['edit','reviewers','copy'].map(key=>PortalNavigation.id(params,key)).filter(Boolean);
+  if ((tab==='cat' && simIds.some(id=>!data.sims.some(sim=>sim.id===id))) ||
+      (person && ['fac','stu'].includes(tab) && !(tab==='stu'?students:data.faculty).some(row=>row.id===person)))
+    throw Object.assign(new Error('Record unavailable'),{status:404});
+  const keys=['fac','stu','crs','cat',...(detail?.courses || []).map(c=>'det_'+c.id)];
+  Object.assign(D, {tab,data,grants,detail,students,allCourses,copyFields,err:null,
+    ...PortalNavigation.lists(params,keys),
+    personEdit:PortalNavigation.id(params,'person') || null,
+    simEdit:tab==='cat' ? PortalNavigation.id(params,'edit') || null : null,
+    reviewersFor:tab==='cat' ? PortalNavigation.id(params,'reviewers') || null : null,
+    copyFor:copy || null, invite:tab==='fac' && params.get('invite')==='1',
+    addSim:tab==='cat' && params.get('add')==='1', maint:tab==='cat' && params.get('maintenance')==='1',
+    link:null,lastInvite:null,grantSent:null,checkOut:null,help:null});
+}
+
 (async () => {
+  let user;
   try {
     const me = await api('/api/auth', { action:'me' });
-    if (!me.user) { location.href = '/signin.html'; return; }
+    if (!me.user) { PortalNavigation.signin(); return; }
     if (me.user.role !== 'admin') { location.href = me.user.role === 'faculty' ? '/faculty.html' : '/student.html'; return; }
+    user = me.user;
     document.getElementById('who').textContent = me.user.name + ' · administrator';
-  } catch (e) { location.href = '/signin.html'; return; }
-  load();
+  } catch (e) { if (e.stale) return; PortalNavigation.failure(app, e, () => location.reload()); return; }
+  navigation = PortalNavigation.create({
+    root:app, read:adminRoute, restore:restoreAdmin, render,
+    onError:e=>{if(!D.data && e.status!==403 && e.status!==404){D.err=e.message;renderBlocked();return true;}return false;},
+    search:()=>D.q, setSearch:q=>{D.q=q;},
+    navigation:'[data-tab],[data-open],#back,[data-f],[data-page],[data-pedit],[data-simedit],[data-rev],[data-copy],#inv,#addsim,#mt'
+  });
+  await navigation.start(user.id);
 })();
 </script>
 </body>

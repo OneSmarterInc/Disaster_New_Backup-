@@ -69,6 +69,7 @@
   }
 </style>
 <script src="/sim-identity.js"></script>
+<script src="/portal-navigation.js"></script>
 </head>
 <body>
 <div class="top">
@@ -88,15 +89,18 @@
 </div></div>
 <script>
 const app = document.getElementById('app');
+let navigation = null;
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dot = (k, l) => `<span class="st ${k}">${esc(l)}</span>`;
 const when = t => t ? new Date(t).toLocaleDateString(undefined, { day:'numeric', month:'short' }) : '';
 const mins = s => s ? Math.round(s/60) + ' minutes' : null;
 
 async function api(path, payload) {
+  const version = navigation?.version;
   const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   const d = await r.json().catch(() => ({}));
-  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; throw e; }
+  if (navigation?.version !== version) throw Object.assign(new Error('Navigation changed'), {stale:true});
+  if (!r.ok) { const e = new Error(d.message || d.error || 'HTTP ' + r.status); e.body = d; e.status = r.status; if (r.status === 401 && payload.action !== 'signin') PortalNavigation.signin(); throw e; }
   return d;
 }
 document.getElementById('out').onclick = async () => { await api('/api/auth', { action:'signout' }); location.href = '/'; };
@@ -108,6 +112,7 @@ let CURRENT = null;
 const STUDENT_PAGE_SIZE = 8;
 
 function applyStudentView() {
+  navigation?.record();
   const cards = [...app.querySelectorAll('[data-student-card]')];
   if (!cards.length) return;
   const q = SV.q.trim().toLowerCase();
@@ -144,10 +149,11 @@ function friendlyLabel(k){
 }
 function bandCopy(b){return ({strong:'The architecture reached the strongest authored outcome for this stage.',pilot:'The architecture supports a credible pilot, but not yet a full capability.',middle:'The result landed in the middle path: workable, but with visible constraints.',weak:'The architecture left an important capability gap exposed.'})[b]||''}
 function renderStudentResult(){
+  navigation?.record();
   if(!CURRENT||!SV.result)return;
   const {courseId,simId}=SV.result;
   const c=CURRENT.courses.find(x=>x.id===courseId), x=CURRENT.sims.find(y=>y.id===simId&&y.course_id===courseId);
-  if(!c||!x){SV.result=null;LAST='';draw();return}
+  if(!c||!x){PortalNavigation.failure(app,{status:404},()=>navigation.restore(),'/student.html');return}
   const m=x.metrics||{}, sum=summaryObject(x), publicResult=sum.result||{};
   const y1=sum.year1||null, y2=sum.year2||null, cum=publicResult.cumulative||null;
   const overall=publicResult.overall||bandCopy(sum.year3Band||m.year3Band)||'This run is complete. The simulation recorded your choices and outcome.';
@@ -183,23 +189,27 @@ function renderStudentResult(){
     ${otherMetrics.length&&!events.length?`<div class="section"><span>Recorded result details</span></div><div class="student-result-card"><div class="student-result-metrics">${otherMetrics.map(([k,v])=>`<div class="student-result-metric"><span>${esc(friendlyLabel(k))}</span><b>${esc(typeof v==='object'?JSON.stringify(v):v)}</b></div>`).join('')}</div></div>`:''}
     <div class="actions" style="margin-top:24px"><button class="btn" id="resultHome">Back to my courses</button><a class="btn pri" href="/api/launch?sim=${encodeURIComponent(x.id)}&course=${encodeURIComponent(c.id)}">Play again</a></div>
   </div>`;
-  const back=()=>{SV.result=null;LAST='';draw()};
+  const back=()=>{if(navigation)return navigation.go({...studentRoute(),course:null,sim:null});SV.result=null;LAST='';draw()};
   document.getElementById('resultBack').onclick=e=>{e.preventDefault();back()};
   document.getElementById('resultHome').onclick=back;
 }
-function openStudentResult(courseId,simId){SV.result={courseId,simId};renderStudentResult()}
+function openStudentResult(courseId,simId){if(navigation)return navigation.go({...studentRoute(),course:courseId,sim:simId});SV.result={courseId,simId};renderStudentResult()}
 function wireStudentView() {
   const search = document.getElementById('studentSearch');
   if (search) { search.value = SV.q; search.oninput = () => { SV.q = search.value; SV.page = 1; applyStudentView(); }; }
   app.querySelectorAll('[data-student-filter]').forEach(b => b.onclick = () => { SV.filter = b.dataset.studentFilter; SV.page = 1; applyStudentView(); });
   applyStudentView();
 }
-async function draw() {
+async function draw(provided) {
+  if (navigation?.restoring && !provided) return;
+  const version = navigation?.version;
   let d;
-  try { d = await api('/api/student', { action:'overview' }); FAILED = 0; }
-  catch (e) {
+  try { d = provided || await api('/api/student', { action:'overview' }); FAILED = 0; }
+  catch (e) { if (e.stale) return;
     // A blank page and a page that failed to load look identical, and the
     // second one leaves somebody staring at nothing with no way forward.
+    if(navigation?.restoring || navigation?.version !== version)return;
+    LAST = '';
     FAILED++;
     if (FAILED === 1) return;   // one blip during polling is not worth a banner
     app.innerHTML = `<div class="note" style="margin-top:30px">
@@ -211,9 +221,11 @@ async function draw() {
     return;
   }
 
+  if (!provided && (navigation?.version !== version || navigation?.failed)) return;
   // Repaint only when something changed, so polling cannot interrupt a click.
-  const print = JSON.stringify(d.courses.map(c => [c.id, c.paid])) +
-                JSON.stringify(d.sims.map(x => [x.id, x.played, x.completed_at]));
+  const print = JSON.stringify(d);
+  if (navigation?.restoring && !provided) return;
+  CURRENT=d;
   if (print === LAST) return;
   LAST = print;
 
@@ -299,18 +311,40 @@ async function draw() {
     j.disabled = true; j.textContent = 'Joining…';
     try { await api('/api/student', { action:'enrol', joinCode: document.getElementById('cc').value });
       j.textContent = 'Joined'; LAST = ''; draw(); }
-    catch (e) { document.getElementById('err').textContent = e.message; j.disabled = false; j.textContent = was; }
+    catch (e) { if (e.stale) return; document.getElementById('err').textContent = e.message; j.disabled = false; j.textContent = was; }
   };
 }
 
+
+function studentRoute(){return {course:SV.result?.courseId,sim:SV.result?.simId,
+  filter:SV.filter==='All'?null:SV.filter,page:SV.page>1?SV.page:null};}
+async function restoreStudent(params,current){
+  const data=await api('/api/student',{action:'overview'});
+  if(!current())return;
+  const courseId=PortalNavigation.id(params,'course'),simId=PortalNavigation.id(params,'sim');
+  if((courseId || simId) && (!data.courses.some(c=>c.id===courseId) || !data.sims.some(s=>s.id===simId&&s.course_id===courseId)))
+    throw Object.assign(new Error('Result unavailable'),{status:404});
+  SV.result=courseId&&simId?{courseId,simId}:null;
+  SV.filter=['All','Finished','To do'].includes(params.get('filter'))?params.get('filter'):'All';
+  SV.page=Math.min(100000,Math.max(1,parseInt(params.get('page'),10)||1));
+  CURRENT=data;LAST='';FAILED=0;
+}
+
 (async () => {
+  let user;
   try {
     const me = await api('/api/auth', { action:'me' });
-    if (!me.user) { location.href = '/signin.html'; return; }
+    if (!me.user) { PortalNavigation.signin(); return; }
     if (me.user.role !== 'student') { location.href = me.user.role === 'admin' ? '/admin.html' : '/faculty.html'; return; }
+    user = me.user;
     document.getElementById('who').textContent = me.user.name;
-  } catch (e) { location.href = '/signin.html'; return; }
-  await draw();
+  } catch (e) { if (e.stale) return; PortalNavigation.failure(app, e, () => location.reload()); return; }
+  navigation = PortalNavigation.create({
+    root:app,read:studentRoute,restore:restoreStudent,render:()=>draw(CURRENT),
+    search:()=>({student:SV.q}),setSearch:q=>{SV.q=q.student || '';},
+    navigation:'[data-student-filter],#sprev,#snext,[data-view-result],#resultBack,#resultHome'
+  });
+  await navigation.start(user.id);
   // An instructor releases access while a student is already looking at this.
   setInterval(draw, 12000);
 })();

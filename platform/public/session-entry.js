@@ -81,7 +81,10 @@
       showError(error);
     } finally { entering = false; }
   }
-  function accountForm(mode = 'signup') {
+  function accountForm(mode = new URLSearchParams(location.search).get('entry') === 'signin' ? 'signin' : 'signup') {
+    const entryUrl = new URL(location.href);
+    entryUrl.searchParams.set('entry', mode);
+    history.replaceState(null, '', entryUrl.pathname + entryUrl.search);
     stopReleaseCheck();
     const signup = mode === 'signup';
     app.innerHTML = heading() + `<p class="lede">${signup ? 'Create your student account to join this session.' : 'Sign in with your existing RapidSims account.'}</p>
@@ -96,7 +99,12 @@
       </form>
       <p>${signup ? 'Already have an account?' : 'New to RapidSims?'} <button class="btn" id="switch-account">${signup ? 'Sign in' : 'Create account'}</button></p>
       <p class="tiny dim">Your instructor controls enrolment and access release. No simulation access code is needed.</p>`;
-    document.getElementById('switch-account').onclick = () => accountForm(signup ? 'signin' : 'signup');
+    document.getElementById('switch-account').onclick = () => {
+      const mode = signup ? 'signin' : 'signup';
+      const next = new URL(location.href); next.searchParams.set('entry', mode);
+      history.pushState(null, '', next.pathname + next.search);
+      accountForm(mode);
+    };
     document.getElementById('account-form').onsubmit = async event => {
       event.preventDefault();
       const btn = document.getElementById('continue'); btn.disabled = true;
@@ -140,6 +148,7 @@
       accountForm();
     } catch (error) { showError(error); }
   }
+  window.addEventListener('popstate', () => { stopReleaseCheck(); start(); });
   window.addEventListener('pagehide', stopReleaseCheck);
   start();
 })();
